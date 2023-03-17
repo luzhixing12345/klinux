@@ -1,3 +1,13 @@
+/*
+ *Copyright (c) 2023 All rights reserved
+ *@description: 定义了a.out可执行文件格式和一些宏
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+
 #ifndef _A_OUT_H
 #define _A_OUT_H
 

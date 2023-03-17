@@ -32,14 +32,12 @@ int sys_lseek(unsigned int fd,off_t offset, int origin)
 		return -EBADF;
 	if (file->f_inode->i_pipe)
 		return -ESPIPE;
-	// SEEK_SET,SEEK_CUR和SEEK_END和依次为0，1和2
 	switch (origin) {
 		case 0:
 			if (offset<0) return -EINVAL;
 			file->f_pos=offset;
 			break;
 		case 1:
-			// 这个时候可以offset可以传负数，但是不能大于当前偏移
 			if (file->f_pos+offset<0) return -EINVAL;
 			file->f_pos += offset;
 			break;
@@ -65,7 +63,6 @@ int sys_read(unsigned int fd,char * buf,int count)
 		return 0;
 	verify_area(buf,count);
 	inode = file->f_inode;
-	// 该文件描述符对应的是一个管道文件，并且是读端则读管道
 	if (inode->i_pipe)
 		return (file->f_mode&1)?read_pipe(inode,buf,count):-EIO;
 	if (S_ISCHR(inode->i_mode))
@@ -73,10 +70,8 @@ int sys_read(unsigned int fd,char * buf,int count)
 	if (S_ISBLK(inode->i_mode))
 		return block_read(inode->i_zone[0],&file->f_pos,buf,count);
 	if (S_ISDIR(inode->i_mode) || S_ISREG(inode->i_mode)) {
-		// 读的长度不能大于剩下的可读长度
 		if (count+file->f_pos > inode->i_size)
 			count = inode->i_size - file->f_pos;
-		// 到底了
 		if (count<=0)
 			return 0;
 		return file_read(inode,file,buf,count);

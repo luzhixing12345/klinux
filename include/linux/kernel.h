@@ -1,4 +1,14 @@
 /*
+ *Copyright (c) 2023 All rights reserved
+ *@description: 内核头文件 含有一些内核常用函数的原型定义
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+
+/*
  * 'kernel.h' contains some often-used function prototypes etc
  */
 void verify_area(void * addr,int count);

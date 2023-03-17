@@ -1,3 +1,13 @@
+/*
+ *Copyright (c) 2023 All rights reserved
+ *@description: 标准定义头文件 定义了NULL 和 offsetof
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+
 #ifndef _STDDEF_H
 #define _STDDEF_H
 

@@ -1,3 +1,13 @@
+/*
+ *Copyright (c) 2023 All rights reserved
+ *@description: 信号头文件 定义信号符号常量 信号结构以及信号操作函数原型
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+
 #ifndef _SIGNAL_H
 #define _SIGNAL_H
 

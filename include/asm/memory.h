@@ -1,3 +1,14 @@
+
+/*
+ *Copyright (c) 2023 All rights reserved
+ *@description: 内存拷贝头文件
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+
 /*
  *  NOTE!!! memcpy(dest,src,n) assumes ds=es=normal data segment. This
  *  goes for all kernel functions (ds=es=kernel space, fs=local data,

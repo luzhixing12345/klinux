@@ -1,3 +1,13 @@
+/*
+ *Copyright (c) 2023 All rights reserved
+ *@description: 文件控制头文件 用于文件及其描述符的操作控制常数符号的定义
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+
 #ifndef _FCNTL_H
 #define _FCNTL_H
 

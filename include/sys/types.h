@@ -1,3 +1,13 @@
+/*
+ *Copyright (c) 2023 All rights reserved
+ *@description: 类型头文件 定义了基本的系统数据类型
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+
 #ifndef _SYS_TYPES_H
 #define _SYS_TYPES_H
 

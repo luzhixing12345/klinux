@@ -1,4 +1,14 @@
 /*
+ *Copyright (c) 2023 All rights reserved
+ *@description: 对各个硬件的异常处理 => asm.s
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+
+/*
  *  linux/kernel/traps.c
  *
  *  (C) 1991  Linus Torvalds
@@ -196,14 +206,12 @@ void trap_init(void)
 	set_trap_gate(11,&segment_not_present);
 	set_trap_gate(12,&stack_segment);
 	set_trap_gate(13,&general_protection);
-	// 缺页和写保护异常处理函数
 	set_trap_gate(14,&page_fault);
 	set_trap_gate(15,&reserved);
 	set_trap_gate(16,&coprocessor_error);
 	for (i=17;i<48;i++)
 		set_trap_gate(i,&reserved);
 	set_trap_gate(45,&irq13);
-	// 允许8259接收中断
 	outb_p(inb_p(0x21)&0xfb,0x21);
 	outb(inb_p(0xA1)&0xdf,0xA1);
 	set_trap_gate(39,&parallel_interrupt);

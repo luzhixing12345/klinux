@@ -1,14 +1,13 @@
 /*
- *  linux/kernel/printk.c
- *
- *  (C) 1991  Linus Torvalds
- */
+ *Copyright (c) 2023 All rights reserved
+ *@description: 内核专用信息显示函数 => printk
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
 
-/*
- * When in kernel-mode, we cannot use printf, as fs is liable to
- * point to 'interesting' things. Make a printf with fs-saving, and
- * all is well.
- */
+
 #include <stdarg.h>
 #include <stddef.h>
 

@@ -1,3 +1,13 @@
+/*
+ *Copyright (c) 2023 All rights reserved
+ *@description: 段操作头文件 定义了有关段寄存器操作的嵌入式汇编函数
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+
 extern inline unsigned char get_fs_byte(const char * addr)
 {
 	unsigned register char _v;

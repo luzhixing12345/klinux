@@ -1,4 +1,14 @@
 /*
+ *Copyright (c) 2023 All rights reserved
+ *@description: 内核使用的时间函数mktime
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+
+/*
  *  linux/kernel/mktime.c
  *
  *  (C) 1991  Linus Torvalds

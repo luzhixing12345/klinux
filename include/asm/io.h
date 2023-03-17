@@ -1,3 +1,13 @@
+/*
+ *Copyright (c) 2023 All rights reserved
+ *@description: io头文件 以宏的嵌入汇编程序形式定义对io端口操作的函数
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+
 #define outb(value,port) \
 __asm__ ("outb %%al,%%dx"::"a" (value),"d" (port))
 

@@ -1,4 +1,14 @@
 /*
+ *Copyright (c) 2023 All rights reserved
+ *@description: 软驱头文件 含有软盘控制器参数的一些定义
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+
+/*
  * This file contains some defines for the floppy disk controller.
  * Various sources. Mostly "IBM Microcomputers: A Programmers
  * Handbook", Sanches and Canton.

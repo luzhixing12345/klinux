@@ -49,11 +49,10 @@ struct hd_i_struct {
 struct hd_i_struct hd_info[] = { HD_TYPE };
 #define NR_HD ((sizeof (hd_info))/(sizeof (struct hd_i_struct)))
 #else
-// 记录每个磁盘的元数据
 struct hd_i_struct hd_info[] = { {0,0,0,0,0,0},{0,0,0,0,0,0} };
 static int NR_HD = 0;
 #endif
-// 记录每块硬盘的开始扇区和结束扇区的值，和该硬盘下每个分区的开始和结束扇区的值，最多四个
+
 static struct hd_struct {
 	long start_sect;
 	long nr_sects;
@@ -81,7 +80,6 @@ int sys_setup(void * BIOS)
 		return -1;
 	callable = 0;
 #ifndef HD_TYPE
-	// 记录硬盘的元信息， 最多支持两个硬盘
 	for (drive=0 ; drive<2 ; drive++) {
 		hd_info[drive].cyl = *(unsigned short *) BIOS;
 		hd_info[drive].head = *(unsigned char *) (2+BIOS);
@@ -89,15 +87,13 @@ int sys_setup(void * BIOS)
 		hd_info[drive].ctl = *(unsigned char *) (8+BIOS);
 		hd_info[drive].lzone = *(unsigned short *) (12+BIOS);
 		hd_info[drive].sect = *(unsigned char *) (14+BIOS);
-		BIOS += 16;// 下一个硬盘数据的地址
+		BIOS += 16;
 	}
-	// 判断硬盘个数
 	if (hd_info[1].cyl)
 		NR_HD=2;
 	else
 		NR_HD=1;
 #endif
-	// 记录每个硬盘的开始扇区和总扇区数
 	for (i=0 ; i<NR_HD ; i++) {
 		hd[i*5].start_sect = 0;
 		hd[i*5].nr_sects = hd_info[i].head*
@@ -125,7 +121,7 @@ int sys_setup(void * BIOS)
 
 		
 	*/
-	// 从cmos中读取信息
+
 	if ((cmos_disks = CMOS_READ(0x12)) & 0xf0)
 		if (cmos_disks & 0x0f)
 			NR_HD = 2;
@@ -137,22 +133,18 @@ int sys_setup(void * BIOS)
 		hd[i*5].start_sect = 0;
 		hd[i*5].nr_sects = 0;
 	}
-	// 读取每块硬盘的第一个扇区，即主引导记录
 	for (drive=0 ; drive<NR_HD ; drive++) {
 		if (!(bh = bread(0x300 + drive*5,0))) {
 			printk("Unable to read partition table of drive %d\n\r",
 				drive);
 			panic("");
 		}
-		// 主引导记录的标记
 		if (bh->b_data[510] != 0x55 || (unsigned char)
 		    bh->b_data[511] != 0xAA) {
 			printk("Bad partition table on drive %d\n\r",drive);
 			panic("");
 		}
-		// 0x1BE = 446,前面446位主引导记录中的代码部分，紧跟着的64字节是分区表，每个分区表占16字节，最后两个字节是标记
 		p = 0x1BE + (void *)bh->b_data;
-		// 见struct partition
 		for (i=1;i<5;i++,p++) {
 			hd[i+5*drive].start_sect = p->start_sect;
 			hd[i+5*drive].nr_sects = p->nr_sects;
@@ -161,7 +153,6 @@ int sys_setup(void * BIOS)
 	}
 	if (NR_HD)
 		printk("Partition table%s ok.\n\r",(NR_HD>1)?"s":"");
-	// 虚拟盘初始化
 	rd_load();
 	mount_root();
 	return (0);
@@ -196,7 +187,6 @@ static void hd_out(unsigned int drive,unsigned int nsect,unsigned int sect,
 		panic("Trying to write bad sector");
 	if (!controller_ready())
 		panic("HD controller not ready");
-	// 数据准备好触发中断时执行的回调，在blk.h定义,每个驱动都维护了自己的do_hd
 	do_hd = intr_addr;
 	outb_p(hd_info[drive].ctl,HD_CMD);
 	port=HD_DATA;
@@ -264,19 +254,15 @@ static void read_intr(void)
 		do_hd_request();
 		return;
 	}
-	// 从硬盘控制器的缓存读取数据
 	port_read(HD_DATA,CURRENT->buffer,256);
 	CURRENT->errors = 0;
 	CURRENT->buffer += 512;
 	CURRENT->sector++;
-	// 还有数据要读，继续注册该函数，等待中断回调
 	if (--CURRENT->nr_sectors) {
 		do_hd = &read_intr;
 		return;
 	}
-	// 结束该request，通知上层进程
 	end_request(1);
-	// 处理下一个request
 	do_hd_request();
 }
 
@@ -319,9 +305,7 @@ void do_hd_request(void)
 		end_request(0);
 		goto repeat;
 	}
-	// 相对扇区偏移 + 该分区的开始扇区偏移等于绝对的扇区偏移
 	block += hd[dev].start_sect;
-	// 哪个硬盘
 	dev /= 5;
 	__asm__("divl %4":"=a" (block),"=d" (sec):"0" (block),"1" (0),
 		"r" (hd_info[dev].sect));
@@ -359,9 +343,7 @@ void do_hd_request(void)
 void hd_init(void)
 {
 	blk_dev[MAJOR_NR].request_fn = DEVICE_REQUEST;
-	// 设置硬盘中断处理程序
 	set_intr_gate(0x2E,&hd_interrupt);
-	// 允许硬盘中断
 	outb_p(inb_p(0x21)&0xfb,0x21);
 	outb(inb_p(0xA1)&0xbf,0xA1);
 }

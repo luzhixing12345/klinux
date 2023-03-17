@@ -1,4 +1,14 @@
 /*
+ *Copyright (c) 2023 All rights reserved
+ *@description: tty头文件 定义了有关tty_io 串行通信方面的参数/常数
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+
+/*
  * 'tty.h' defines some structures used by tty_io.c and some defines.
  *
  * NOTE! Don't touch this without checking that nothing in rs_io.s or
@@ -20,7 +30,7 @@ struct tty_queue {
 	struct task_struct * proc_list;
 	char buf[TTY_BUF_SIZE];
 };
-// 操作环形队列和读写队列里数据的宏
+
 #define INC(a) ((a) = ((a)+1) & (TTY_BUF_SIZE-1))
 #define DEC(a) ((a) = ((a)-1) & (TTY_BUF_SIZE-1))
 #define EMPTY(a) ((a).head == (a).tail)
@@ -32,7 +42,7 @@ struct tty_queue {
 (void)({c=(queue).buf[(queue).tail];INC((queue).tail);})
 #define PUTCH(c,queue) \
 (void)({(queue).buf[(queue).head]=(c);INC((queue).head);})
-// 判断是不是某个字符
+
 #define INTR_CHAR(tty) ((tty)->termios.c_cc[VINTR])
 #define QUIT_CHAR(tty) ((tty)->termios.c_cc[VQUIT])
 #define ERASE_CHAR(tty) ((tty)->termios.c_cc[VERASE])
@@ -47,7 +57,6 @@ struct tty_struct {
 	int pgrp;
 	int stopped;
 	void (*write)(struct tty_struct * tty);
-	// 读写队列
 	struct tty_queue read_q;
 	struct tty_queue write_q;
 	struct tty_queue secondary;

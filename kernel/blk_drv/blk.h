@@ -37,7 +37,6 @@ struct request {
  * reads always go before writes. This is natural: reads
  * are much more time-critical than writes.
  */
-// 
 #define IN_ORDER(s1,s2) \
 ((s1)->cmd<(s2)->cmd || (s1)->cmd==(s2)->cmd && \
 ((s1)->dev < (s2)->dev || ((s1)->dev == (s2)->dev && \
@@ -107,11 +106,9 @@ extern inline void unlock_buffer(struct buffer_head * bh)
 	wake_up(&bh->b_wait);
 }
 
-// 数据读写完后执行该函数
 extern inline void end_request(int uptodate)
 {
 	DEVICE_OFF(CURRENT->dev);
-	// 读写数据成功，数据有效位置1
 	if (CURRENT->bh) {
 		CURRENT->bh->b_uptodate = uptodate;
 		unlock_buffer(CURRENT->bh);
@@ -121,16 +118,12 @@ extern inline void end_request(int uptodate)
 		printk("dev %04x, block %d\n\r",CURRENT->dev,
 			CURRENT->bh->b_blocknr);
 	}
-	// 唤醒等待该request的请求，貌似暂时没有使用这个字段
 	wake_up(&CURRENT->waiting);
-	// 有request可用了 
 	wake_up(&wait_for_request);
 	CURRENT->dev = -1;
-	// 更新请求队列，移除当前处理完的节点
 	CURRENT = CURRENT->next;
 }
 
-// 处理请求队列公共操作
 #define INIT_REQUEST \
 repeat: \
 	if (!CURRENT) \

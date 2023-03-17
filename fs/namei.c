@@ -37,19 +37,18 @@
  * I don't know if we should look at just the euid or both euid and
  * uid, but that should be easily changed.
  */
-// 判断有没有mask指定的权限
 static int permission(struct m_inode * inode,int mask)
 {
 	int mode = inode->i_mode;
 
 /* special case: not even root can read/write a deleted file */
-	if (inode->i_dev && !inode->i_nlinks) // 没有被引用
+	if (inode->i_dev && !inode->i_nlinks)
 		return 0;
-	else if (current->euid==inode->i_uid) // 是文件的属主则取判断属主的权限
+	else if (current->euid==inode->i_uid)
 		mode >>= 6;
-	else if (current->egid==inode->i_gid) // 判断组属性
+	else if (current->egid==inode->i_gid)
 		mode >>= 3;
-	if (((mode & mask & 0007) == mask) || suser()) // 否则判断other的属性，是超级用户则肯定有权限
+	if (((mode & mask & 0007) == mask) || suser())
 		return 1;
 	return 0;
 }
@@ -64,7 +63,7 @@ static int permission(struct m_inode * inode,int mask)
 static int match(int len,const char * name,struct dir_entry * de)
 {
 	register int same __asm__("ax");
- 
+
 	if (!de || !de->inode || len > NAME_LEN)
 		return 0;
 	if (len < NAME_LEN && de->name[len])
@@ -87,9 +86,8 @@ static int match(int len,const char * name,struct dir_entry * de)
  * entry - you'll have to do that yourself if you want to.
  *
  * This also takes care of the few special cases due to '..'-traversal
- * over a pseudo-ro	ot and a mount point.
+ * over a pseudo-root and a mount point.
  */
-// 在dir目录项中找到名称等于name的目录项，存放到res_dir中
 static struct buffer_head * find_entry(struct m_inode ** dir,
 	const char * name, int namelen, struct dir_entry ** res_dir)
 {
@@ -106,27 +104,19 @@ static struct buffer_head * find_entry(struct m_inode ** dir,
 	if (namelen > NAME_LEN)
 		namelen = NAME_LEN;
 #endif
-	// 当前节点（目录）的大小除以每个目录项的大小，得出目录项的数量
-	entries = (*dir)->i_size / (sizeof (struct dir_entry));// 该目录下的目录项总数
+	entries = (*dir)->i_size / (sizeof (struct dir_entry));
 	*res_dir = NULL;
 	if (!namelen)
 		return NULL;
 /* check for '..', as we might have to do some "magic" for it */
-	// 形如../a/b，当前的目录名是..
 	if (namelen==2 && get_fs_byte(name)=='.' && get_fs_byte(name+1)=='.') {
 /* '..' in a pseudo-root results in a faked '.' (just change namelen) */
-		// 当前目录是..并且当前所在的目录是根节点则重写namelen等于1即当前目录，因为无法再回退
 		if ((*dir) == current->root)
 			namelen=1;
-		/*  如果inode在硬盘中的节点号是1说明是文件系统的根节点，
-			这时候不是回退到该根节点的上级，而是从挂载的文件系统的根节点开始找
-		*/
 		else if ((*dir)->i_num == ROOT_INO) {
 /* '..' over a mount-point results in 'dir' being exchanged for the mounted
    directory-inode. NOTE! We set mounted, so that we can iput the new dir */
-			// 取出该inode对应的超级块
 			sb=get_super((*dir)->i_dev);
-			// 判断该超级块是否挂载在某inode上，是的话重新赋值查找的起点inode
 			if (sb->s_imount) {
 				iput(*dir);
 				(*dir)=sb->s_imount;
@@ -134,38 +124,28 @@ static struct buffer_head * find_entry(struct m_inode ** dir,
 			}
 		}
 	}
-	// 取出该目录在硬盘中对应的第一块数据块，然后读进来
 	if (!(block = (*dir)->i_zone[0]))
 		return NULL;
 	if (!(bh = bread((*dir)->i_dev,block)))
 		return NULL;
 	i = 0;
-	// 指向第一个目录项
 	de = (struct dir_entry *) bh->b_data;
-	// entries为总目录项，等于很多块的目录项组成，遍历所有的目录项
 	while (i < entries) {
-		// 读完目录对应inode节点中的第一块数据，没找到，继续读下一块的目录项数据
 		if ((char *)de >= BLOCK_SIZE+bh->b_data) {
 			brelse(bh);
 			bh = NULL;
-			// 算出i/DIR_ENTRIES_PER_BLOCK，即得到属于7+512+512*512个块中的哪一块，然后得到当前目录项对应硬盘里的块数，然后读进来
 			if (!(block = bmap(*dir,i/DIR_ENTRIES_PER_BLOCK)) ||
 			    !(bh = bread((*dir)->i_dev,block))) {
-				// 读取失败则跳过该数据块，i+DIR_ENTRIES_PER_BLOCK表示继续读取下一块数据块
 				i += DIR_ENTRIES_PER_BLOCK;
 				continue;
 			}
-			// 指向新的数据块中的第一个目录项
 			de = (struct dir_entry *) bh->b_data;
 		}
-		// 遍历每个目录项，比较名字是否相等，是的话说明找到了，每个目录项里都存着..和.对应的项
 		if (match(namelen,name,de)) {
 			*res_dir = de;
 			return bh;
 		}
-		// 没找到指向下一个目录项
 		de++;
-		// 累计已经遍历的项数
 		i++;
 	}
 	brelse(bh);
@@ -182,7 +162,6 @@ static struct buffer_head * find_entry(struct m_inode ** dir,
  * may not sleep between calling this and putting something into
  * the entry, as someone else might have used it while you slept.
  */
-// 新增一个目录项
 static struct buffer_head * add_entry(struct m_inode * dir,
 	const char * name, int namelen, struct dir_entry ** res_dir)
 {
@@ -205,31 +184,26 @@ static struct buffer_head * add_entry(struct m_inode * dir,
 	if (!(bh = bread(dir->i_dev,block)))
 		return NULL;
 	i = 0;
-	// 该目录在硬盘中的第一块数据块
 	de = (struct dir_entry *) bh->b_data;
 	while (1) {
-		// 如果当前块已经查找完毕，读入下一块，如果没有下一块则创建一个
 		if ((char *)de >= BLOCK_SIZE+bh->b_data) {
 			brelse(bh);
 			bh = NULL;
 			block = create_block(dir,i/DIR_ENTRIES_PER_BLOCK);
 			if (!block)
 				return NULL;
-			// 读取失败则跳过
 			if (!(bh = bread(dir->i_dev,block))) {
 				i += DIR_ENTRIES_PER_BLOCK;
 				continue;
 			}
 			de = (struct dir_entry *) bh->b_data;
 		}
-		// 找到了全部块的末尾，即找到了追加entry的位置，更新大小等属性
 		if (i*sizeof(struct dir_entry) >= dir->i_size) {
 			de->inode=0;
 			dir->i_size = (i+1)*sizeof(struct dir_entry);
 			dir->i_dirt = 1;
 			dir->i_ctime = CURRENT_TIME;
 		}
-		// 在每一块中找第一项还没使用的目录项
 		if (!de->inode) {
 			dir->i_mtime = CURRENT_TIME;
 			for (i=0; i < NAME_LEN ; i++)
@@ -251,7 +225,6 @@ static struct buffer_head * add_entry(struct m_inode * dir,
  * Getdir traverses the pathname until it hits the topmost directory.
  * It returns NULL on failure.
  */
-// 找出给定路径最后一级目录的inode节点
 static struct m_inode * get_dir(const char * pathname)
 {
 	char c;
@@ -265,7 +238,6 @@ static struct m_inode * get_dir(const char * pathname)
 		panic("No root inode");
 	if (!current->pwd || !current->pwd->i_count)
 		panic("No cwd inode");
-	// 路径名以/开头说明是绝对路径，则搜索节点是该进程的根节点，否则是当前工作路径
 	if ((c=get_fs_byte(pathname))=='/') {
 		inode = current->root;
 		pathname++;
@@ -274,31 +246,24 @@ static struct m_inode * get_dir(const char * pathname)
 	else
 		return NULL;	/* empty name is bad */
 	inode->i_count++;
-	// 逐个目录查找
 	while (1) {
 		thisname = pathname;
-		// 不是目录或者没有执行的权限
 		if (!S_ISDIR(inode->i_mode) || !permission(inode,MAY_EXEC)) {
 			iput(inode);
 			return NULL;
 		}
-		// 获取某一级目录名
 		for(namelen=0;(c=get_fs_byte(pathname++))&&(c!='/');namelen++)
 			/* nothing */ ;
-		// 跑到这里说明c是null或者c等于/，如果是空说明查找完毕，直接返回，否则根据目录名找到对应的目录项内容
 		if (!c)
 			return inode;
-		// 在inode节点下查找，thisname为当前级的目录名，namelen为当前级目录名长度
 		if (!(bh = find_entry(&inode,thisname,namelen,&de))) {
 			iput(inode);
 			return NULL;
 		}
-		// 找到当前目录对应的dir_entry结构，
 		inr = de->inode;
 		idev = inode->i_dev;
 		brelse(bh);
 		iput(inode);
-		// 取出设备中inode号为inr的目录项数据
 		if (!(inode = iget(idev,inr)))
 			return NULL;
 	}
@@ -310,7 +275,6 @@ static struct m_inode * get_dir(const char * pathname)
  * dir_namei() returns the inode of the directory of the
  * specified name, and the name within that directory.
  */
-// 找出路径的最后一级目录的inode和路径中的文件名
 static struct m_inode * dir_namei(const char * pathname,
 	int * namelen, const char ** name)
 {
@@ -320,9 +284,7 @@ static struct m_inode * dir_namei(const char * pathname,
 
 	if (!(dir = get_dir(pathname)))
 		return NULL;
-	// 初始化值等于pathname，比如传入的是1.txt
 	basename = pathname;
-	// 取路径中最后一个/的剩余部分作为文件名
 	while (c=get_fs_byte(pathname++))
 		if (c=='/')
 			basename=pathname;
@@ -338,7 +300,6 @@ static struct m_inode * dir_namei(const char * pathname,
  * Open, link etc use their own routines, but this is enough for things
  * like 'chmod' etc.
  */
-// 根据路径找到文件的inode节点
 struct m_inode * namei(const char * pathname)
 {
 	const char * basename;
@@ -346,12 +307,11 @@ struct m_inode * namei(const char * pathname)
 	struct m_inode * dir;
 	struct buffer_head * bh;
 	struct dir_entry * de;
-	// 找到pathname最后一级目录的inode和解析出路径中的文件名
+
 	if (!(dir = dir_namei(pathname,&namelen,&basename)))
 		return NULL;
 	if (!namelen)			/* special case: '/usr/' etc */
 		return dir;
-	// 在最后一级目录中查找basename的文件名的目录项，存在de中
 	bh = find_entry(&dir,basename,namelen,&de);
 	if (!bh) {
 		iput(dir);
@@ -361,7 +321,6 @@ struct m_inode * namei(const char * pathname)
 	dev = dir->i_dev;
 	brelse(bh);
 	iput(dir);
-	// 读取设备dev中inode节点号为inr的inode结构
 	dir=iget(dev,inr);
 	if (dir) {
 		dir->i_atime=CURRENT_TIME;
@@ -383,15 +342,13 @@ int open_namei(const char * pathname, int flag, int mode,
 	struct m_inode * dir, *inode;
 	struct buffer_head * bh;
 	struct dir_entry * de;
-	// 设置了trunc但没有设置读写标记位则设置成只写
+
 	if ((flag & O_TRUNC) && !(flag & O_ACCMODE))
 		flag |= O_WRONLY;
 	mode &= 0777 & ~current->umask;
 	mode |= I_REGULAR;
-	// 根据pathname找出最后一级目录的inode节点，并返回文件名和长度
 	if (!(dir = dir_namei(pathname,&namelen,&basename)))
 		return -ENOENT;
-	// 文件名长度是0说明最后一级是目录
 	if (!namelen) {			/* special case: '/usr/' etc */
 		if (!(flag & (O_ACCMODE|O_CREAT|O_TRUNC))) {
 			*res_inode=dir;
@@ -400,7 +357,6 @@ int open_namei(const char * pathname, int flag, int mode,
 		iput(dir);
 		return -EISDIR;
 	}
-	// 从最后一级目录的目录项中查找等于basename的目录项，存储到de中
 	bh = find_entry(&dir,basename,namelen,&de);
 	if (!bh) {
 		if (!(flag & O_CREAT)) {
@@ -426,7 +382,6 @@ int open_namei(const char * pathname, int flag, int mode,
 			iput(dir);
 			return -ENOSPC;
 		}
-		// 保存新建的inode节点的节点号
 		de->inode = inode->i_num;
 		bh->b_dirt = 1;
 		brelse(bh);
@@ -438,10 +393,8 @@ int open_namei(const char * pathname, int flag, int mode,
 	dev = dir->i_dev;
 	brelse(bh);
 	iput(dir);
-	// O_EXCL表示该文件必须是由当前进程创建
 	if (flag & O_EXCL)
 		return -EEXIST;
-	// 获取文件内容
 	if (!(inode=iget(dev,inr)))
 		return -EACCES;
 	if ((S_ISDIR(inode->i_mode) && (flag & O_ACCMODE)) ||
@@ -566,7 +519,6 @@ int sys_mkdir(const char * pathname, int mode)
 	brelse(dir_block);
 	inode->i_mode = I_DIRECTORY | (mode & 0777 & ~current->umask);
 	inode->i_dirt = 1;
-	// de保存准备插入entry的目录项位置
 	bh = add_entry(dir,basename,namelen,&de);
 	if (!bh) {
 		iput(dir);
@@ -602,7 +554,6 @@ static int empty_dir(struct m_inode * inode)
 		return 0;
 	}
 	de = (struct dir_entry *) bh->b_data;
-	// 判断目录的内容，每个目录都有.和..，其中.的inode号和该目录的inode号相等，..等于上一级目录的inode号
 	if (de[0].inode != inode->i_num || !de[1].inode || 
 	    strcmp(".",de[0].name) || strcmp("..",de[1].name)) {
 	    	printk("warning - bad directory on dev %04x\n",inode->i_dev);
@@ -610,7 +561,6 @@ static int empty_dir(struct m_inode * inode)
 	}
 	nr = 2;
 	de += 2;
-	// 遍历所有的目录项，清除他
 	while (nr<len) {
 		if ((void *) de >= (void *) (bh->b_data+BLOCK_SIZE)) {
 			brelse(bh);
@@ -709,7 +659,7 @@ int sys_rmdir(const char * name)
 	iput(inode);
 	return 0;
 }
-// 删除硬链接
+
 int sys_unlink(const char * name)
 {
 	const char * basename;
@@ -717,33 +667,27 @@ int sys_unlink(const char * name)
 	struct m_inode * dir, * inode;
 	struct buffer_head * bh;
 	struct dir_entry * de;
-	// 找出路径的最后一级目录的inode和路径中的文件名
+
 	if (!(dir = dir_namei(name,&namelen,&basename)))
 		return -ENOENT;
-	// 传进来的路径是一个目录
 	if (!namelen) {
 		iput(dir);
 		return -ENOENT;
 	}
-	// 权限
 	if (!permission(dir,MAY_WRITE)) {
 		iput(dir);
 		return -EPERM;
 	}
-	// 找到路径对应文件的目录项
 	bh = find_entry(&dir,basename,namelen,&de);
-	// 不存在
 	if (!bh) {
 		iput(dir);
 		return -ENOENT;
 	}
-	// 读取目录项对应的inode节点
 	if (!(inode = iget(dir->i_dev, de->inode))) {
 		iput(dir);
 		brelse(bh);
 		return -ENOENT;
 	}
-	// 权限
 	if ((dir->i_mode & S_ISVTX) && !suser() &&
 	    current->euid != inode->i_uid &&
 	    current->euid != dir->i_uid) {
@@ -752,25 +696,20 @@ int sys_unlink(const char * name)
 		brelse(bh);
 		return -EPERM;
 	}
-	// 硬链接不能是目录
 	if (S_ISDIR(inode->i_mode)) {
 		iput(inode);
 		iput(dir);
 		brelse(bh);
 		return -EPERM;
 	}
-	// 为0说明不在文件树中
 	if (!inode->i_nlinks) {
 		printk("Deleting nonexistent file (%04x:%d), %d\n",
 			inode->i_dev,inode->i_num,inode->i_nlinks);
 		inode->i_nlinks=1;
 	}
-	// 解除了引用，inode置为0
 	de->inode = 0;
-	// 需要回写硬盘
 	bh->b_dirt = 1;
 	brelse(bh);
-	// 引用数减一，在iput中会删除引用数为0的文件
 	inode->i_nlinks--;
 	inode->i_dirt = 1;
 	inode->i_ctime = CURRENT_TIME;
@@ -778,7 +717,7 @@ int sys_unlink(const char * name)
 	iput(dir);
 	return 0;
 }
-// 创建硬链接
+
 int sys_link(const char * oldname, const char * newname)
 {
 	struct dir_entry * de;
@@ -786,68 +725,53 @@ int sys_link(const char * oldname, const char * newname)
 	struct buffer_head * bh;
 	const char * basename;
 	int namelen;
-	// 根据路径名找到文件的inode节点
+
 	oldinode=namei(oldname);
 	if (!oldinode)
 		return -ENOENT;
-	// 不能给目录创建硬链接
 	if (S_ISDIR(oldinode->i_mode)) {
-		// 不需要使用inode了，解除引用
 		iput(oldinode);
 		return -EPERM;
 	}
-	// 找出newname最后一级目录的inode和newname中的文件名
 	dir = dir_namei(newname,&namelen,&basename);
-	// 路径不存在
 	if (!dir) {
 		iput(oldinode);
 		return -EACCES;
 	}
-	// 路径是一个目录，所以文件名是空
 	if (!namelen) {
 		iput(oldinode);
 		iput(dir);
 		return -EPERM;
 	}
-	// 不能跨文件系统创建硬链接
 	if (dir->i_dev != oldinode->i_dev) {
 		iput(dir);
 		iput(oldinode);
 		return -EXDEV;
 	}
-	// 权限检验
 	if (!permission(dir,MAY_WRITE)) {
 		iput(dir);
 		iput(oldinode);
 		return -EACCES;
 	}
-	// 在目录下找文件名等于basename的项
 	bh = find_entry(&dir,basename,namelen,&de);
-	// 找到的话说明文件名已经存在，则不能再创建
 	if (bh) {
 		brelse(bh);
 		iput(dir);
 		iput(oldinode);
 		return -EEXIST;
 	}
-	// 没有则新增一个目录项，de保存找到的目录项
 	bh = add_entry(dir,basename,namelen,&de);
-	// 新增是否成功
 	if (!bh) {
 		iput(dir);
 		iput(oldinode);
 		return -ENOSPC;
 	}
-	// 硬链接的inode和旧文件的inode号一样
 	de->inode = oldinode->i_num;
-	// 新增了一项，需要回写硬盘
-	bh->b_dirt = 1;	
+	bh->b_dirt = 1;
 	brelse(bh);
 	iput(dir);
-	// 引用数加1，创建硬链接即多了一个索引指向inode节点，所以inode引用数加一即可，为0才能删除文件
 	oldinode->i_nlinks++;
 	oldinode->i_ctime = CURRENT_TIME;
-	// inode信息有更新，需要回写硬盘
 	oldinode->i_dirt = 1;
 	iput(oldinode);
 	return 0;

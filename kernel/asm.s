@@ -1,4 +1,13 @@
 /*
+ *Copyright (c) 2023 All rights reserved
+ *@description: 处理系统硬件一场所引起的中断 => traps.c
+ *@author: Zhixing Lu
+ *@date: 2023-03-17
+ *@email: luzhixing12345@163.com
+ *@Github: luzhixing12345
+*/
+
+/*
  *  linux/kernel/asm.s
  *
  *  (C) 1991  Linus Torvalds
