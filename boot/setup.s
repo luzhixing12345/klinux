@@ -14,9 +14,9 @@
 
 ! NOTE! These had better be the same as in bootsect.s!
 
-INITSEG  = 0x9000	! we move boot here - out of the way
+INITSEG  = 0x9000	! 原来bootsect所在的段
 SYSSEG   = 0x1000	! system loaded at 0x10000 (65536).
-SETUPSEG = 0x9020	! this is the current segment
+SETUPSEG = 0x9020	! setup 所在的段
 
 .globl begtext, begdata, begbss, endtext, enddata, endbss
 .text
@@ -129,7 +129,7 @@ do_move:
 
 end_move:
 	mov	ax,#SETUPSEG	! right, forgot this at first. didn't work :-)
-	mov	ds,ax
+	mov	ds,ax           ! ds 指向本程序的setup段
 	lidt	idt_48		! load idt with 0,0
 	lgdt	gdt_48		! load gdt with whatever appropriate
 

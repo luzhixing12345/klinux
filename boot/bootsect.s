@@ -22,6 +22,7 @@ SYSSIZE = 0x3000
 ! read errors will result in a unbreakable loop. Reboot by hand. It
 ! loads pretty fast by getting whole sectors at a time whenever possible.
 
+! 定义了6个全局标识符
 .globl begtext, begdata, begbss, endtext, enddata, endbss
 .text
 begtext:
@@ -31,15 +32,16 @@ begdata:
 begbss:
 .text
 
-SETUPLEN = 4				! nr of setup-sectors
-BOOTSEG  = 0x07c0			! original address of boot-sector
-INITSEG  = 0x9000			! we move boot here - out of the way
-SETUPSEG = 0x9020			! setup starts here
-SYSSEG   = 0x1000			! system loaded at 0x10000 (65536).
-ENDSEG   = SYSSEG + SYSSIZE		! where to stop loading
 
-! ROOT_DEV:	0x000 - same type of floppy as boot.
-!		0x301 - first partition on first drive etc
+SETUPLEN = 4				! setup 程序的扇区数(setup-sectors)
+BOOTSEG  = 0x07c0			! bootsect的原始地址
+INITSEG  = 0x9000			! 将bootsect移到这里
+SETUPSEG = 0x9020			! setup 程序从这里开始
+SYSSEG   = 0x1000			! system模块加载到0x1000处(64kb)
+ENDSEG   = SYSSEG + SYSSIZE		! 停止加载的段地址
+
+! ROOT_DEV:	0x000 - 根文件系统使用与引导时相同的软驱设备
+!		    0x301 - 根文件系统设备在第一个硬盘的第一个分区上
 ROOT_DEV = 0x306
 
 entry start
