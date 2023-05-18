@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        Document
+    </title>
+    <link rel='stylesheet' href=../../../css/prism.css /><link rel='stylesheet' href=../../../css/index.css />
+    <link rel="icon" href="https://raw.githubusercontent.com/learner-lu/picbed/master/logo.png">
+</head>
+
+<body class="light">
+    <div class="header-navigator"><ul><li><a href="#h1-0">调试内核</a><ul><li><a href="#h2-1">qemu</a><ul><li><a href="#h3-2">编译依赖</a></li></ul></li></ul><ul><li><a href="#h2-3">编译busybox</a></li></ul><ul><li><a href="#h2-4">制作initramfs</a></li></ul><ul><li><a href="#h2-5">QEMU 启动</a></li></ul><ul><li><a href="#h2-6">Vscode + gdb</a></li></ul><ul><li><a href="#h2-7">参考</a></li></ul></li></ul></div><div class='markdown-body'><h1 id="h1-0">调试内核</h1><p>本文默认读者已经通过 linux 源码编译得到内核镜像了, 即用于调试的 vmlinux 和 用于启动的 bzImage</p><h2 id="h2-1"><a href="https://www.qemu.org/" target="_blank">qemu</a></h2><p>对于qemu应该不用过多介绍, 关心linux kernel的不会不知道qemu, 操作系统实验什么的也应该接触过, 简单来说就是一个非常健壮的模拟器和仿真器, 对虚拟化技术的支持很好</p><p>您可以使用 apt 安装, 不过笔者不建议使用apt等安装, 从源码编译的掌握力度更大.</p><pre><code class="language-bash">sudo apt install qemu qemu-system qemu-kvm</code></pre><p>下面介绍一下如何从源码编译, 文章编写之际qemu的最新版本为7.2.0, 也是本文采用的版本. 读者可以尝试使用当前最新的版本</p><blockquote><p><a href="https://download.qemu.org/" target="_blank">qemu历史版本</a></p><p>前几天试了一下 qemu8.0 版本, 报了一个 SDL.h 的问题</p></blockquote><pre><code class="language-bash">wget https://download.qemu.org/qemu-7.2.0.tar.xz
+tar xvJf qemu-7.2.0.tar.xz
+cd qemu-7.2.0</code></pre><h3 id="h3-2">编译依赖</h3><p>qemu在编译时候使用到了ninja</p><pre><code class="language-bash">sudo apt-get install ninja-build</code></pre><p>Ninja 是一个高效的构建系统，用于编译大型的软件项目, 这里就不过多介绍了. 然后安装依赖</p><pre><code class="language-bash">sudo apt-get install build-essential git pkg-config zlib1g-dev libglib2.0-dev libpixman-1-dev libsdl1.2-dev libspice-server-dev</code></pre><blockquote><p>这里有可能存在冲突, 解决起来有点费劲..., 或许可以换源试试, 要不就选高版本的ubuntu</p></blockquote><p>这里笔者选择将qemu的安装目录放在 <code>~/qemu</code> , 你可以替换为你期望的路径. 第一步的时候会检查是否满足了所有的编译要求</p><pre><code class="language-bash">./configure --prefix=~/qemu --enable-kvm  --target-list=x86_64-softmmu
+make -j$(nproc)
+make install</code></pre><p>这时候 <code>~/qemu/bin/</code> 就是需要的可执行文件 <code>qemu-system-x86_64</code> 所在的路径了</p><pre><code class="language-bash">kamilu@ubuntu:~/qemu/bin$ tree .
+.
+├── elf2dmp
+├── qemu-edid
+├── qemu-ga
+├── qemu-img
+├── qemu-io
+├── qemu-keymap
+├── qemu-nbd
+├── qemu-pr-helper
+├── qemu-storage-daemon
+└── qemu-system-x86_64</code></pre><h2 id="h2-3">编译busybox</h2><p>BusyBox 是一个轻量级的 Unix 工具箱，它集成了许多标准 Unix 工具的功能，并且可以运行在资源受限的系统上，例如嵌入式设备和网络路由器等。BusyBox 能够代替大多数标准 Unix 工具集的实现，从而减少了系统空间和资源的需求。</p><p>BusyBox 的工具集包括了数百个 Unix 工具，如 ls、cp、cat、grep、tar、gzip、awk、sed、vi、ping、telnet 等，它们都被打包成一个可执行文件。BusyBox 本身只有一个可执行文件，但它包含了大量的 Unix 工具，并且可以通过命令行参数来指定使用哪些工具。</p><pre><code class="language-bash">wget https://busybox.net/downloads/busybox-1.36.0.tar.bz2
+tar xf busybox-1.36.0.tar.bz2
+cd busybox-1.36.0/
+make menuconfig</code></pre><p>配置选项中勾选 Build Static Lib, 因为没有刚刚编译的linux还没有glibc, 所以没办法动态链接的运行, 暂时用静态链接将 glibc 打包进可执行文件</p><pre><code class="language-bash">-&gt; Settings                                                                                                 │
+   -&gt; Build shared libbusybox (BUILD_LIBBUSYBOX [=n])</code></pre><p><img src="https://raw.githubusercontent.com/learner-lu/picbed/master/20230314191937.png" alt="20230314191937"></p><pre><code class="language-bash">make -j$(nproc)
+make install</code></pre><p>make 结束的时候会有如下的警告, 忽略即可</p><pre><code class="language-bash">Static linking against glibc, can't use --gc-sections
+Trying libraries: crypt m resolv rt
+ Library crypt is not needed, excluding it
+ Library m is needed, can't exclude it (yet)
+ Library resolv is needed, can't exclude it (yet)
+ Library rt is not needed, excluding it
+ Library m is needed, can't exclude it (yet)
+ Library resolv is needed, can't exclude it (yet)
+Final link with: m resolv</code></pre><p>编译得到的可执行文件保存在 <code>_install/</code> 目录下, 我们可以进入这个目录的bin文件夹下使用 <code>ll</code> 看到一个busybox可执行文件和众多链接文件, 这个 busybox 就是之后需要使用的工具</p><p><img src="https://raw.githubusercontent.com/learner-lu/picbed/master/20230314192159.png" alt="20230314192159"></p><h2 id="h2-4">制作initramfs</h2><p>在启动一个操作系统时，需要引导加载器(bootloader)来将操作系统的内核(kernel)加载到系统的内存中。然而，操作系统内核本身通常是不包括文件系统的。</p><p>因此，在内核加载完成后，操作系统需要挂载一个根文件系统(root file system)来提供文件系统的支持。根文件系统是操作系统文件系统的基础，它包含操作系统所需的文件和目录，并提供了文件系统层次结构的根节点。</p><p>对于Linux系统而言，通常使用的是initramfs（Initial RAM File System）来作为临时的根文件系统。这些文件系统映像包含了一个最小的文件系统，它包括一些基本的工具和驱动程序，以便在系统启动后能够挂载更完整的文件系统。即使使用bzImage作为内核，也需要挂载一个根文件系统来提供文件系统支持。</p><p>新建一个文件夹(workspace)用于后续的工作区</p><pre><code class="language-bash">mkdir workspace
+cd workspace</code></pre><p>将之前的 linux kernel中的 <code>arch/x86/boot/bzImage</code> 和 <code>_install/bin/busybox</code> 拷贝到此目录下</p><blockquote><p>前者可以创建软链接, 后者最好直接复制过来</p></blockquote><p>此时的目录结构:</p><pre><code class="language-bash">.
+├── bzImage
+└── busybox</code></pre><p>新建一些目录, 用于文件结构, 软链接busybox</p><pre><code class="language-bash">mkdir initramfs
+cd initramfs
+mkdir -p bin dev etc lib mnt proc sbin sys tmp var
+mv ../busybox bin/
+cd bin
+ln -s busybox mount
+ln -s busybox sh
+cd ..</code></pre><p><code>ln -s busybox mount</code> 的作用是在当前目录下创建一个名为 mount 的符号链接，指向系统中已安装的 busybox 可执行文件。这个符号链接可以使得在执行 mount 命令时，实际上是执行的 busybox mount 命令，从而利用 BusyBox 工具箱中的 mount 工具来完成相应操作。</p><p><code>ln -s busybox sh</code> 同理,这种创建符号链接的方式可以使得使用者可以方便地使用 BusyBox 中提供的工具，而不需要输入完整的 BusyBox 工具箱中的工具名称。同时，符号链接的创建也可以在磁盘上节省空间，因为多个工具可以共用同一个可执行文件</p><p>此时的文件结构如下所示</p><pre><code class="language-bash">├── bzImage
+├── initramfs
+│   ├── bin
+│   │   ├── busybox
+│   │   ├── mount -&gt; busybox
+│   │   └── sh -&gt; busybox
+│   ├── dev
+│   ├── etc
+│   ├── lib
+│   ├── mnt
+│   ├── proc
+│   ├── sbin
+│   ├── sys
+│   ├── tmp
+│   └── var</code></pre><p>在 initramfs/ 中新建 <code>init</code> 文件用于启动, 将下面的内容复制到init中, 它的作用是设置一些基本的环境和挂载文件系统，并最终执行一个shell, 以便于在引导过程中提供一个临时的操作环境，以便进行一些必要的操作或调试</p><pre><code class="language-bash">#!/bin/busybox sh
+/bin/busybox --install -s /bin
+mount -t devtmpfs  devtmpfs  /dev
+mount -t proc      proc      /proc
+mount -t sysfs     sysfs     /sys
+mount -t tmpfs     tmpfs     /tmp
+setsid cttyhack sh
+exec /bin/sh</code></pre><p>修改init的权限</p><pre><code class="language-bash">chmod +x init</code></pre><p>这个脚本的主要作用是启动一个基本的 Linux 环境，包括挂载常见的文件系统和启动一个 shell 终端</p><ul><li>/bin/busybox --install -s /bin 这条命令的作用是将 BusyBox 工具箱中的所有工具复制到 /bin 目录下，并创建符号链接，使得这些工具可以直接使用。其中，--install 参数表示安装 BusyBox 工具箱中的所有命令，-s 参数表示使用符号链接。</li></ul><ul><li>mount 命令用于挂载文件系统，这里使用了四个 mount 命令挂载了常见的文件系统：<p>mount -t devtmpfs devtmpfs /dev 命令用于挂载 devtmpfs 文件系统到 /dev 目录，devtmpfs 文件系统是 Linux 内核提供的一个虚拟文件系统，用于管理设备节点文件。</p><p>proc sysfs tmpfs 同理</p></li></ul><ul><li>setsid cttyhack sh 命令用于启动一个新的 shell 终端，其中 setsid 命令用于启动一个新的会话，cttyhack 命令用于将当前的控制终端（tty）绑定到新的会话中，从而让新的 shell 终端成为前台进程组的控制终端。</li></ul><ul><li>exec /bin/sh 命令用于执行 /bin/sh 命令，即启动一个新的 shell 终端。由于使用了 exec 命令，原始的 shell 进程会被替换成新的 shell 进程，因此新的 shell 终端成为整个系统的主进程，其 PID 为 1。这是启动一个基本的 Linux 环境的最后一步</li></ul><blockquote><p>这里补充说明一下: initd（或者叫init）是系统引导过程的第一个用户空间进程，负责启动和管理系统中的各个服务和进程。它通常由操作系统提供，并且具有更复杂的功能和管理能力，如根据不同的运行级别加载和管理服务。initd通常使用一系列的启动脚本来管理服务的启动、停止和重启等操作。给出的脚本不是initd进程本身，而是一个在引导过程中执行的自定义脚本，它可能具有特定的目的或需求，但不具备initd进程的全部功能和特性</p><p>当然, 除了 initd 现代 linux 发行版一般用的都是 systemd 作为守护进程</p></blockquote><p>修改完init的权限之后在根目录新建 Makefile, 复制如下内容</p><p>注意这里的路径是 <code>~/qemu/bin/qemu-system-x86_64</code>, 如果你的qemu装在了不同的地方记得修改路径</p><pre><code class="language-Makefile">.PHONY: init qemu clean
+
+init:
+    cd ./initramfs && find . | cpio -ov --format=newc | gzip -9 &gt; ../initramfs.img
+qemu:
+    ~/qemu/bin/qemu-system-x86_64 \
+            -kernel bzImage \
+            -initrd initramfs.img \
+            -m 1G \
+            -nographic \
+            -append "earlyprintk=serial,ttyS0 console=ttyS0"
+clean:
+    rm initramfs.img</code></pre><p>简单解释一下这里的命令的含义</p><ul><li>首先是后面这一段很长的<code>find . | cpio -ov --format=newc | gzip -9 &gt; ../initramfs.img</code><p>这个命令的作用是将当前目录下的所有文件和子目录，打包成一个 cpio 归档文件，并使用 gzip 压缩成一个压缩文件，最后保存到上级目录的 initramfs.img 文件中, 用于创建初始化内存文件系统（initramfs）</p><ul><li>find . 命令用于查找当前目录（以及其子目录）下的所有文件和目录，输出它们的路径。</li></ul><ul><li>cpio -ov --format=newc 命令将 find 命令输出的路径列表作为输入，创建一个 cpio 归档文件。-o 表示创建归档文件，-v 表示显示详细信息，--format=newc 表示使用 newc 格式创建归档文件，该格式通常用于初始化内存文件系统（initramfs）。</li></ul><ul><li>gzip -9 命令用于对 cpio 归档文件进行压缩，并且使用最高压缩比 -9 以达到最小化文件大小。</li></ul><ul><li>最后将压缩后的数据流输出到上级目录中的 initramfs.img 文件中，使用重定向符号 > 来实现。</li></ul></li></ul><ul><li>~/qemu/bin/qemu-system-x86_64 表示使用 QEMU 模拟器来模拟一个 x86_64 架构的虚拟机。</li></ul><ul><li>-kernel bzImage 表示指定 Linux 内核文件为 bzImage，bzImage 是经过压缩的 Linux 内核文件，通常位于 arch/x86_64/boot/bzImage 目录下。</li></ul><ul><li>-initrd initramfs.img 表示指定 initramfs 文件系统为 initramfs.img，initramfs.img 是经过压缩的文件系统，包含了一些必要的文件和工具，用于启动 Linux 系统。</li></ul><ul><li>-m 1G 表示指定虚拟机的内存大小为 1GB。</li></ul><ul><li>-nographic 表示在终端中以无图形模式启动虚拟机，不使用图形界面。</li></ul><ul><li>-append "earlyprintk=serial,ttyS0 console=ttyS0" 表示向内核传递启动参数。其中，earlyprintk=serial,ttyS0 表示启用串口输出信息，console=ttyS0 表示将控制台输出定向到串口终端（ttyS0）上。</li></ul><p>最终的文件结构如下所示</p><p><img src="https://raw.githubusercontent.com/learner-lu/picbed/master/20230314202620.png" alt="20230314202620"></p><h2 id="h2-5">QEMU 启动</h2><p>制作initramfs</p><pre><code class="language-bash">make init</code></pre><p>执行之后会得到 <code>initramfs.img</code></p><p>使用qemu开始模拟</p><pre><code class="language-bash">make qemu</code></pre><p>成功启动后按下enter进入命令行, 使用ls查看目录结构, 也可以在这个命令行中测试一些内容, 这些常用命令都是 busybox 提供的支持</p><p><img src="https://raw.githubusercontent.com/learner-lu/picbed/master/20230518133704.png" alt="20230518133704"></p><p>退出 QEMU 模拟: 使用 <kbd>ctrl</kbd> + <kbd>A</kbd> 然后按下 <kbd>x</kbd></p><h2 id="h2-6">Vscode + gdb</h2><p>修改Makefile, 在 qemu 的最后添加了 -S -s, 用于gdb调试.</p><pre><code class="language-Makefile">.PHONY: init qemu clean
+
+init:
+    cd ./initramfs && find . | cpio -ov --format=newc | gzip -9 &gt; ../initramfs.img
+qemu:
+    ~/qemu/bin/qemu-system-x86_64 \
+            -kernel bzImage \
+            -initrd initramfs.img \
+            -m 1G \
+            -nographic \
+            -append "earlyprintk=serial,ttyS0 console=ttyS0 nokaslr" \
+            -S \
+            -s
+clean:
+    rm initramfs.img</code></pre><p>"-S"选项表示在启动时暂停虚拟机的执行。它使得虚拟机在启动后立即进入调试模式，并等待调试器连接. "-s"选项表示在启动时打开一个GDB服务器，监听本地的1234端口。这个选项与"-S"选项一起使用，用于配合调试器进行调试</p><blockquote><p>如果没有冲突的话默认使用 1234 端口即可, 否则添加 <code>-gdb tcp::12345</code> 进行端口调整</p></blockquote><ul><li>你可以在一个终端中在 workspace 目前下使用 <code>make qemu</code>, 此时运行会卡住</li></ul><ul><li>然后再另一个终端中在 linux6.3 目前下使用 <code>gdb vmlinux</code> 调试<p>进入gdb后连接1234端口</p><pre><code class="language-bash">(gdb) target remote :1234</code></pre><p>在start_kernel处打一个断点(此函数位于init/main.c), 然后继续</p><pre><code class="language-bash">(gdb) b start_kernel
+(gdb) c</code></pre></li></ul><p>当然, 这种方法很原始, 笔者更倾向于使用带 GUI 的更加方便的vscode来进行调试</p><p>首先阅读代码的时候没有什么智能提示和补全, 这是因为需要生成智能补全的头文件</p><pre><code class="language-bash">python3 ./scripts/clang-tools/gen_compile_commands.py
+
+# 如果是老版本linux这个文件的位置在
+python3 ./scripts/gen_compile_commands.py</code></pre><p>等待一段时间运行结束之后得到 <code>compile_commands.json</code></p><p>如果是使用微软的C++插件, 新建 <code>.vscode/c_cpp_properties.json</code>, 这里的compileCommands添加补全的路径</p><pre><code class="language-json">{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64",
+            "compileCommands": "${workspaceFolder}/compile_commands.json"
+        }
+    ],
+    "version": 4
+}</code></pre><p>如果是 clangd, 新建 <code>.vscode/settings.json</code></p><pre><code class="language-json">{
+    "clangd.arguments": [
+        "--query-driver=/usr/bin/gcc",
+        "--compile-commands-dir=${workspaceFolder}"
+    ]
+}</code></pre><p>对于 clangd 来说, 还是会有一些报错如下所示, 这是因为 compile_commands.json 中的编译选项有一些无法识别的东西</p><p><img src="https://raw.githubusercontent.com/learner-lu/picbed/master/20230518140756.png" alt="20230518140756"></p><p>笔者目前的解决办法是手动将这个文件中的这几个编译选项删除</p><pre><code class="language-txt">-mpreferred-stack-boundary=3
+-mindirect-branch=thunk-extern
+-mindirect-branch-register
+-mindirect-branch-cs-prefix
+-fno-allow-store-data-races
+-fconserve-stack</code></pre><p>然后就没有报错了, 整个代码看起来很清爽</p><p><img src="https://raw.githubusercontent.com/learner-lu/picbed/master/20230518224144.png" alt="20230518224144"></p><hr><p>接下来配置调试程序, 新建<code>.vscode/launch.json</code>, 复制如下的代码, 设置调试的名称是 <code>qemu-kernel-gdb</code>, 使用本机的1234端口映射, 调试 vmlinux 文件</p><pre><code class="language-json">{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "qemu-kernel-gdb",
+            "type": "cppdbg",
+            "request": "launch",
+            "miDebuggerServerAddress": "127.0.0.1:1234",
+            "program": "${workspaceFolder}/vmlinux",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "logging": {
+                "engineLogging": false
+            },
+            "MIMode": "gdb"
+        }
+    ]
+}</code></pre><p>打一个断点试试? 然后在终端中 workspace 下执行 make qemu, 然后点击 vscode 的调试</p><p><img src="https://raw.githubusercontent.com/learner-lu/picbed/master/20230518224436.png" alt="20230518224436"></p><p><img src="https://raw.githubusercontent.com/learner-lu/picbed/master/20230518224610.png" alt="20230518224610"></p><h2 id="h2-7">参考</h2><ul><li><a href="https://howardlau.me/programming/debugging-linux-kernel-with-vscode-qemu.html" target="_blank">使用 VSCode + qemu 搭建 Linux 内核调试环境</a></li></ul><ul><li><a href="https://www.yuque.com/wwyf/blog/og2h3r" target="_blank">如何舒服地调试 Linux 内核</a></li></ul><ul><li>[[Linux Kernel] 通过 VS Code 和 QEMU 调试 Linux 内核(QEMU;GDB;VS Code;Linux)](<a href="https://www.bilibili.com/video/BV1dY411f75B" target="_blank">https://www.bilibili.com/video/BV1dY411f75B</a>)</li></ul></div>
+    <div class="dir-tree"><ul><li><a href="../../md-docs/README" >README</a></li></ul><ul><li><a href="../../前期准备/编译内核" >前期准备</a><ul><li><a href="../../前期准备/编译内核" >编译内核</a></li></ul><ul><li><a href="../../前期准备/调试内核" >调试内核</a></li></ul><ul><li><a href="../../前期准备/内核编译选项" >内核编译选项</a></li></ul><ul><li><a href="../../前期准备/邮件订阅" >邮件订阅</a></li></ul><ul><li><a href="../../前期准备/linux进展" >linux进展</a></li></ul><ul><li><a href="../../前期准备/linux目录结构" >linux目录结构</a></li></ul><ul><li><a href="../../前期准备/lfs" >lfs</a></li></ul></li></ul><ul><li><a href="../../linux011/init" >linux011</a><ul><li><a href="../../linux011/init" >init</a></li></ul><ul><li><a href="../../linux011/kernel" >kernel</a></li></ul></li></ul></div>
+    <div class="zood"><a class="" href="https://github.com/luzhixing12345/zood" target="_blank">zood</a></div>
+    <script type="text/javascript" src="../../../js/next_front.js"></script><script>addLink("../../前期准备/编译内核","../../前期准备/内核编译选项","ab")</script><script type="text/javascript" src="../../../js/change_mode.js"></script><script>addChangeModeButton("../../../img/sun.png","../../../img/moon.png")</script><script type="text/javascript" src="../../../js/copy_code.js"></script><script>addCodeCopy("../../../img/before_copy.png","../../../img/after_copy.png")</script><script type="text/javascript" src="../../../js/navigator.js"></script><script type="text/javascript" src="../../../js/prism.js"></script><script type="text/javascript" src="../../../js/picture_preview.js"></script><script type="text/javascript" src="../../../js/check_box.js"></script>
+</body>
+
+</html>

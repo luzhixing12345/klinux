@@ -1,20 +1,16 @@
 # klinux
 
-klinux 是一个精简的现代 linux kernel, 基于Linux0.11修改,加入了诸多现代 linux kernel的优秀新特性
+klinux 是一个精简的现代 linux kernel, 基于 Linux0.11 修改, 并尝试逐步加入了现代 linux kernel 的优秀新特性
 
 本项目意在
 
-- 维护一个 "可编译运行使用的" 最小现代linux内核
-- 学习linux的优秀设计, 以精简的代码和文档记录学习过程
-- 持续关注[内核架构] [内存] [进程] [网络] [驱动] [文件系统] 相关进展, 与最新版本功能保持同步
+- 学习 linux kernel 的优秀设计, 记录学习过程
+- 维护一个 "可运行使用的" "最小的" "现代" linux内核
 
-## 进展
-
-```bash
-git reset <hash>
-```
+本项目会持续关注 [内核架构] [内存] [进程] [网络] [驱动] [文件系统] 相关进展, 期望与最新版本功能保持同步
 
 ## 参考
 
+- [linux tree](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/)
 - Linux内核完全注释  
 - 深入linux内核架构

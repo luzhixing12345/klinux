@@ -1,24 +1,13 @@
 /*
  *Copyright (c) 2023 All rights reserved
- *@description: 处理系统硬件一场所引起的中断 => traps.c
+ *@description: 处理系统硬件一场所引起的中断 => kernel/traps.c
  *@author: Zhixing Lu
  *@date: 2023-03-17
  *@email: luzhixing12345@163.com
  *@Github: luzhixing12345
 */
 
-/*
- *  linux/kernel/asm.s
- *
- *  (C) 1991  Linus Torvalds
- */
 
-/*
- * asm.s contains the low-level code for most hardware faults.
- * page_exception is handled by the mm, so that isn't here. This
- * file also handles (hopefully) fpu-exceptions due to TS-bit, as
- * the fpu must be properly saved/resored. This hasn't been tested.
- */
 
 .globl _divide_error,_debug,_nmi,_int3,_overflow,_bounds,_invalid_op
 .globl _double_fault,_coprocessor_segment_overrun

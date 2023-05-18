@@ -27,7 +27,6 @@
 /*#define KBD_GR */
 /*#define KBD_FR */
 #define KBD_FINNISH
-
 /*
  * Normally, Linux can get the drive parameters from the BIOS at
  * startup, but if this for some unfathomable reason fails, you'd
