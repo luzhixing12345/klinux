@@ -19,6 +19,28 @@ klinux 是一个精简的现代 linux kernel, 基于 Linux0.11 修改, 并尝试
 
 本文档用于记录三部分内容
 
-- 前期准备: 关于 linux kernel 的一些事情, 编译和调试内核, 开发环境配置等
-- Linux 源码阅读
+- 前期准备
+
+  这部分主要介绍关于 linux kernel 开发的相关信息, 编译和调试内核, 开发环境配置等
+
+  如果读者尚且对 linux 的开发环境并不熟悉建议优先阅读此部分
+
+- Linux源码阅读
+
+  这部分主要是关于 Linux0.11 版本的源码阅读, 尽管 0.11 版本和当前版本(6.3)差距很大, 但直接阅读 6.3 版本的代码并不现实. 笔者选择这个版本一个原因是0.11的代码量还勉强可以令人接收, 在此基础上理解并修改以开发自己的 klinux 操作系统内核; 第二个原因是有很多关于 linux0.11 版本的书籍, 作为一个初学者这对入门来说很友善
+
+  阅读源码的目的是解决一个问题: 我已经了解了操作系统的运行工作原理, 所以 Linux 是怎么做的?
+
 - 新功能实现: 一些内核功能/特性的介绍及实现
+
+  这部分主要是在 Linux0.11 的基础上笔者所做的所有修改的记录, 笔者打算尝试实现一些 Linux 中已有的功能并加入 klinux 当中. 笔记主要记录三方面的内容: 这个功能是什么? Linux 是怎么做的? 我是怎么做的?
+
+  关注现代 Linux 操作系统内核中的特性的实现
+
+## 资源
+
+笔者将一些相关的软件/电子书等资源均保存在 [resources](https://github.com/luzhixing12345/klinux/releases/tag/v0.0.1) 中, 读者可根据需要自行下载, 文中对应的位置也会列出源地址, 这里仅作一个资源的备份和集中索引
+
+- [Linux内核完全注释.pdf](https://github.com/luzhixing12345/klinux/releases/download/v0.0.1/Linux-01.pdf)
+- [Linux内核源代码漫游.pdf](https://github.com/luzhixing12345/klinux/releases/download/v0.0.1/Linux-02.pdf)
+- [Linux0.11源码](https://github.com/luzhixing12345/klinux/releases/download/v0.0.1/linux-0.11.tar.Z)

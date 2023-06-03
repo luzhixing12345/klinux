@@ -18,7 +18,7 @@ const savedTheme = localStorage.getItem('theme');
 // 如果保存的主题存在，则设置当前主题为保存的主题
 links.forEach(function(link) {
   if (link.href === currentUrl) {
-    link.scrollIntoView({block: 'center', inline: 'nearest', container: dirTree });
+    link.scrollIntoView({block: 'center', inline:'nearest', container: dirTree });
     if (savedTheme) {
         if (savedTheme == 'dark') {
             link.classList.add("link-active-dark");

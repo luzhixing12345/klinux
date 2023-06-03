@@ -343,6 +343,10 @@ blockquote {
   border-radius: 5px;
 }
 
+.markdown-body ul li blockquote {
+  margin-top: 10px;
+}
+
 .changeMode {
   position: absolute;
   right: 50px;
@@ -587,6 +591,14 @@ pre[class*="language-"]::selection {
   list-style: none;
   position: relative;
   /* box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px; */
+}
+
+.dir-tree ul li a {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .search-bar::-webkit-scrollbar {
@@ -839,6 +851,7 @@ pre[class*="language-"]::selection {
 .header-navigator {
   display: none;
   position: fixed;
+  width: 15%;
   left: 83%;
   top: 10%;
   font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
@@ -849,6 +862,8 @@ pre[class*="language-"]::selection {
   text-overflow: ellipsis; /*  过长文字省略号 */
   white-space: nowrap; /*禁止文字折行*/
   list-style: none;
+  max-height: 50%;
+  overflow: auto;
 }
 
 .header-navigator::-webkit-scrollbar {
@@ -876,4 +891,12 @@ pre[class*="language-"]::selection {
 
 .header-navigator ul ul {
   margin-left: -20px;
+}
+
+.header-navigator a {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

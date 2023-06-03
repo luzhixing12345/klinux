@@ -1,10 +1,6 @@
 
 # init
 
-## 环境配置
-
-> 关于Linux0.11的基础部分主要参考 《Linux内核完全注释》 一书, 写的非常好, 十分建议阅读!
-
 ## Linux0.11
 
 早期的Linux代码被保存在 <http://oldlinux.org/> 上, 其中还保存着一些诸如 [VMware-images](http://www.oldlinux.org/Linux.old/VMware-images/) 和 [qemu-images](http://www.oldlinux.org/Linux.old/qemu-images/)
@@ -16,56 +12,47 @@ wget http://www.oldlinux.org/Linux.old/Linux-0.11/sources/system/linux-0.11.tar.
 tar xf linux-0.11.tar.Z
 ```
 
-解压之后的文件夹比较清晰
+笔者也将代码上传了一份用于存档, 下面讨论的 Linux0.11 版本的代码均基于此: [Linux0.11源码](https://github.com/luzhixing12345/klinux/releases/download/v0.0.1/linux-0.11.tar.Z)
+
+解压之后的文件夹比较清晰, 各部分的功能简要概述如下所示
 
 ```bash
-├── boot          系统引导汇编程序
-├── fs            文件系统
-├── include       头文件
-│   ├── asm       与CPU体系结构相关的部分
-│   ├── linux     Linux内核专用部分
-│   └── sys       系统数据结构部分
-├── init          内核初始化程序
-├── kernel        内核进程调度 信号处理 系统调用
-│   ├── blk_drv   块设备驱动程序
-│   ├── chr_drv   字符设备驱动程序
-│   └── math      数学协处理器仿真处理程序
-├── lib           内核库函数
-├── mm            内存管理程序
-└── tools         生成内核Image文件的工具程序
+├── boot          # 系统引导汇编程序
+├── fs            # 文件系统
+├── include       # 头文件
+│   ├── asm       # 与CPU体系结构相关的部分
+│   ├── linux     # Linux内核专用部分
+│   └── sys       # 系统数据结构部分
+├── init          # 内核初始化程序
+├── kernel        # 内核进程调度 信号处理 系统调用
+│   ├── blk_drv   # 块设备驱动程序
+│   ├── chr_drv   # 字符设备驱动程序
+│   └── math      # 数学协处理器仿真处理程序
+├── lib           # 内核库函数
+├── mm            # 内存管理程序
+└── tools         # 生成内核Image文件的工具程序
 ```
 
-不要忘记添加一下头文件路径, 如果是使用的Microsoft的C/C++插件可以添加 `.vscode/c_cpp_properties.json`
-
-```json
-{
-    "configurations": [
-        {
-            "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "include/"
-            ],
-            "defines": [],
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "c17",
-            "cppStandard": "c++98",
-            "intelliSenseMode": "linux-gcc-x64"
-        }
-    ],
-    "version": 4
-}
-```
-
-如果是clangd就添加 `.vscode/settings.json`
+## 开发环境
 
 ```json
 {
     "clangd.fallbackFlags": [
-        "include/"
+        "-I${workspaceFolder}/include"
+    ],
+    "clangd.arguments": [
+        "--background-index", // 在后台自动分析文件（基于complie_commands)
+        "-j=12", // 同时开启的任务数量
+        "--clang-tidy", // clang-tidy功能
+        "--clang-tidy-checks=performance-*,bugprone-*",
+        "--all-scopes-completion", // 全局补全（会自动补充头文件）
+        "--completion-style=detailed", // 更详细的补全内容
+        "--header-insertion=iwyu" // 补充头文件的形式
     ]
 }
 ```
+
+值得一提的是这里需要使用 `-I${workspaceFolder}/include` 而不是 `-Iinclude/` 是因为默认会优先找 /usr/include 下的 linux 系统头文件
 
 ## 编译过程
 

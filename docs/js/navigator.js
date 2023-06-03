@@ -8,6 +8,10 @@ navigator_links.forEach(link => {
         event.preventDefault();
         let target = document.querySelector(this.getAttribute('href'));
         target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        // 修改网页 URL
+        let url = window.location.href.split('#')[0]; // 获取当前 URL 并去除 # 及后面的内容
+        let newUrl = url + this.getAttribute('href'); // 将当前 URL 与链接的 href 属性拼接
+        history.pushState(null, null, newUrl); // 修改网页 URL
     });
 });
 
@@ -41,7 +45,7 @@ window.addEventListener('scroll', function () {
             }
         }
     }
-    
+
     // If no heading is found, set the previous heading to bold
     if (!found && previousHeading) {
         var previousLink = document.querySelector(`a[href="#${previousHeading.id}"]`);

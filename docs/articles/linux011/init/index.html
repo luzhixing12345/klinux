@@ -13,41 +13,34 @@
 </head>
 
 <body class="light">
-    <div class="header-navigator"><ul><li><a href="#h1-0">init</a><ul><li><a href="#h2-1">环境配置</a></li></ul><ul><li><a href="#h2-2">Linux0.11</a></li></ul><ul><li><a href="#h2-3">编译过程</a></li></ul><ul><li><a href="#h2-4">引导启动程序</a></li></ul><ul><li><a href="#h2-5">init</a><ul><li><a href="#h3-6">系统调用的过程</a></li></ul><ul><li><a href="#h3-7">main函数部分</a></li></ul><ul><li><a href="#h3-8">登录</a></li></ul><ul><li><a href="#h3-9">进程组 会话(session)</a></li></ul></li></ul></li></ul></div><div class='markdown-body'><h1 id="h1-0">init</h1><h2 id="h2-1">环境配置</h2><blockquote><p>关于Linux0.11的基础部分主要参考 《Linux内核完全注释》 一书, 写的非常好, 十分建议阅读!</p></blockquote><h2 id="h2-2">Linux0.11</h2><p>早期的Linux代码被保存在 <a href="http://oldlinux.org/" target="_blank">http://oldlinux.org/</a> 上, 其中还保存着一些诸如 <a href="http://www.oldlinux.org/Linux.old/VMware-images/" target="_blank">VMware-images</a> 和 <a href="http://www.oldlinux.org/Linux.old/qemu-images/" target="_blank">qemu-images</a></p><p>源码下载只需要找到其中的0.11版本的即可</p><pre><code class="language-bash">wget http://www.oldlinux.org/Linux.old/Linux-0.11/sources/system/linux-0.11.tar.Z
-tar xf linux-0.11.tar.Z</code></pre><p>解压之后的文件夹比较清晰</p><pre><code class="language-bash">├── boot          系统引导汇编程序
-├── fs            文件系统
-├── include       头文件
-│   ├── asm       与CPU体系结构相关的部分
-│   ├── linux     Linux内核专用部分
-│   └── sys       系统数据结构部分
-├── init          内核初始化程序
-├── kernel        内核进程调度 信号处理 系统调用
-│   ├── blk_drv   块设备驱动程序
-│   ├── chr_drv   字符设备驱动程序
-│   └── math      数学协处理器仿真处理程序
-├── lib           内核库函数
-├── mm            内存管理程序
-└── tools         生成内核Image文件的工具程序</code></pre><p>不要忘记添加一下头文件路径, 如果是使用的Microsoft的C/C++插件可以添加 <code>.vscode/c_cpp_properties.json</code></p><pre><code class="language-json">{
-    "configurations": [
-        {
-            "name": "Linux",
-            "includePath": [
-                "${workspaceFolder}/**",
-                "include/"
-            ],
-            "defines": [],
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "c17",
-            "cppStandard": "c++98",
-            "intelliSenseMode": "linux-gcc-x64"
-        }
-    ],
-    "version": 4
-}</code></pre><p>如果是clangd就添加 <code>.vscode/settings.json</code></p><pre><code class="language-json">{
+    <div class="header-navigator"><ul><li><a href="#h1-0">init</a><ul><li><a href="#h2-1">Linux0.11</a></li></ul><ul><li><a href="#h2-2">开发环境</a></li></ul><ul><li><a href="#h2-3">编译过程</a></li></ul><ul><li><a href="#h2-4">引导启动程序</a></li></ul><ul><li><a href="#h2-5">init</a><ul><li><a href="#h3-6">系统调用的过程</a></li></ul><ul><li><a href="#h3-7">main函数部分</a></li></ul><ul><li><a href="#h3-8">登录</a></li></ul><ul><li><a href="#h3-9">进程组 会话(session)</a></li></ul></li></ul></li></ul></div><div class='markdown-body'><h1 id="h1-0">init</h1><h2 id="h2-1">Linux0.11</h2><p>早期的Linux代码被保存在 <a href="http://oldlinux.org/" target="_blank">http://oldlinux.org/</a> 上, 其中还保存着一些诸如 <a href="http://www.oldlinux.org/Linux.old/VMware-images/" target="_blank">VMware-images</a> 和 <a href="http://www.oldlinux.org/Linux.old/qemu-images/" target="_blank">qemu-images</a></p><p>源码下载只需要找到其中的0.11版本的即可</p><pre><code class="language-bash">wget http://www.oldlinux.org/Linux.old/Linux-0.11/sources/system/linux-0.11.tar.Z
+tar xf linux-0.11.tar.Z</code></pre><p>笔者也将代码上传了一份用于存档, 下面讨论的 Linux0.11 版本的代码均基于此: <a href="https://github.com/luzhixing12345/klinux/releases/download/v0.0.1/linux-0.11.tar.Z" target="_blank">Linux0.11源码</a></p><p>解压之后的文件夹比较清晰, 各部分的功能简要概述如下所示</p><pre><code class="language-bash">├── boot          # 系统引导汇编程序
+├── fs            # 文件系统
+├── include       # 头文件
+│   ├── asm       # 与CPU体系结构相关的部分
+│   ├── linux     # Linux内核专用部分
+│   └── sys       # 系统数据结构部分
+├── init          # 内核初始化程序
+├── kernel        # 内核进程调度 信号处理 系统调用
+│   ├── blk_drv   # 块设备驱动程序
+│   ├── chr_drv   # 字符设备驱动程序
+│   └── math      # 数学协处理器仿真处理程序
+├── lib           # 内核库函数
+├── mm            # 内存管理程序
+└── tools         # 生成内核Image文件的工具程序</code></pre><h2 id="h2-2">开发环境</h2><pre><code class="language-json">{
     "clangd.fallbackFlags": [
-        "include/"
+        "-I${workspaceFolder}/include"
+    ],
+    "clangd.arguments": [
+        "--background-index", // 在后台自动分析文件（基于complie_commands)
+        "-j=12", // 同时开启的任务数量
+        "--clang-tidy", // clang-tidy功能
+        "--clang-tidy-checks=performance-*,bugprone-*",
+        "--all-scopes-completion", // 全局补全（会自动补充头文件）
+        "--completion-style=detailed", // 更详细的补全内容
+        "--header-insertion=iwyu" // 补充头文件的形式
     ]
-}</code></pre><h2 id="h2-3">编译过程</h2><p>把内核从块设备引导加载到内存, 对系统配置参数进行探测, 完成了进入32位保护模式运行之前的所有工作, 位内核系统执行进一步的初始化工作做准备</p><ul><li>bootsect.s => 磁盘引导程序</li></ul><ul><li>setup.s => 获取BIOS参数</li></ul><ul><li>head.s => 运行启动代码程序</li></ul><p>Makefile中核心编译环节</p><pre><code class="language-Makefile">all: Image
+}</code></pre><p>值得一提的是这里需要使用 <code>-I${workspaceFolder}/include</code> 而不是 <code>-Iinclude/</code> 是因为默认会优先找 /usr/include 下的 linux 系统头文件</p><h2 id="h2-3">编译过程</h2><p>把内核从块设备引导加载到内存, 对系统配置参数进行探测, 完成了进入32位保护模式运行之前的所有工作, 位内核系统执行进一步的初始化工作做准备</p><ul><li>bootsect.s => 磁盘引导程序</li></ul><ul><li>setup.s => 获取BIOS参数</li></ul><ul><li>head.s => 运行启动代码程序</li></ul><p>Makefile中核心编译环节</p><pre><code class="language-Makefile">all: Image
 
 # 依赖四个文件 =&gt; boot/bootsect boot/setup tools/system tools/build
 # 是用build 以 $(ROOT_DEV) 为根文件系统设备将其他部分组装成内核映像文件 Image
@@ -223,7 +216,7 @@ static inline _syscall0(int, fork);
     // fork 的子进程返回 0
     if (!(pid = fork())) {
         if ((pid = fork()) &lt; 0) {</code></pre><p>这里的三个进程属于同一个进程组</p><p><img src="https://raw.githubusercontent.com/learner-lu/picbed/master/20230323170440.png" alt="20230323170440"></p><p>进程组是一个或者多个进程的集合, 每一个进程组都有一个唯一的进程组标识号gid, 每一个进程组有一个称为组长的进程, 组长进程的pid等于进程组的gid</p><p>一个进程可以通过setpgid来参加一个现有的进程组或者创建一个新的进程组. 进程组的概念有很多用途, 最常见的是我们在终端上向前台执行程序发出终止信号, 同时终止整个进程组中的所有进程</p><p>会话(session) 是一个或多个进程组的集合, 通常情况下用户登录后所执行的所有程序都属于一个会话期, 登陆的shell时会话期的首进程(session header), 当用户退出登录之后 logout, 所有属于我们的会话期的进程都将要被终止, 这是会话期的主要用途之一</p></div>
-    <div class="dir-tree"><ul><li><a href="../../md-docs/README" >README</a></li></ul><ul><li><a href="../../前期准备/编译内核" >前期准备</a><ul><li><a href="../../前期准备/编译内核" >编译内核</a></li></ul><ul><li><a href="../../前期准备/调试内核" >调试内核</a></li></ul><ul><li><a href="../../前期准备/内核编译选项" >内核编译选项</a></li></ul><ul><li><a href="../../前期准备/邮件订阅" >邮件订阅</a></li></ul><ul><li><a href="../../前期准备/linux进展" >linux进展</a></li></ul><ul><li><a href="../../前期准备/linux目录结构" >linux目录结构</a></li></ul><ul><li><a href="../../前期准备/lfs" >lfs</a></li></ul></li></ul><ul><li><a href="../../linux011/init" >linux011</a><ul><li><a href="../../linux011/init" >init</a></li></ul><ul><li><a href="../../linux011/kernel" >kernel</a></li></ul></li></ul></div>
+    <div class="dir-tree"><ul><li><a href="../../md-docs/README" >README</a></li></ul><ul><li><a href="../../前期准备/编译内核" >前期准备</a><ul><li><a href="../../前期准备/编译内核" >编译内核</a></li></ul><ul><li><a href="../../前期准备/调试内核" >调试内核</a></li></ul><ul><li><a href="../../前期准备/邮件订阅" >邮件订阅</a></li></ul><ul><li><a href="../../前期准备/linux目录结构" >linux目录结构</a></li></ul><ul><li><a href="../../前期准备/lfs" >lfs</a></li></ul></li></ul><ul><li><a href="../../linux011/init" >linux011</a><ul><li><a href="../../linux011/init" >init</a></li></ul><ul><li><a href="../../linux011/kernel" >kernel</a></li></ul></li></ul></div>
     <div class="zood"><a class="" href="https://github.com/luzhixing12345/zood" target="_blank">zood</a></div>
     <script type="text/javascript" src="../../../js/next_front.js"></script><script>addLink("../../前期准备/lfs","../../linux011/kernel","ab")</script><script type="text/javascript" src="../../../js/change_mode.js"></script><script>addChangeModeButton("../../../img/sun.png","../../../img/moon.png")</script><script type="text/javascript" src="../../../js/copy_code.js"></script><script>addCodeCopy("../../../img/before_copy.png","../../../img/after_copy.png")</script><script type="text/javascript" src="../../../js/navigator.js"></script><script type="text/javascript" src="../../../js/prism.js"></script><script type="text/javascript" src="../../../js/picture_preview.js"></script><script type="text/javascript" src="../../../js/check_box.js"></script>
 </body>
