@@ -52,13 +52,11 @@ Mkfile.old
 dkms.conf
 
 .vscode/
-docs/
 
 *.o
 Image
 *.img
 tools/system
-.vscode/
 boot/bootsect
 boot/setup
 kernel/chr_drv/keyboard.s
