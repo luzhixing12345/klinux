@@ -13,10 +13,8 @@ klinux 是一个精简的现代 linux kernel, 基于 Linux0.11 修改, 并尝试
 
 ```bash
 sudo apt install qemu qemu-system qemu-kvm
+wget https://github.com/luzhixing12345/klinux/releases/download/v0.0.1/hdc-0.11.img
 ```
-
-https://github.com/luzhixing12345/klinux/releases/download/v0.0.1/hdc-0.11.img
-
 
 ```bash
 # 制作 Image

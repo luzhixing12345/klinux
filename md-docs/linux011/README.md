@@ -35,7 +35,7 @@ tar xf linux-0.11.tar.Z
 
 ## 开发环境
 
-笔者使用的是 WSL2 + Vscode + clangd
+笔者使用的是 Ubuntu + Vscode + clangd
 
 ```json
 {
@@ -66,7 +66,7 @@ gtk initialization failed
 
 ![20230604212250](https://raw.githubusercontent.com/learner-lu/picbed/master/20230604212250.png)
 
-![20230604113037](https://raw.githubusercontent.com/learner-lu/picbed/master/20230604113037.png)
+![20230604232145](https://raw.githubusercontent.com/learner-lu/picbed/master/20230604232145.png)
 
 ## 参考
 
