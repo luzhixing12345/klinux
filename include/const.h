@@ -1,13 +1,3 @@
-/*
- *Copyright (c) 2023 All rights reserved
- *@description: 常数符号头文件, 目前仅定义了i节点中i_mode字段的各标志位
- *@author: Zhixing Lu
- *@date: 2023-03-17
- *@email: luzhixing12345@163.com
- *@Github: luzhixing12345
-*/
-
-
 #ifndef _CONST_H
 #define _CONST_H
 

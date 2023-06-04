@@ -1,13 +1,3 @@
-
-/*
- *Copyright (c) 2023 All rights reserved
- *@description: 硬盘参数头文件 定义访问硬盘寄存器端口 状态码 分区表等信息
- *@author: Zhixing Lu
- *@date: 2023-03-17
- *@email: luzhixing12345@163.com
- *@Github: luzhixing12345
-*/
-
 /*
  * This file contains some defines for the AT-hd-controller.
  * Various sources. Check out some definitions (see comments with

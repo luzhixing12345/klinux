@@ -1,13 +1,15 @@
 /*
- *Copyright (c) 2023 All rights reserved
- *@description: 有关调度的基本函数 简单的系统调用函数 软盘操作函数
- *@author: Zhixing Lu
- *@date: 2023-03-17
- *@email: luzhixing12345@163.com
- *@Github: luzhixing12345
-*/
+ *  linux/kernel/sched.c
+ *
+ *  (C) 1991  Linus Torvalds
+ */
 
-
+/*
+ * 'sched.c' is the main kernel file. It contains scheduling primitives
+ * (sleep_on, wakeup, schedule etc) as well as a number of simple system
+ * call functions (type getpid(), which just extracts a field from
+ * current-task
+ */
 #include <linux/sched.h>
 #include <linux/kernel.h>
 #include <linux/sys.h>

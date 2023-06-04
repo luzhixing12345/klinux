@@ -1,13 +1,3 @@
-/*
- *Copyright (c) 2023 All rights reserved
- *@description: 系统头文件 定义了设置或修改描述符/中断门的嵌入式汇编宏
- *@author: Zhixing Lu
- *@date: 2023-03-17
- *@email: luzhixing12345@163.com
- *@Github: luzhixing12345
-*/
-
-
 #define move_to_user_mode() \
 __asm__ ("movl %%esp,%%eax\n\t" \
 	"pushl $0x17\n\t" \
@@ -72,5 +62,6 @@ __asm__ ("movw $104,%1\n\t" \
 	 "m" (*(n+5)), "m" (*(n+6)), "m" (*(n+7)) \
 	)
 
-#define set_tss_desc(n,addr) _set_tssldt_desc(((char *) (n)),addr,"0x89")
-#define set_ldt_desc(n,addr) _set_tssldt_desc(((char *) (n)),addr,"0x82")
+#define set_tss_desc(n,addr) _set_tssldt_desc(((char *) (n)),((int)(addr)),"0x89")
+#define set_ldt_desc(n,addr) _set_tssldt_desc(((char *) (n)),((int)(addr)),"0x82")
+

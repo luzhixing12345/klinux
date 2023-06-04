@@ -3,9 +3,10 @@
 前期准备:
 - 编译内核: 1
 - 调试内核: 2
-- 邮件订阅: 4
-- linux目录结构: 7
-- lfs: 8
+- 邮件订阅: 3
+- linux目录结构: 4
+- lfs: 5
 linux011:
-- init: 1
-- kernel: 2
+- README: 1
+- init: 2
+- kernel: 3

@@ -1,13 +1,3 @@
-/*
- *Copyright (c) 2023 All rights reserved
- *@description: 错误号头文件 包含系统中各种出错号
- *@author: Zhixing Lu
- *@date: 2023-03-17
- *@email: luzhixing12345@163.com
- *@Github: luzhixing12345
-*/
-
-
 #ifndef _ERRNO_H
 #define _ERRNO_H
 

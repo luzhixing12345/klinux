@@ -1,13 +1,3 @@
-/*
- *Copyright (c) 2023 All rights reserved
- *@description: 内核配置头文件 定义键盘语言和硬盘类型的可选项
- *@author: Zhixing Lu
- *@date: 2023-03-17
- *@email: luzhixing12345@163.com
- *@Github: luzhixing12345
-*/
-
-
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
@@ -23,10 +13,11 @@
  * KBD_GR for German keyboards
  * KBD_FR for Frech keyboard
  */
-/*#define KBD_US */
+#define KBD_US
 /*#define KBD_GR */
 /*#define KBD_FR */
-#define KBD_FINNISH
+/*#define KBD_FINNISH */
+
 /*
  * Normally, Linux can get the drive parameters from the BIOS at
  * startup, but if this for some unfathomable reason fails, you'd

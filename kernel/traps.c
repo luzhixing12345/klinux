@@ -1,14 +1,4 @@
 /*
- *Copyright (c) 2023 All rights reserved
- *@description: 对各个硬件的异常处理 => asm.s
- *@author: Zhixing Lu
- *@date: 2023-03-17
- *@email: luzhixing12345@163.com
- *@Github: luzhixing12345
-*/
-
-
-/*
  *  linux/kernel/traps.c
  *
  *  (C) 1991  Linus Torvalds
@@ -20,7 +10,7 @@
  * to mainly kill the offending process (probably by giving it a signal,
  * but possibly by killing it outright if necessary).
  */
-#include <string.h>
+#include <string.h> 
 
 #include <linux/head.h>
 #include <linux/sched.h>

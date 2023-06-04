@@ -9,6 +9,21 @@ klinux 是一个精简的现代 linux kernel, 基于 Linux0.11 修改, 并尝试
 
 本项目会持续关注 [内核架构] [内存] [进程] [网络] [驱动] [文件系统] 相关进展, 期望与最新版本功能保持同步
 
+## 编译
+
+```bash
+sudo apt install qemu qemu-system qemu-kvm
+```
+
+```bash
+# 制作 Image
+make
+# 启动
+make start
+# 调试
+make debug
+```
+
 ## 参考
 
 - [linux tree](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/)

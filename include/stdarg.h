@@ -1,14 +1,3 @@
-/*
- *Copyright (c) 2023 All rights reserved
- *@description: 标准参数头文件 以宏的形式定义变量参数列表
-                声明类型:va_list和宏:va_start va_arg va_end
- *@author: Zhixing Lu
- *@date: 2023-03-17
- *@email: luzhixing12345@163.com
- *@Github: luzhixing12345
-*/
-
-
 #ifndef _STDARG_H
 #define _STDARG_H
 

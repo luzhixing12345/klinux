@@ -1,13 +1,3 @@
-/*
- *Copyright (c) 2023 All rights reserved
- *@description: 终端输入输出函数头文件 主要定义控制异步通信口的终端接口
- *@author: Zhixing Lu
- *@date: 2023-03-17
- *@email: luzhixing12345@163.com
- *@Github: luzhixing12345
-*/
-
-
 #ifndef _TERMIOS_H
 #define _TERMIOS_H
 
