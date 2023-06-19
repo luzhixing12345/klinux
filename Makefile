@@ -1,7 +1,7 @@
 OS = Linux
 
 QEMU = qemu-system-x86_64
-QEMU_FLAG = #-nographic -serial mon:stdio
+QEMU_FLAG = -nographic #-serial mon:stdio
 
 # indicate the Hardware Image file
 HDA_IMG = hdc-0.11.img

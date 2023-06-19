@@ -12,7 +12,7 @@ klinux 是一个精简的现代 linux kernel, 基于 Linux0.11 修改, 并尝试
 ## 编译
 
 ```bash
-sudo apt install qemu qemu-system qemu-kvm
+sudo apt install qemu qemu-system qemu-kvm build-essential
 wget https://github.com/luzhixing12345/klinux/releases/download/v0.0.1/hdc-0.11.img
 ```
 
@@ -28,5 +28,7 @@ make debug
 ## 参考
 
 - [linux tree](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/)
-- Linux内核完全注释  
+- [Linux内核完全注释](http://oldlinux.org/download/CLK-5.0-WithCover.pdf)
 - 深入linux内核架构
+- [linux-insides](https://github.com/0xAX/linux-insides)
+- [linux-insides-zh](https://github.com/MintCN/linux-insides-zh)
