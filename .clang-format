@@ -4,6 +4,7 @@ AllowShortFunctionsOnASingleLine: None
 AllowShortBlocksOnASingleLine: Never
 AllowShortIfStatementsOnASingleLine: false
 ColumnLimit: 120
+AlignConsecutiveMacros: AcrossEmptyLines
 BinPackArguments: false
 BraceWrapping:
   AfterStruct: true

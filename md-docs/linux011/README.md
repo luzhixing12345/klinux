@@ -1,7 +1,9 @@
 
 # README
 
-这部分内容主要参考赵炯博士的 [Linux内核完全注释](http://oldlinux.org/download/CLK-5.0-WithCover.pdf), 最新版已更新至 linux0.12 版本
+这部分内容主要参考赵炯博士的 [Linux内核完全注释V5](http://oldlinux.org/download/CLK-5.0-WithCover.pdf) 和 [Linux内核完全注释V3](http://www.oldlinux.org/download/clk011c-3.0.pdf), 最新版已更新至 linux0.12 版本
+
+> 个人感觉 v3 版本的顺序要更好一些, v5 的一些图不错
 
 Linux 0.11 已经过时了, 它不支持多用户，甚至没有关机或重启命令, 它也非常不稳定，很容易出现恐慌和崩溃, 不支持 TCP/IP、UUCP、共享库等. 也没有虚拟文件系统 VFS、ext2 或 ext3 文件系统、网络子系统、新的复杂的内存管理机制.
 
