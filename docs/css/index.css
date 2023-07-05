@@ -242,8 +242,8 @@ blockquote {
   margin-top: 0.25em;
 }
 
-.markdown-body ul ul li:first-child {
-  padding-top: 15px; /* 你希望的距离 */
+.markdown-body ul li ul li:first-child {
+  padding-bottom: 10px;
 }
 
 .markdown-body table {

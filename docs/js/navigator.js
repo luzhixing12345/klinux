@@ -1,17 +1,22 @@
 
 const divElement = document.getElementsByClassName("header-navigator")[0]; // 获取目标div元素
-divElement.style.display = "block"; // 将display属性设置为block，以显示元素
+divElement.style.display = "block"; // 将display属性设置为block,以显示元素
 
-let navigator_links = document.querySelectorAll('div a[href^="#"]');
+let navigator_links = document.querySelectorAll('.header-navigator ul li a[href^="#"]');
 navigator_links.forEach(link => {
     link.addEventListener('click', function (event) {
         event.preventDefault();
         let target = document.querySelector(this.getAttribute('href'));
         target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-        // 修改网页 URL
-        let url = window.location.href.split('#')[0]; // 获取当前 URL 并去除 # 及后面的内容
-        let newUrl = url + this.getAttribute('href'); // 将当前 URL 与链接的 href 属性拼接
-        history.pushState(null, null, newUrl); // 修改网页 URL
+        setTimeout(() => {
+            let divElement = document.getElementById('yourDivElementId');
+            this.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest', container: divElement });
+
+            // 修改网页 URL
+            let url = window.location.href.split('#')[0];
+            let newUrl = url + this.getAttribute('href');
+            history.pushState(null, null, newUrl);
+        }, 1000);
     });
 });
 

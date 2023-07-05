@@ -15,3 +15,5 @@ linux011:
 linux:
 - namespace-cgroups: 1
 - 内存管理: 2
+arch:
+- ACPI: 1

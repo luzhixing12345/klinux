@@ -13,8 +13,8 @@
 </head>
 
 <body class="light">
-    <div class="header-navigator"><ul><li><a href="#h1-0">Linux from scracth</a><ul><li><a href="#h2-1">前言</a></li></ul><ul><li><a href="#h2-2">准备</a></li></ul></li></ul></div><div class='markdown-body'><h1 id="h1-0">Linux from scracth</h1><h2 id="h2-1">前言</h2><p>本文用于记录 <a href="https://www.linuxfromscratch.org/lfs/" target="_blank">Linux from scracth</a>: 构建自己的 Linux 发行版 的踩坑记录</p><p>当前版本的 lfs11.3, 可以在 <a href="https://www.linuxfromscratch.org/lfs/downloads/stable/" target="_blank">downloads/stable</a> 中找到英文资料, 笔者使用的是中文翻译版</p><p>如果你想问有什么意义, 那我只能说 just for fun, just for free. 另外就是我希望构建一个用于 gem5 fs的disk</p><p>由于存在软件版本的变动, 所以当前记录可能并不完全适用于读者的最新版本, 那我们废话不多说直接开始吧</p><h2 id="h2-2">准备</h2><p>笔者使用的是 Windows11 操作系统, 配合 VMware workstation 17.0, <a href="https://releases.ubuntu.com/jammy/ubuntu-22.04.2-desktop-amd64.iso" target="_blank">Ubuntu22.04 Desktop image(LTS)</a> 作为宿主系统, 构建过程省略</p><pre><code class="language-bash">kamilu@kamilu:~$ uname -a
-Linux kamilu 5.19.0-41-generic #42~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Apr 18 17:40:00 UTC 2 x86_64 x86_64 x86_64 GNU/Linux</code></pre><p>执行下面的命令得到一个 <code>version-check.sh</code> 版本检查脚本</p><pre><code class="language-bash">cat &gt; version-check.sh &lt;&lt; "EOF"
+    <div class="header-navigator"><ul><li><a href="#h1-0">Linux from scracth</a><ul><li><a href="#h2-1">前言</a></li></ul><ul><li><a href="#h2-2">准备</a></li></ul></li></ul></div><div class='markdown-body'><h1 id="h1-0">Linux from scracth</h1><h2 id="h2-1">前言</h2><p>本文用于记录 <a href="https://www.linuxfromscratch.org/lfs/" target="_blank">Linux from scracth</a>: 构建自己的 Linux 发行版 的踩坑记录</p><p>当前版本的 lfs11.3, 可以在 <a href="https://www.linuxfromscratch.org/lfs/downloads/stable/" target="_blank">downloads/stable</a> 中找到英文资料, 笔者使用的是中文翻译版</p><p>常见问题见 <a href="https://www.linuxfromscratch.org/faq/" target="_blank">lfs FAQ</a></p><h2 id="h2-2">准备</h2><p>笔者使用的是 Windows11 操作系统, 配合 WSL2 作为宿主系统, 关于 WSL2 的配置请参考 <a href="https://luzhixing12345.github.io/2022/10/06/环境配置/WSL2配置/" target="_blank">WSL2配置</a></p><pre><code class="language-bash">(base) kamilu@LZX:~/cfs/lfs$ uname -a
+Linux LZX 5.10.102.1-microsoft-standard-WSL2 #1 SMP Wed Mar 2 00:30:59 UTC 2022 x86_64 x86_64 x86_64 GNU/Linux</code></pre><p>执行下面的命令得到一个 <code>version-check.sh</code> 版本检查脚本</p><pre><code class="language-bash">cat &gt; version-check.sh &lt;&lt; "EOF"
 #!/bin/bash
 # Simple script to list version numbers of critical development tools
 export LC_ALL=C
@@ -62,35 +62,33 @@ if [ -x dummy ]
  then echo "g++ compilation OK";
  else echo "g++ compilation failed"; fi
 rm -f dummy.c dummy
-EOF</code></pre><p>执行脚本, 可以看到整个系统是刚刚装上的, 新的很,基本都是 command not found</p><pre><code class="language-bash">kamilu@kamilu:~$ bash version-check.sh
-bash, version 5.1.16(1)-release
-/bin/sh -&gt; /usr/bin/dash
-ERROR: /bin/sh does not point to bash
-Binutils: version-check.sh: line 9: ld: command not found
-version-check.sh: line 10: bison: command not found
-yacc not found
+EOF</code></pre><p>执行脚本, 绝大部分是正常的, 但是出现了两条 error</p><pre><code class="language-bash">ERROR: /bin/sh does not point to bash
+version-check.sh: line 41: makeinfo: command not found</code></pre><p>为了解决第一个 /bin/sh 不指向 bash 而是 dash 可以执行如下的命令</p><pre><code class="language-bash">sudo dpkg-reconfigure dash</code></pre><p>此时会弹出来一个框, 然后选择 no 即可</p><p><img src="https://raw.githubusercontent.com/learner-lu/picbed/master/20230701211216.png" alt="20230701211216"></p><blockquote><p><a href="https://unix.stackexchange.com/questions/442510/how-to-use-bash-for-sh-in-ubuntu" target="_blank">stackexchange unix</a></p></blockquote><p>makeinfo 的问题安装 textinfo 即可</p><pre><code class="language-bash">sudo apt install texinfo</code></pre><blockquote><p><a href="https://stackoverflow.com/questions/338317/what-is-makeinfo-and-how-do-i-get-it" target="_blank">what is makeinfo and how do i get it</a></p></blockquote><p>接下来执行没有任何问题, 笔者的软件版本号如下:</p><pre><code class="language-bash">bash, version 5.1.16(1)-release
+/bin/sh -&gt; /usr/bin/bash
+Binutils: (GNU Binutils for Ubuntu) 2.38
+bison (GNU Bison) 3.8.2
+/usr/bin/yacc -&gt; /usr/bin/bison.yacc
 Coreutils:  8.32
 diff (GNU diffutils) 3.8
 find (GNU findutils) 4.8.0
-version-check.sh: line 21: gawk: command not found
-/usr/bin/awk -&gt; /usr/bin/mawk
-version-check.sh: line 29: gcc: command not found
-version-check.sh: line 30: g++: command not found
+GNU Awk 5.1.0, API: 3.0 (GNU MPFR 4.1.0, GNU MP 6.2.1)
+/usr/bin/awk -&gt; /usr/bin/gawk
+gcc (Ubuntu 9.5.0-1ubuntu1~22.04) 9.5.0
+g++ (Ubuntu 11.3.0-1ubuntu1~22.04.1) 11.3.0
 grep (GNU grep) 3.7
 gzip 1.10
-Linux version 5.19.0-41-generic (buildd@lcy02-amd64-045) (x86_64-linux-gnu-gcc (Ubuntu 11.3.0-1ubuntu1~22.04.1) 11.3.0, GNU ld (GNU Binutils for Ubuntu) 2.38) #42~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue Apr 18 17:40:00 UTC 2
-version-check.sh: line 34: m4: command not found
-version-check.sh: line 35: make: command not found
+Linux version 5.10.102.1-microsoft-standard-WSL2 (oe-user@oe-host) (x86_64-msft-linux-gcc (GCC) 9.3.0, GNU ld (GNU Binutils) 2.34.0.20200220) #1 SMP Wed Mar 2 00:30:59 UTC 2022
+m4 (GNU M4) 1.4.18
+GNU Make 4.3
 GNU patch 2.7.6
 Perl version='5.34.0';
-Python 3.10.4
+Python 3.9.13
 sed (GNU sed) 4.8
 tar (GNU tar) 1.34
-version-check.sh: line 41: makeinfo: command not found
-xz (XZ Utils) 5.2.5
-version-check.sh: line 43: g++: command not found
-g++ compilation failed</code></pre></div>
-    <div class="dir-tree"><ul><li><a href="../../md-docs/README" >README</a></li></ul><ul><li><a href="../../linux011/README" >linux011</a><ul><li><a href="../../linux011/README" >README</a></li></ul><ul><li><a href="../../linux011/基础知识概览" >基础知识概览</a></li></ul><ul><li><a href="../../linux011/init" >init</a></li></ul><ul><li><a href="../../linux011/kernel" >kernel</a></li></ul><ul><li><a href="../../linux011/mm" >mm</a></li></ul></li></ul><ul><li><a href="../../前期准备/编译内核" >前期准备</a><ul><li><a href="../../前期准备/编译内核" >编译内核</a></li></ul><ul><li><a href="../../前期准备/调试内核" >调试内核</a></li></ul><ul><li><a href="../../前期准备/邮件订阅" >邮件订阅</a></li></ul><ul><li><a href="../../前期准备/linux目录结构" >linux目录结构</a></li></ul><ul><li><a href="../../前期准备/lfs" >lfs</a></li></ul></li></ul><ul><li><a href="../../linux/namespace-cgroups" >linux</a><ul><li><a href="../../linux/namespace-cgroups" >namespace-cgroups</a></li></ul><ul><li><a href="../../linux/内存管理" >内存管理</a></li></ul></li></ul></div>
+texi2any (GNU texinfo) 6.8
+xz (XZ Utils) 5.2.6
+g++ compilation OK</code></pre></div>
+    <div class="dir-tree"><ul><li><a href="../../md-docs/README" >README</a></li></ul><ul><li><a href="../../linux011/README" >linux011</a><ul><li><a href="../../linux011/README" >README</a></li></ul><ul><li><a href="../../linux011/基础知识概览" >基础知识概览</a></li></ul><ul><li><a href="../../linux011/init" >init</a></li></ul><ul><li><a href="../../linux011/kernel" >kernel</a></li></ul><ul><li><a href="../../linux011/mm" >mm</a></li></ul></li></ul><ul><li><a href="../../前期准备/编译内核" >前期准备</a><ul><li><a href="../../前期准备/编译内核" >编译内核</a></li></ul><ul><li><a href="../../前期准备/调试内核" >调试内核</a></li></ul><ul><li><a href="../../前期准备/邮件订阅" >邮件订阅</a></li></ul><ul><li><a href="../../前期准备/linux目录结构" >linux目录结构</a></li></ul><ul><li><a href="../../前期准备/lfs" >lfs</a></li></ul></li></ul><ul><li><a href="../../linux/namespace-cgroups" >linux</a><ul><li><a href="../../linux/namespace-cgroups" >namespace-cgroups</a></li></ul><ul><li><a href="../../linux/内存管理" >内存管理</a></li></ul></li></ul><ul><li><a href="../../arch/ACPI" >arch</a><ul><li><a href="../../arch/ACPI" >ACPI</a></li></ul></li></ul></div>
     <div class="zood"><a class="" href="https://github.com/luzhixing12345/zood" target="_blank">zood</a></div>
     <script type="text/javascript" src="../../../js/next_front.js"></script><script>addLink("../../前期准备/linux目录结构","../../linux/namespace-cgroups","ab")</script><script type="text/javascript" src="../../../js/change_mode.js"></script><script>addChangeModeButton("../../../img/sun.png","../../../img/moon.png")</script><script type="text/javascript" src="../../../js/copy_code.js"></script><script>addCodeCopy("../../../img/before_copy.png","../../../img/after_copy.png")</script><script type="text/javascript" src="../../../js/navigator.js"></script><script type="text/javascript" src="../../../js/prism.js"></script><script type="text/javascript" src="../../../js/picture_preview.js"></script><script type="text/javascript" src="../../../js/check_box.js"></script>
 </body>
