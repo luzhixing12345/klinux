@@ -6,14 +6,15 @@ linux011:
 - init: 3
 - kernel: 4
 - mm: 5
-前期准备:
+内存管理:
+- 物理布局探测: 1
+- NUMA: 2
+- namespace: 3
+快速开始:
 - 编译内核: 1
 - 调试内核: 2
 - 邮件订阅: 3
 - linux目录结构: 4
 - lfs: 5
-linux:
-- namespace-cgroups: 1
-- 内存管理: 2
 arch:
 - ACPI: 1

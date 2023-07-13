@@ -25,7 +25,7 @@ klinux 是一个精简的现代 linux kernel, 基于 Linux0.11 修改, 并尝试
 
   阅读源码的目的是解决一个问题: 我已经了解了操作系统的运行工作原理, 所以 Linux 是怎么做的?
 
-- 前期准备
+- 快速开始
 
   这部分主要介绍关于 linux kernel 开发的相关信息, 编译和调试内核, 开发环境配置等
 
@@ -37,10 +37,7 @@ klinux 是一个精简的现代 linux kernel, 基于 Linux0.11 修改, 并尝试
 
   关注现代 Linux 操作系统内核中的特性的实现
 
-## 资源
+## 参考
 
-笔者将一些相关的软件/电子书等资源均保存在 [resources](https://github.com/luzhixing12345/klinux/releases/tag/v0.0.1) 中, 读者可根据需要自行下载, 文中对应的位置也会列出源地址, 这里仅作一个资源的备份和集中索引
+笔者将一些相关的软件/电子书等资源均保存在 [resources](https://github.com/luzhixing12345/klinux/releases/tag/v0.0.1)
 
-- [Linux内核完全注释.pdf](https://github.com/luzhixing12345/klinux/releases/download/v0.0.1/Linux-00.pdf)
-- [Linux内核源代码漫游.pdf](https://github.com/luzhixing12345/klinux/releases/download/v0.0.1/Linux-02.pdf)
-- [Linux0.11源码](https://github.com/luzhixing12345/klinux/releases/download/v0.0.1/linux-0.11.tar.Z)
