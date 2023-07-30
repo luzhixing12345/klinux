@@ -8,15 +8,11 @@ navigator_links.forEach(link => {
         event.preventDefault();
         let target = document.querySelector(this.getAttribute('href'));
         target.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-        setTimeout(() => {
-            let divElement = document.getElementById('yourDivElementId');
-            this.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest', container: divElement });
+        // 修改网页 URL
+        let url = window.location.href.split('#')[0];
+        let newUrl = url + this.getAttribute('href');
+        history.pushState(null, null, newUrl);
 
-            // 修改网页 URL
-            let url = window.location.href.split('#')[0];
-            let newUrl = url + this.getAttribute('href');
-            history.pushState(null, null, newUrl);
-        }, 1000);
     });
 });
 

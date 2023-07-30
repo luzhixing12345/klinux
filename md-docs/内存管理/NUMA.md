@@ -42,7 +42,7 @@ x86多处理器发展历史上,早期的多核和多处理器系统都是UMA架�
 
 ### NUMA
 
-基于总线的计算机系统有一个瓶颈——有限的带宽会导致可伸缩性问题.系统中添加的CPU越多,每个节点可用的带宽就越少.此外,添加的CPU越多,总线就越长,因此延迟就越高. 因此,AMD 在引入 64 位 x86 架构时,实现了 NUMA 架构.
+基于总线的计算机系统有一个瓶颈_有限的带宽会导致可伸缩性问题.系统中添加的CPU越多,每个节点可用的带宽就越少.此外,添加的CPU越多,总线就越长,因此延迟就越高. 因此,AMD 在引入 64 位 x86 架构时,实现了 NUMA 架构.
 
 ![numa-architecture](https://raw.githubusercontent.com/learner-lu/picbed/master/numa-architecture.png)
 
@@ -294,7 +294,7 @@ void __init x86_numa_init(void)
 - [zhou-yuxin's blog](https://zhou-yuxin.github.io/)
 - [内存管理相关数据结构之pg_data_t](https://www.cnblogs.com/linhaostudy/p/12679441.html)
 - [articles](https://zhou-yuxin.github.io/articles/2018/Linux%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E2%80%94%E2%80%94%E8%8E%B7%E5%8F%96%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80%E3%80%81%E5%88%92%E5%88%86%E5%86%85%E5%AD%98%E5%8C%BA%E4%B8%8E%E5%88%9B%E5%BB%BANUMA%E8%8A%82%E7%82%B9/index.html)
-- [Linux物理内存管理——获取物理内存布局,划分内存区与创建NUMA节点](https://zhou-yuxin.github.io/articles/2018/Linux物理内存管理——获取物理内存布局,划分内存区与创建NUMA节点/index.html)
+- [Linux物理内存管理_获取物理内存布局,划分内存区与创建NUMA节点](https://zhou-yuxin.github.io/articles/2018/Linux物理内存管理_获取物理内存布局,划分内存区与创建NUMA节点/index.html)
 - [Performance Analysis of UMA and NUMA Models](https://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=09667FE3B088F3927E29EF7518DDA56F?doi=10.1.1.414.3607&rep=rep1&type=pdf)
 - [理解 NUMA 架构](https://zhuanlan.zhihu.com/p/534989692)
 - [linuxhint understanding_numa_architecture](https://linuxhint.com/understanding_numa_architecture/)

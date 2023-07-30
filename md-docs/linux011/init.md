@@ -156,17 +156,17 @@ int setup(void* BIOS) {
 }
 ```
 
-这两个函数是通过在 Linux 内核中使用中断 (interrupt) 0x80 来调用系统调用 (system call) 的方式实现的。系统调用是操作系统提供给应用程序的一组接口，应用程序可以通过这些接口来请求操作系统执行特定的操作。
+这两个函数是通过在 Linux 内核中使用中断 (interrupt) 0x80 来调用系统调用 (system call) 的方式实现的.系统调用是操作系统提供给应用程序的一组接口,应用程序可以通过这些接口来请求操作系统执行特定的操作.
 
-在这两个函数中，`asm volatile("int $0x80")` 的作用是使用内联汇编 (inline assembly) 在代码中嵌入一个汇编指令，将中断 0x80 发送给处理器。这个中断号是 Linux 内核中指向系统调用处理程序的入口点。
+在这两个函数中,`asm volatile("int $0x80")` 的作用是使用内联汇编 (inline assembly) 在代码中嵌入一个汇编指令,将中断 0x80 发送给处理器.这个中断号是 Linux 内核中指向系统调用处理程序的入口点.
 
-__res 变量是用来保存返回值的，通过 "=a"(__res) 表示将 EAX 寄存器中的值赋给 __res 变量。
+__res 变量是用来保存返回值的,通过 "=a"(__res) 表示将 EAX 寄存器中的值赋给 __res 变量.
 
-第一个函数中，"0"(2) 表示将函数调用号 2 (在 Linux 中是 fork() 的函数调用号) 赋给 EAX 寄存器。
+第一个函数中,"0"(2) 表示将函数调用号 2 (在 Linux 中是 fork() 的函数调用号) 赋给 EAX 寄存器.
 
-第二个函数中，"0"(0) 表示将函数调用号 0 (在 Linux 中是 setup() 的函数调用号) 赋给 EAX 寄存器，"b"((long)(BIOS)) 表示将 BIOS 参数的地址放入 EBX 寄存器中。
+第二个函数中,"0"(0) 表示将函数调用号 0 (在 Linux 中是 setup() 的函数调用号) 赋给 EAX 寄存器,"b"((long)(BIOS)) 表示将 BIOS 参数的地址放入 EBX 寄存器中.
 
-接下来，如果返回值大于等于 0，说明系统调用执行成功，将 __res 强制转换为 int 类型并返回。如果返回值小于 0，将 -__res 赋给 errno 变量，并返回 -1，表示系统调用执行失败。 
+接下来,如果返回值大于等于 0,说明系统调用执行成功,将 __res 强制转换为 int 类型并返回.如果返回值小于 0,将 -__res 赋给 errno 变量,并返回 -1,表示系统调用执行失败. 
 
 这里的 fork 对应的索引值为 2, setup 对应的索引值为 0, 与此同时我们可以看到 `include/linux/sys.h` 下的所有系统调用sys_call_table
 
@@ -206,7 +206,7 @@ __res 变量是用来保存返回值的，通过 "=a"(__res) 表示将 EAX 寄�
   int copy_process(int nr, long ebp, long edi, long esi, long gs, long none,
                  long ebx, long ecx, long edx, long fs, long es, long ds,
                  long eip, long cs, long eflags, long esp, long ss) {
-                    ...
+                    // ...
                  }
   int find_empty_process(void) {
     int i;

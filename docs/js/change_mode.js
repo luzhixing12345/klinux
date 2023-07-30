@@ -92,7 +92,7 @@ function addChangeModeButton(sun_src, moon_src) {
     document.body.appendChild(change_mode_button)
     // 主题保持
     const savedTheme = localStorage.getItem('theme');
-    // 如果保存的主题存在，则设置当前主题为保存的主题
+    // 如果保存的主题存在,则设置当前主题为保存的主题
     if (savedTheme) {
         let body = document.body;
         let markdown_part = document.querySelector('.markdown-body')

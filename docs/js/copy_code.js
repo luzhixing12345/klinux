@@ -30,9 +30,9 @@ function horizon_wheel(event, block, maxScroll) {
     
     // 判断是否已滚动到左右边缘
     if (block.scrollLeft === 0 && scrollAmount < 0) {
-        // 已经滚动到左边缘并且向左滚动，不做任何操作
+        // 已经滚动到左边缘并且向左滚动,不做任何操作
     } else if (maxScroll-block.scrollLeft <= 50 && scrollAmount > 0) {
-        // 已经滚动到右边缘并且向右滚动，不做任何操作
+        // 已经滚动到右边缘并且向右滚动,不做任何操作
         // imageElement.style.right = `${currentRight - scrollAmount}px`;
     } else {
         imageElement.style.right = `${currentRight - scrollAmount}px`;
@@ -57,7 +57,7 @@ function addCodeCopy(before_copy_url, after_copy_url) {
         code_block.addEventListener("mouseenter", () => add(code_block));
         code_block.addEventListener("mouseleave", () => remove(code_block));
         if (code_block.scrollWidth > code_block.clientWidth) {
-            // 如果有横向滚动，阻止页面默认的竖直滚动，并将滚动事件重定向到 <pre> 元素上
+            // 如果有横向滚动,阻止页面默认的竖直滚动,并将滚动事件重定向到 <pre> 元素上
             const blockWidth = code_block.offsetWidth;
             const maxScroll = code_block.scrollWidth - blockWidth;
             code_block.addEventListener('wheel', (event) => horizon_wheel(event, code_block, maxScroll));

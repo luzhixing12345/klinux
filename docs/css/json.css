@@ -1,0 +1,44 @@
+pre[class*="language-json"] {
+    background: #1f1f1f;
+}
+
+pre[class*="language-json"] .Token {
+    color: #C1CCCC;
+}
+
+pre[class*="language-json"] .Token.brace-depth-0 {
+    color: #FFD700;
+}
+
+pre[class*="language-json"] .Token.brace-depth-1 {
+    color: #DA70D6;
+}
+
+pre[class*="language-json"] .Token.brace-depth-2 {
+    color: #1A9DFF;
+}
+
+pre[class*="language-json"] .Token.Pair.Key {
+    color: #88D6FE;
+}
+
+pre[class*="language-json"] .Token.COMMA, pre[class*="language-json"] .Token.COLON {
+    color: #C1CCCC;
+}
+
+pre[class*="language-json"] .Token.UnaryOp,
+pre[class*="language-json"] .Token.Keyword,
+pre[class*="language-json"] .Token.NUMBER {
+    color: #A2CEA8;
+}
+
+pre[class*="language-json"] .Token.STRING {
+    color: #CE9178;
+}
+
+pre[class*="language-json"] .Token.COMMENT {
+    color: #6A9955;
+}
+pre[class*="language-json"] .Token.Keyword {
+    color: #327ED0;
+}
