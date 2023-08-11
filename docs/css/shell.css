@@ -6,15 +6,15 @@ pre[class*="language-shell"] .Token {
     color: #C1CCCC;
 }
 
-pre[class*="language-shell"] .Token.brace-depth-0 {
+pre[class*="language-shell"] .Token.BraceDepth-0 {
     color: #FFD700;
 }
 
-pre[class*="language-shell"] .Token.brace-depth-1 {
+pre[class*="language-shell"] .Token.BraceDepth-1 {
     color: #DA70D6;
 }
 
-pre[class*="language-shell"] .Token.brace-depth-2 {
+pre[class*="language-shell"] .Token.BraceDepth-2 {
     color: #1A9DFF;
 }
 
@@ -70,5 +70,5 @@ pre[class*="language-shell"] .Token.DIR_PATH {
     color: #569cd6;
 }
 pre[class*="language-shell"] .Token.OPTION {
-    color: #969696;
+    color: #b3b2b2;
 }

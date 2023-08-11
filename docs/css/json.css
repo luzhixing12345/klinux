@@ -6,15 +6,15 @@ pre[class*="language-json"] .Token {
     color: #C1CCCC;
 }
 
-pre[class*="language-json"] .Token.brace-depth-0 {
+pre[class*="language-json"] .Token.BraceDepth-0 {
     color: #FFD700;
 }
 
-pre[class*="language-json"] .Token.brace-depth-1 {
+pre[class*="language-json"] .Token.BraceDepth-1 {
     color: #DA70D6;
 }
 
-pre[class*="language-json"] .Token.brace-depth-2 {
+pre[class*="language-json"] .Token.BraceDepth-2 {
     color: #1A9DFF;
 }
 
@@ -22,7 +22,8 @@ pre[class*="language-json"] .Token.Pair.Key {
     color: #88D6FE;
 }
 
-pre[class*="language-json"] .Token.COMMA, pre[class*="language-json"] .Token.COLON {
+pre[class*="language-json"] .Token.COMMA,
+pre[class*="language-json"] .Token.COLON {
     color: #C1CCCC;
 }
 

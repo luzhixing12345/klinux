@@ -6,15 +6,15 @@ pre[class*="language-c"] .Token {
     color: #C1CCCC;
 }
 
-pre[class*="language-c"] .Token.brace-depth-0 {
+pre[class*="language-c"] .Token.BraceDepth-0 {
     color: #FFD700;
 }
 
-pre[class*="language-c"] .Token.brace-depth-1 {
+pre[class*="language-c"] .Token.BraceDepth-1 {
     color: #DA70D6;
 }
 
-pre[class*="language-c"] .Token.brace-depth-2 {
+pre[class*="language-c"] .Token.BraceDepth-2 {
     color: #1A9DFF;
 }
 
@@ -106,6 +106,8 @@ pre[class*="language-c"] .Token.StorageType,
 pre[class*="language-c"] .Token.FunctionType,
 pre[class*="language-c"] .Token.QualifyType,
 pre[class*="language-c"] .Token.StructureType,
+pre[class*="language-c"] .Token.STRUCT,
+pre[class*="language-c"] .Token.UNION,
 pre[class*="language-c"] .Token.EnumSpecifier {
     color: #569cd6;
 }
@@ -150,7 +152,11 @@ pre[class*="language-c"] .Token.Control {
     color: #D7BA6E;
 }
 
-pre[class*="language-c"] .Token.COMMA, pre[class*="language-c"] .Token.COLON, pre[class*="language-c"] .Token.DOT, pre[class*="language-c"] .Token.SEMI, pre[class*="language-c"] .Token.GotoLabel {
+pre[class*="language-c"] .Token.COMMA,
+pre[class*="language-c"] .Token.COLON,
+pre[class*="language-c"] .Token.DOT,
+pre[class*="language-c"] .Token.SEMI,
+pre[class*="language-c"] .Token.GotoLabel {
     color: #C1CCCC;
 }
 

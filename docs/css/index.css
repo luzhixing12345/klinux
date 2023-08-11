@@ -327,8 +327,8 @@ ul>li>ul>li {
 .markdown-body pre #code_copy {
     position: absolute;
     right: 10px;
-    top: 50%;
-    margin-top: -16px;
+    top: 10px;
+    /* margin-top: -16px; */
     padding: 3px;
     opacity: 0.9;
     border: 1px solid rgba(149, 157, 165, 0.2);
@@ -336,7 +336,7 @@ ul>li>ul>li {
     z-index: 1;
 }
 
-.markdown-light pre #code_copy {
+.markdown-body pre #code_copy {
     background-color: rgb(196, 196, 196);
 }
 

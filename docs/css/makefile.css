@@ -1,0 +1,78 @@
+pre[class*="language-makefile"] {
+    background: #1f1f1f;
+}
+
+pre[class*="language-makefile"] .Token {
+    color: #C1CCCC;
+}
+
+pre[class*="language-makefile"] .Token.BraceDepth-0 {
+    color: #FFD700;
+}
+
+pre[class*="language-makefile"] .Token.BraceDepth-1 {
+    color: #DA70D6;
+}
+
+pre[class*="language-makefile"] .Token.BraceDepth-2 {
+    color: #1A9DFF;
+}
+
+pre[class*="language-makefile"] .Token.NUMBER {
+    color: #A2CEA8;
+}
+
+pre[class*="language-makefile"] .Token.TAB {
+    tab-size: 4;
+}
+
+pre[class*="language-makefile"] .Token.DOLLAR {
+    color: #CE9178;
+}
+pre[class*="language-makefile"] .Token.ID {
+    color: #88D6FE;
+}
+
+pre[class*="language-makefile"] .Token.COMMENT {
+    color: #6A9955;
+}
+
+pre[class*="language-makefile"] .Token.Variable {
+    color: #569cd6;
+}
+
+pre[class*="language-makefile"] .Token.Mission {
+    color: #DCDCAA;
+}
+
+pre[class*="language-makefile"] .Token.PATH_SLASH {
+    color: #C1CCCC;
+}
+
+pre[class*="language-makefile"] .Token.AUTO_VARIABLE {
+    color: #569cd6;
+}
+
+pre[class*="language-makefile"] .Token.Keyword {
+    color: #C586C0;
+}
+
+pre[class*="language-makefile"] .Token.Url {
+    color: #CE9178;
+    border-bottom: 1px solid #CE9178;
+}
+
+pre[class*="language-makefile"] .Token.AT_SIGN, pre[class*="language-makefile"] .Token.MINUS {
+    color: #C586C0;
+}
+
+pre[class*="language-makefile"] .Token.STRING {
+    color: #CE9178;
+}
+
+pre[class*="language-makefile"] .Token.Function, pre[class*="language-makefile"] .Token.Program {
+    color: #DCDCAA;
+}
+pre[class*="language-makefile"] .Token.OPTION {
+    color: #b3b2b2;
+}
