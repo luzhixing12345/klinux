@@ -32,3 +32,4 @@ make debug
 - 深入linux内核架构
 - [linux-insides](https://github.com/0xAX/linux-insides)
 - [linux-insides-zh](https://github.com/MintCN/linux-insides-zh)
+- [术道经纬 专栏](https://www.zhihu.com/column/c_1108400140804726784)
