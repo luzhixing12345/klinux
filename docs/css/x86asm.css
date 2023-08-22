@@ -1,0 +1,51 @@
+pre[class*="language-x86asm"] {
+    background: #1f1f1f;
+}
+
+pre[class*="language-x86asm"] .Token {
+    color: #C1CCCC;
+}
+
+pre[class*="language-x86asm"] .Token.ID {
+    color: #DCDCAA;
+}
+
+pre[class*="language-x86asm"] .Token.BraceDepth-0 {
+    color: #FFD700;
+}
+
+pre[class*="language-x86asm"] .Token.BraceDepth-1 {
+    color: #DA70D6;
+}
+
+pre[class*="language-x86asm"] .Token.BraceDepth-2 {
+    color: #1A9DFF;
+}
+
+pre[class*="language-x86asm"] .Token.NUMBER {
+    color: #A2CEA8;
+}
+
+pre[class*="language-x86asm"] .Token.REGISTER {
+    color: #569cd6;
+}
+
+pre[class*="language-x86asm"] .Token.COMMENT {
+    color: #6A9955;
+}
+
+pre[class*="language-x86asm"] .Token.FUNCTION_CALL {
+    color: #DCDCAA;
+}
+
+pre[class*="language-x86asm"] .Token.ASM_KEYWORD {
+    color: #C586C0;
+}
+
+pre[class*="language-x86asm"] .Token.SECTION {
+    color: #88D6FE;
+}
+
+pre[class*="language-x86asm"] .Token.DOLLAR {
+    color: #88D6FE;
+}
