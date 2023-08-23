@@ -57,6 +57,10 @@ linux 中 buddy 的最大数量为定义在 include/linux/mmzone.h 中的 `MAX_O
 
 ![20230822212729](https://raw.githubusercontent.com/learner-lu/picbed/master/20230822212729.png)
 
+> 以上图为例, 假设现在要分配一个 9KB 的页面, 首先计算满足条件的 2^i, 所以至少分配一个 16KB 的空间, 也就是 i=2, free_area[2] 没有对应的链表节点, 所以从 i=3 的链表取第一个节点分为两部分, 一部分分配, 一部分存于 i=2 处的链表
+
+> 值得注意的是上图中 2^3 画成一个大块只是为了说明, 实际上 buddy system 对于物理内存的管理是以 page(4KB) 为单位的, 所以一个大块中存了 8 个 page
+
 zone 和 free_area 的结构体定义核心部分如下所示. 但需要注意的是每个"free_area"包含不只一个free list,而是一个free list数组(形成二维数组),包含了多种"migrate type",以便将具有相同「迁移类型」的page frame尽可能地分组(同一类型的所有order的free list构成一组"pageblocks")
 
 ```c
@@ -71,6 +75,11 @@ struct zone {
 struct free_area {
     struct list_head free_list[MIGRATE_TYPES];
     unsigned long nr_free;
+};
+
+// 这是一个双向链表, 图中没有画出来
+struct list_head {
+	struct list_head *next, *prev;
 };
 ```
 
@@ -105,7 +114,7 @@ enum migratetype {
 };
 ```
 
-所以实际情况如下图所示
+所以实际情况上图 free_area 画的并不准确, 准确来说如下图所示
 
 ![20230823002618](https://raw.githubusercontent.com/learner-lu/picbed/master/20230823002618.png)
 

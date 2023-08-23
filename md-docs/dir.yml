@@ -10,7 +10,7 @@ linux011:
 - 物理布局探测: 1
 - NUMA: 2
 - buddy: 3
-- slab: 4
+- slab分配器: 4
 - memory compaction: 5
 快速开始:
 - 编译内核: 1
