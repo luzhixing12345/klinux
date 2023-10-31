@@ -56,11 +56,11 @@ function addCodeCopy(before_copy_url, after_copy_url) {
         const code_block = code_blocks[i];
         code_block.addEventListener("mouseenter", () => add(code_block));
         code_block.addEventListener("mouseleave", () => remove(code_block));
-        if (code_block.scrollWidth > code_block.clientWidth) {
-            // 如果有横向滚动,阻止页面默认的竖直滚动,并将滚动事件重定向到 <pre> 元素上
-            const blockWidth = code_block.offsetWidth;
-            const maxScroll = code_block.scrollWidth - blockWidth;
-            code_block.addEventListener('wheel', (event) => horizon_wheel(event, code_block, maxScroll));
-        }
+        // if (code_block.scrollWidth > code_block.clientWidth) {
+        //     // 如果有横向滚动,阻止页面默认的竖直滚动,并将滚动事件重定向到 <pre> 元素上
+        //     const blockWidth = code_block.offsetWidth;
+        //     const maxScroll = code_block.scrollWidth - blockWidth;
+        //     code_block.addEventListener('wheel', (event) => horizon_wheel(event, code_block, maxScroll));
+        // }
     }
 }
