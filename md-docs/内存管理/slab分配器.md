@@ -30,6 +30,8 @@ slab 有很多相关的概念和内容比较容易搞混, 这里做一下区分
    - SLUB 是当前 Linux 默认采用的分配器实现
 2. SLAB/SLUB 的内部实现中也有叫做 slab 的字段, 需要注意区分
 
+   目前 SLAB 已经被弃用 [Linux 的 SLAB 分配器已正式弃用?的回答](https://www.zhihu.com/question/630536353/answer/3292323708)
+
 **下文中 slab allocator 指 slab 分配器, SLUB 指 SLUB 算法(一种 slab allocator 的实现), slab 指 SLUB 中的字段**
 
 > [linux内核内存分配界的葵花宝典,耐心看完,功力大增,slub内存分配器](https://www.bilibili.com/video/BV1rG411f7Fo): 20:13 起
@@ -163,3 +165,4 @@ void kmem_cache_free(struct kmem_cache* cachep,  void* objp);
 - [内存分配[五] - Linux中的Slab(2)](https://zhuanlan.zhihu.com/p/106106008)
 - [linux内核内存分配界的葵花宝典,耐心看完,功力大增,slub内存分配器](https://www.bilibili.com/video/BV1rG411f7Fo)
 - [Linux内存管理:slub分配器](https://zhuanlan.zhihu.com/p/166649492)
+- [Linux 的 SLAB 分配器已正式弃用?的回答](https://www.zhihu.com/question/630536353/answer/3292323708)
