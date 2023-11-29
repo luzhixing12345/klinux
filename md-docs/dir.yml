@@ -1,5 +1,12 @@
 .:
 - README: 1
+快速开始:
+- 编译内核: 1
+- 调试内核: 2
+- 制作文件系统: 3
+- 制作linux发行版: 4
+- linux目录结构: 5
+- 邮件订阅: 6
 linux011:
 - README: 1
 - 基础知识概览: 2
@@ -12,11 +19,5 @@ linux011:
 - buddy: 3
 - slab分配器: 4
 - memory compaction: 5
-快速开始:
-- 编译内核: 1
-- 调试内核: 2
-- 邮件订阅: 3
-- linux目录结构: 4
-- lfs: 5
 arch:
 - ACPI: 1
