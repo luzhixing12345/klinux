@@ -379,6 +379,64 @@ $ [ ! -e /etc/bash.bashrc ] || mv -v /etc/bash.bashrc /etc/bash.bashrc.NOUSE
 
 在某些系统中,也可以使用 bashrc 文件来实现类似的配置,但其作用范围略有不同.**bash_profile 通常在用户登录时执行一次,而 bashrc 在每次新打开一个终端窗口时都会执行.**
 
+## 构建 LFS 交叉工具链和临时工具
+
+## 构建 LFS 系统/
+
+LFS 被设计为在一次会话中构建完成.换句话说,本书的指令假设,在整个编译过程中,系统不会关闭或重启.当然,构建过程不需要严格地一气呵成,但是要注意如果在重新启动后继续编译 LFS,根据构建进度的不同,可能需要再次进行某些操作.
+
+先用 lsblk 确定分区的位置, 假设为 `/dev/sdb2` 的 swap, `/dev/sdb3` 的 /
+
+> 笔者之前是 sda, 现在不知道怎么变成 sdb 了?
+
+```bash
+mount -v -t ext4 /dev/sdb3 $LFS
+/sbin/swapon -v /dev/sdb2
+```
+
+```bash
+# 为了在任何宿主系统上都能填充 $LFS/dev,只能绑定挂载宿主系统的 /dev 目录.绑定挂载是一种特殊挂载类型,它允许通过不同的位置访问一个目录树或一个文件
+mount -v --bind /dev $LFS/dev
+
+# 挂载其余的虚拟内核文件系统
+mount -v --bind /dev/pts $LFS/dev/pts
+mount -vt proc proc $LFS/proc
+mount -vt sysfs sysfs $LFS/sys
+mount -vt tmpfs tmpfs $LFS/run
+
+if [ -h $LFS/dev/shm ]; then
+  mkdir -pv $LFS/$(readlink $LFS/dev/shm)
+else
+  mount -t tmpfs -o nosuid,nodev tmpfs $LFS/dev/shm
+fi
+```
+
+```bash
+chroot "$LFS" /usr/bin/env -i   \
+    HOME=/root                  \
+    TERM="$TERM"                \
+    PS1='(lfs chroot) \u:\w\$ ' \
+    PATH=/usr/bin:/usr/sbin     \
+    /bin/bash --login
+```
+
+退出
+
+```bash
+logout
+```
+
+```bash
+umount -v $LFS/dev/pts
+mountpoint -q $LFS/dev/shm && umount $LFS/dev/shm
+umount -v $LFS/dev
+umount -v $LFS/run
+umount -v $LFS/proc
+umount -v $LFS/sys
+umount -v $LFS
+swapoff -v /dev/sdb2
+```
+
 ## 参考
 
 - [LFS 中文](https://lfs.xry111.site/zh_CN/)
