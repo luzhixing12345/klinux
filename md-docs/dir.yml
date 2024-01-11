@@ -7,12 +7,6 @@
 - 制作linux发行版: 4
 - linux目录结构: 5
 - 邮件订阅: 6
-linux011:
-- README: 1
-- 基础知识概览: 2
-- init: 3
-- kernel: 4
-- mm: 5
 内存管理:
 - 物理布局探测: 1
 - NUMA: 2

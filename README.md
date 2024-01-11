@@ -1,29 +1,8 @@
 # klinux
 
-klinux 是一个精简的现代 linux kernel, 基于 Linux0.11 修改, 并尝试逐步加入了现代 linux kernel 的优秀新特性
+linux 技术文档, 介绍有关现代 linux kernel 的优秀新特性
 
-本项目意在
-
-- 学习 linux kernel 的优秀设计, 记录学习过程
-- 维护一个 "可运行使用的" "最小的" "现代" linux内核
-
-本项目会持续关注 [内核架构] [内存] [进程] [网络] [驱动] [文件系统] 相关进展, 期望与最新版本功能保持同步
-
-## 编译
-
-```bash
-sudo apt install qemu qemu-system qemu-kvm build-essential
-wget https://github.com/luzhixing12345/klinux/releases/download/v0.0.1/hdc-0.11.img
-```
-
-```bash
-# 制作 Image
-make
-# 启动
-make start
-# 调试
-make debug
-```
+由于笔者个人研究兴趣, 本项目重点关注 [内存管理] [网络] [文件系统] [运行时环境] 相关进展
 
 ## 参考
 
@@ -33,3 +12,4 @@ make debug
 - [linux-insides](https://github.com/0xAX/linux-insides)
 - [linux-insides-zh](https://github.com/MintCN/linux-insides-zh)
 - [术道经纬 专栏](https://www.zhihu.com/column/c_1108400140804726784)
+- [Rust OS](https://os.phil-opp.com/zh-CN/)

@@ -73,6 +73,7 @@ pre[class*="language-makefile"] .Token.STRING {
 pre[class*="language-makefile"] .Token.Function, pre[class*="language-makefile"] .Token.Program {
     color: #DCDCAA;
 }
+
 pre[class*="language-makefile"] .Token.OPTION {
     color: #b3b2b2;
 }
