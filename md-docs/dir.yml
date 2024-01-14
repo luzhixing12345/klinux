@@ -7,11 +7,12 @@
 - 制作linux发行版: 4
 - linux目录结构: 5
 - 邮件订阅: 6
-内存管理:
+mm:
 - 物理布局探测: 1
 - NUMA: 2
 - buddy: 3
 - slab分配器: 4
 - memory compaction: 5
-arch:
-- ACPI: 1
+runtime:
+- proc: 1
+- vsdo: 2
