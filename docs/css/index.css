@@ -330,6 +330,7 @@ ul>li>ul>li {
 
 .markdown-body pre #code_copy {
     position: absolute;
+    display: inline-block;
     right: 10px;
     top: 10px;
     /* margin-top: -16px; */

@@ -16,3 +16,7 @@ mm:
 runtime:
 - proc: 1
 - vsdo: 2
+- elf_format: 3
+- elf_loader: 4
+kernel:
+- init: 1
