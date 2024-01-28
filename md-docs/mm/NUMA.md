@@ -26,13 +26,13 @@ Symmetrical Multi-Processing,简称SMP,即**对称多处理技术**,是指将多
 
 Uniform Memory Access,简称UMA, 即均匀存储器存取模型.**所有处理器对所有内存有相等的访问时间**
 
-![uma-architecture](https://raw.githubusercontent.com/learner-lu/picbed/master/uma-architecture.png)
+![20240119232539](https://raw.githubusercontent.com/learner-lu/picbed/master/20240119232539.png)
 
 既然要连接多个 CPU 和内存, 这种 UMA 的方式很明显是最简单直接的, 但问题也同样明显, BUS 会成为性能的杀手. 多个 CPU 需要平分总线的带宽, 这显然非常不利于计算
 
 x86多处理器发展历史上,早期的多核和多处理器系统都是UMA架构的.这种架构下, 多个CPU通过同一个北桥(North Bridge)芯片与内存链接.北桥芯片里集成了内存控制器(Memory Controller),
 
-下图是一个典型的早期 x86 UMA 系统,四路处理器通过 FSB (前端系统总线, Front Side Bus) 和主板上的内存控制器芯片 (MCH, Memory Controller Hub) 相连,DRAM 是以 UMA 方式组织的,延迟并无访问差异. CPU 通过 PCH 访问内存
+下图是一个典型的早期 x86 UMA 系统,四路处理器通过 FSB (前端系统总线, Front Side Bus) 和主板上的内存控制器芯片 (MCH, Memory Controller Hub) 相连, CPU 通过 PCH 访问内存, DRAM 是以 UMA 方式组织的,延迟并无访问差异. 
 
 > [PCH(Platform Controller Hub)](https://en.wikipedia.org/wiki/Platform_Controller_Hub) 是 Intel 于 2008 年起退出的一系列晶片组,用于取代以往的 I/O Controller Hub(ICH). PCI和PCH在计算机系统中扮演不同的角色,PCI提供了扩展插槽,允许用户通过插入PCI卡来扩展计算机的功能,而PCH则负责管理和控制各种接口和设备的通信.PCI和PCH是不同层次的技术,它们共同工作来实现计算机系统的功能
 >
@@ -100,7 +100,7 @@ NUMA体系结构中多了Node的概念,这个概念其实是用来解决core的�
 
 与本地内存一样,所谓本地IO资源,就是CPU可以经过Uncore部件里的PCIe Root Complex直接访问到的IO资源. 如果是非本地IO资源,则需要经过QPI链路到该IO资源所属的CPU,再通过该CPU PCIe Root Complex访问. 如果同一个NUMA Node内的CPU和内存和另外一个NUMA Node的IO资源发生互操作,因为要跨越QPI链路, 会存在额外的访问延迟问题
 
->  曾经在Intel IvyBridge的NUMA平台上做的内存访问性能测试显示,远程内存访问的延时时本地内存的一倍.
+> 曾经在Intel IvyBridge的NUMA平台上做的内存访问性能测试显示,远程内存访问的延时时本地内存的一倍.
 
 一个NUMA Node内部是由一个物理CPU和它所有的本地内存, 本地IO资源组成的. 通常一个 Socket 有一个 Node,也有可能一个 Socket 有多个 Node.
 
