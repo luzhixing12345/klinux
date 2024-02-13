@@ -204,21 +204,25 @@ MESI 协议非常受欢迎因为他对于大多数的并行编程工作负载都
 
 > 两个 1 代表 node 1 和 node 3 具有 copied cache line
 
-我们可以在每一个处理器的本地内存中单独保留一份目录, 目录的每个部分都由许多目录条目组成, 每个条目对应每个内存块.
-
-![20240123224423](https://raw.githubusercontent.com/learner-lu/picbed/master/20240123224423.png)
-
 对于 SMP 类型的目录协议, 我们需要一个集中的节点统一管理所有节点的缓存块情况. 节点分为三种类型:
 
 1. `local node`/`request node`: 指发出 request 的节点
 2. `Home node`: 根节点, 记录所有缓存块的状态
 3. `remote node`: 远端节点
 
-对于 read miss / write hit / write miss 的情况 local node 都先与 home node 通信, 然后处理缓存一致性的问题, 这一点和 MSI 协议相同, 如下所示:
+处理器的本地内存中保留一份目录, 目录的每个部分都由许多目录条目组成, 每个条目对应每个内存块.
+
+对于 read miss / write hit / write miss 的情况 local node 都**先与 home node 通信**, 然后处理缓存一致性的问题, 这一点和 MSI 协议相同, 如下所示:
 
 ![20240123233126](https://raw.githubusercontent.com/learner-lu/picbed/master/20240123233126.png)
 
-对于 DSM 的情况, 分布式的目录协议要更加复杂一些, 业界一般采用 RDMA 或者 CXL 技术来负责 NUMA 节点之间的通信, 这里不做展开.
+![xxx123za](https://raw.githubusercontent.com/learner-lu/picbed/master/xxx123za.png)
+
+> 图源论文 "ProtoGen: Automatically generating directory cache coherence protocols from atomic specifications"
+
+对于 DSM 的情况, 分布式的目录协议要更加复杂一些, 每个处理器的内存都保存一份目录副本; 业界一般采用 RDMA 或者 CXL 技术来负责 NUMA 节点之间的通信, 这里不做展开.
+
+![20240123224423](https://raw.githubusercontent.com/learner-lu/picbed/master/20240123224423.png)
 
 ## 参考
 
@@ -227,3 +231,9 @@ MESI 协议非常受欢迎因为他对于大多数的并行编程工作负载都
 - [在线体验 MESI 协议状态转换](https://www.scss.tcd.ie/Jeremy.Jones/VivioJS/caches/MESIHelp.htm)
 - [MESI保证了缓存一致性,那么为什么多线程 i++还会有问题?的回答](https://www.zhihu.com/question/619301632/answer/3184265150)
 - [MESI and MOESI Protocols](https://www.youtube.com/watch?v=nrzT044qNIc)
+- [缓存和数据库一致性问题,看这篇就够了](https://zhuanlan.zhihu.com/p/408515044)
+- [缓存一致性(Cache Coherency)入门](https://kb.cnblogs.com/page/504824/)
+- [infoq cache-coherency-primer](https://www.infoq.cn/article/cache-coherency-primer)
+- [<内存一致性与缓存一致性>笔记(六):缓存一致性协议](https://zhuanlan.zhihu.com/p/563130246)
+- [<内存一致性与缓存一致性>笔记(七):总线嗅探一致性协议](https://zhuanlan.zhihu.com/p/563333730)
+- [<内存一致性与缓存一致性>笔记(八):目录一致性协议](https://zhuanlan.zhihu.com/p/563335099)

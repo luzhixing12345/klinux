@@ -14,3 +14,7 @@ linux 技术文档, 介绍有关现代 linux kernel 的优秀新特性
 - [术道经纬 专栏](https://www.zhihu.com/column/c_1108400140804726784)
 - [Rust OS](https://os.phil-opp.com/zh-CN/)
 - [Linux技术 专栏](https://www.zhihu.com/column/c_1445694677312245760)
+- [BSP-路人甲](https://www.cnblogs.com/jianhua1992)
+- [DF11G](https://www.cnblogs.com/DF11G)
+- [archbase document](https://foxsen.github.io/archbase/)
+- [<虚拟内存的架构和操作系统支持>笔记(一):基础](https://zhuanlan.zhihu.com/p/587353806)

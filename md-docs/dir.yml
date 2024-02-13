@@ -20,7 +20,9 @@ runtime:
 - elf_loader: 4
 kernel:
 - init: 1
-os:
+arch:
 - cache: 1
-- cache-coherence: 2
-- multicore: 3
+- multicore: 2
+- cache-coherence: 3
+- memory-coherence: 4
+- cpu: 5
