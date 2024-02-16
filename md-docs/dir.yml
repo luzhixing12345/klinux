@@ -21,8 +21,8 @@ runtime:
 kernel:
 - init: 1
 arch:
-- cache: 1
-- multicore: 2
-- cache-coherence: 3
-- memory-coherence: 4
-- cpu: 5
+- cpu: 1
+- cache: 2
+- multicore: 3
+- cache-coherence: 4
+- memory-coherence: 5
