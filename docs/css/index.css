@@ -254,6 +254,21 @@ ul>li>ul>li {
     /* 通过调整10px来设置上边距大小 */
 }
 
+/* ul 后面的文字加一个间距 */
+.markdown-body>ul~p,
+.markdown-body>ol~p,
+.markdown-body>ul~blockquote,
+.markdown-body>ol~blockquote .markdown-body>ul~pre,
+.markdown-body>ol~pre,
+.markdown-body>ul~a,
+.markdown-body>ol~a {
+    margin-top: 16px;
+}
+
+.markdown-body p:has(> a)+p {
+    margin-top: 30px;
+}
+
 .markdown-body table {
     border-spacing: 0;
     border-collapse: collapse;
@@ -392,9 +407,9 @@ ul>li>ul>li {
 /* 切换文章按钮 */
 .next-front {
     position: fixed;
-    right: 6%;;
-    top: 60%;;
-    width: 10%;;
+    right: 6%;
+    top: 60%;
+    width: 10%;
     /* white-space:nowrap; */
 }
 
@@ -418,14 +433,14 @@ ul>li>ul>li {
 .dir-tree {
     font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
     position: fixed;
-    left: 6%;
-    top: 10%;
-    width: 10%;
+    left: 4%;
+    top: 6%;
+    width: 12%;
     min-width: 100px;
     box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
     background-color: #f6f8fa;
     border-radius: 10px;
-    max-height: 80%;
+    max-height: 90%;
     overflow: auto;
     scrollbar-width: none;
     /* Firefox */
@@ -558,9 +573,16 @@ ul>li>ul>li {
     text-decoration: underline;
 }
 
-.markdown-body input {
-    margin-top: 10px;
-    margin-bottom: 10px;
+
+.markdown-body ul:has(input[type="checkbox"]) {
+    list-style-type: none;
+    padding-left: 0.5em;
+    /* margin-bottom: 8px; */
+}
+
+.markdown-body input[type="checkbox"] {
+    margin-right: 0.5em;
+    /* 复选框和文本之间的间距 */
 }
 
 .header-navigator {
