@@ -261,3 +261,4 @@ intel的这个多核处理器的Die结构中每一个核心上面都标有CHA/SF
 - [<内存一致性与缓存一致性>笔记(七):总线嗅探一致性协议](https://zhuanlan.zhihu.com/p/563333730)
 - [<内存一致性与缓存一致性>笔记(八):目录一致性协议](https://zhuanlan.zhihu.com/p/563335099)
 - [处理器中的存储问题(二):漫谈缓存一致性、存储一致性与同步](https://zhuanlan.zhihu.com/p/142658824)
+- [OpenCPAI、Nvlink、CCIX、CXL,支持cache coherency的价值是什么?的回答](https://www.zhihu.com/question/392146033/answer/3151675927)

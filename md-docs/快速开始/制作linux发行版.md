@@ -391,6 +391,7 @@ LFS 被设计为在一次会话中构建完成.换句话说,本书的指令假�
 
 ```bash
 mount -v -t ext4 /dev/sdb3 $LFS
+mount -v -t ext4 /dev/sdb1 $LFS/boot
 /sbin/swapon -v /dev/sdb2
 ```
 
@@ -433,9 +434,14 @@ umount -v $LFS/dev
 umount -v $LFS/run
 umount -v $LFS/proc
 umount -v $LFS/sys
-umount -v $LFS
+umount -v $LFS/boot
+umount -l $LFS
 swapoff -v /dev/sdb2
 ```
+
+> 这里使用 `umount -v $LFS` 会出现 target is buzy 的提示, 因此换成 `-l` ,指令将会自动解决冲突的问题
+
+![20240302111116](https://raw.githubusercontent.com/learner-lu/picbed/master/20240302111116.png)
 
 ## 参考
 
@@ -443,3 +449,5 @@ swapoff -v /dev/sdb2
 - [how-to-use-bash-for-sh-in-ubuntu](https://unix.stackexchange.com/questions/442510/how-to-use-bash-for-sh-in-ubuntu)
 - [what is makeinfo and how do i get it](https://stackoverflow.com/questions/338317/what-is-makeinfo-and-how-do-i-get-it)
 - [LFS 11.2(Linux From Scratch)构建过程全记录(二):磁盘分区](https://www.cnblogs.com/alphainf/p/16663371.html)
+- [LFS 11.2(Linux From Scratch)构建过程全记录(十): 使 LFS 系统可引导](https://www.cnblogs.com/alphainf/p/16720497.html)
+- [<从LFS到自己的Linux发行版>系列教程:一步到位体验LFS11.0](https://www.cnblogs.com/hzmanage/p/15744414.html)

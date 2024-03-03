@@ -265,10 +265,6 @@ ul>li>ul>li {
     margin-top: 16px;
 }
 
-.markdown-body p:has(> a)+p {
-    margin-top: 30px;
-}
-
 .markdown-body table {
     border-spacing: 0;
     border-collapse: collapse;

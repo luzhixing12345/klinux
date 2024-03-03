@@ -26,3 +26,7 @@ arch:
 - multicore: 3
 - cache-coherence: 4
 - memory-coherence: 5
+- bus: 6
+- disk: 7
+fs:
+- storage: 1
