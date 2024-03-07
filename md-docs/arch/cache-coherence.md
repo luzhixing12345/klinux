@@ -146,23 +146,23 @@ MSI 规定了缓存行(cache line)的 `M S I` 三种状态:
 
 ![20240122111449](https://raw.githubusercontent.com/learner-lu/picbed/master/20240122111449.png)
 
-t1 时 CPU1 write A, 此时 CPU1 先从 memory 中读取 A 的值, 更新 cache, 由 I -> M, 并在总线广播 invalid A 信号; 其余 CPU 收到该信号后没有变化(或者说 I 状态不监听信号).
+t1 时 CPU1 write A, 此时 CPU1 先从 memory 中读取 A 的值, 更新 cache, 由 I -> M, 并在总线广播 `write miss` 信号; 其余 CPU 收到该信号后没有变化(或者说 I 状态不监听信号).
 
-![20240122112617](https://raw.githubusercontent.com/learner-lu/picbed/master/20240122112617.png)
+![20240306205748](https://raw.githubusercontent.com/learner-lu/picbed/master/20240306205748.png)
 
 > 这里的 bus request 走的共享缓存总线, 还有数据总线和地址总线用于传输数据, 图中合并到一条 bus 中了没有画出来
 
-t2 时 CPU2 read A, 此时 CPU2 进入 S 状态, 在总线广播 CPU2 read miss; CPU1 收到信号后也转换为 S 状态, 并将自身最新的 A 数据发送给 CPU2, 同时写回内存, 中断 CPU2 的读内存请求; CPU3 不变.
+t2 时 CPU2 read A, 此时 CPU2 进入 S 状态, 在总线广播 `read miss`; CPU1 收到信号后也转换为 S 状态, 并将自身最新的 A 数据发送给 CPU2, 同时写回内存, 中断 CPU2 的读内存请求; CPU3 不变.
 
-![20240122112813](https://raw.githubusercontent.com/learner-lu/picbed/master/20240122112813.png)
+![20240306210642](https://raw.githubusercontent.com/learner-lu/picbed/master/20240306210642.png)
 
-t3 时 CPU3 read A, 此时 CPU3 进入 S 状态, 在总线广播 CPU3 read miss; CPU1/CPU2 收到信号后状态不变, 任意一个都可以将数据共享给 CPU3(图中标记 CPU2 共享数据, 实际上 CPU1 也可以)
+t3 时 CPU3 read A, 此时 CPU3 进入 S 状态, 在总线广播 `read miss`; CPU1/CPU2 收到信号后状态不变, 任意一个都可以将数据共享给 CPU3(图中标记 CPU2 共享数据, 实际上 CPU1 也可以)
 
-![20240122113043](https://raw.githubusercontent.com/learner-lu/picbed/master/20240122113043.png)
+![20240306210702](https://raw.githubusercontent.com/learner-lu/picbed/master/20240306210702.png)
 
-t4 时 CPU2 write A, 此时 CPU2 进入 M 状态, 在总线广播 invalid A; CPU1/3 收到信号后进入 I;
+t4 时 CPU2 write A, 此时 CPU2 进入 M 状态, 在总线广播 `invalid A`; CPU1/3 收到信号后进入 I;
 
-![20240122113444](https://raw.githubusercontent.com/learner-lu/picbed/master/20240122113444.png)
+![20240306211019](https://raw.githubusercontent.com/learner-lu/picbed/master/20240306211019.png)
 
 ### MESI
 

@@ -443,6 +443,12 @@ swapoff -v /dev/sdb2
 
 ![20240302111116](https://raw.githubusercontent.com/learner-lu/picbed/master/20240302111116.png)
 
+```bash
+/dev/sdb2: UUID="cb057e3f-5dab-40e5-b59c-6edf00586212" TYPE="swap" PARTUUID="fede849a-89b5-7c43-a11c-f657c82aa412"
+/dev/sdb3: UUID="a0a70601-6c80-4442-8f8b-c0e22d6c5aa1" BLOCK_SIZE="4096" TYPE="ext4" PARTUUID="c1869f3b-d111-2c43-a249-765ed0106ddd"
+/dev/sdb1: UUID="ac489137-383a-4bee-88dd-0954dbed35ad" BLOCK_SIZE="1024" TYPE="ext4" PARTUUID="03e1d974-71f4-b847-871d-27b3fc15baa4"
+```
+
 ## 参考
 
 - [LFS 中文](https://lfs.xry111.site/zh_CN/)
