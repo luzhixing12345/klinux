@@ -20,6 +20,7 @@ runtime:
 - elf_loader: 4
 kernel:
 - init: 1
+- interrupt: 2
 arch:
 - cpu: 1
 - cache: 2
@@ -30,3 +31,9 @@ arch:
 - disk: 7
 fs:
 - storage: 1
+proc:
+- cpu: 1
+device:
+- init: 1
+others:
+- safety: 1
