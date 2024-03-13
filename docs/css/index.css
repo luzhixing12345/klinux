@@ -432,7 +432,7 @@ ul>li>ul>li {
     left: 4%;
     top: 6%;
     width: 12%;
-    min-width: 100px;
+    max-width: 200px;
     box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
     background-color: #f6f8fa;
     border-radius: 10px;
@@ -490,16 +490,16 @@ ul>li>ul>li {
     text-decoration: none;
     color: #000;
     /* https://www.bilibili.com/video/BV1Dc41147sW */
-    background: linear-gradient(to right, #000, #000) no-repeat right bottom;
+    /* background: linear-gradient(to right, #000, #000) no-repeat right bottom;
     background-size: 0 2px;
-    transition: background-size 1000ms;
+    transition: background-size 1000ms; */
 }
 
 .dir-tree a:hover {
     font-weight: bold;
     color: #000;
-    background-position-x: left;
-    background-size: 100% 2px;
+    /* background-position-x: left;
+    background-size: 100% 2px; */
 }
 
 .dir-tree ul ul li a {

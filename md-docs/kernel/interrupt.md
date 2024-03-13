@@ -17,13 +17,13 @@ Intel文档把中断和异常分为以下几类:
 
 **中断**
 
-- 可屏蔽中断(maskable interrupt)
+- 可屏蔽中断(maskable interrupt, **INTR**)
 
   可屏蔽中断是指可以被程序通过**设置中断屏蔽位**(Interrupt Mask)来阻止的中断.这类中断通常是由外部设备(如键盘、鼠标、磁盘驱动器等)产生的,它们在某些情况下可能不需要立即处理.可屏蔽中断**允许操作系统或程序选择性地忽略这些中断,以便集中处理更重要的任务**
 
   例如I/O 完成中断, 硬盘读取数据完成后发出的中断可以通过设置中断屏蔽位来暂时忽略,直到系统准备好处理这些数据.
 
-- 不可屏蔽中断(nonmaskable interrupt)
+- 不可屏蔽中断(nonmaskable interrupt, **NMI**)
 
   不可屏蔽中断是指不能被程序屏蔽的中断,它们通常用于处理紧急情况,如硬件故障、电源故障或其他关键事件.由于这些中断不能被程序控制,它们具有最高的优先级,确保了系统能够立即响应这些关键事件.
 
@@ -63,7 +63,6 @@ Intel文档把中断和异常分为以下几类:
 
 为了做到这一点,就要在内核态堆栈保存程序计数器的当前值(例如 x86 中 eip和cs寄存器的内容),并把与中断类型相关的一个地址放进程序计数器.
 
-
 中断处理是由内核执行的最敏感的任务之一,因为它必须满足下列约束:
 
 - 当内核正打算去完成一些别的事情时,**中断随时会到来**.因此,内核的目标就是让中断尽可能快地处理完,尽其所能把更多的处理向后推迟.
@@ -75,7 +74,58 @@ Intel文档把中断和异常分为以下几类:
 
 > 中断处理程序与进程的上下文切换类似, 但有一个明显的差异:**由中断或异常处理程序执行的代码不是一个进程**.更确切地说,它是一个内核控制路径,代表中断发生时正在运行的进程执行. 作为一个内核控制路径,中断处理程序比一个进程要"轻"(light)(中断的上下文很少,建立或终止中断处理需要的时间很少).
 
+## 中断号
+
+每个中断和异常是由 `0~255` 之间的一个数来标识.在计算机体系结构中,尤其是在x86架构中,中断向量是一个用于标识特定中断或异常处理程序的数值.Intel将这个8位的无符号整数称为"向量",原因在于这些数值在**中断描述符表**(Interrupt Descriptor Table, IDT)中用作索引,以便处理器能够快速定位到相应的中断处理程序.
+
+在中断处理的上下文中,每个中断向量指向IDT中的一个条目,该**条目包含了处理特定中断的代码的地址**.当发生中断时,处理器会**使用中断向量作为索引,查找IDT中相应的条目,并跳转到该条目指向的中断处理程序执行**.
+
+非屏蔽中断的向量(2)和异常的向量(0-31)是固定的,而可屏蔽中断(32-255)的向量可以通过对中断控制器的编程来改变
+
+```c
+/* Interrupts/Exceptions */
+enum {
+	X86_TRAP_DE = 0,	/*  0, Divide-by-zero */
+	X86_TRAP_DB,		/*  1, Debug */
+	X86_TRAP_NMI,		/*  2, Non-maskable Interrupt */
+	X86_TRAP_BP,		/*  3, Breakpoint */
+	X86_TRAP_OF,		/*  4, Overflow */
+	X86_TRAP_BR,		/*  5, Bound Range Exceeded */
+	X86_TRAP_UD,		/*  6, Invalid Opcode */
+	X86_TRAP_NM,		/*  7, Device Not Available */
+	X86_TRAP_DF,		/*  8, Double Fault */
+	X86_TRAP_OLD_MF,	/*  9, Coprocessor Segment Overrun */
+	X86_TRAP_TS,		/* 10, Invalid TSS */
+	X86_TRAP_NP,		/* 11, Segment Not Present */
+	X86_TRAP_SS,		/* 12, Stack Segment Fault */
+	X86_TRAP_GP,		/* 13, General Protection Fault */
+	X86_TRAP_PF,		/* 14, Page Fault */
+	X86_TRAP_SPURIOUS,	/* 15, Spurious Interrupt */
+	X86_TRAP_MF,		/* 16, x87 Floating-Point Exception */
+	X86_TRAP_AC,		/* 17, Alignment Check */
+	X86_TRAP_MC,		/* 18, Machine Check */
+	X86_TRAP_XF,		/* 19, SIMD Floating-Point Exception */
+	X86_TRAP_IRET = 32,	/* 32, IRET Exception */
+};
+```
+
+每个能够发出中断请求的硬件设备控制器都有一条名为IRQ(Interrupt ReQuest)的输出线. 所有现有的IRQ线(IRQ line)都与一个名为可编程中断控制器(Programmable InterrptControuer.PIC)的硬件电路的输入引脚相连,可编程中断控制器执行下列动作:
+
+1. 监视IRQ线,检查产生的信号(raised signal).如果有条或两条以上的IRQ线上产生信号,就选择引脚编号较小的IRQ线.
+2. 如果一个引发信号出现在IRQ线上:
+   1. 把接收到的引发信号转换成对应的向量.
+   2. 把这个向量存放在中断控制器的一个I/O端口,从而允许CPU通过数据总线读此向量.
+   3. 把引发信号发送到处理器的INTR引脚,即产生一个中断.
+   4. 等待,直到CPU通过把这个中断信号写进可编程中断控制器的一个I/O端口来确认它,当这种情况发生时,清INTR线.
+3. 返回到第1步.
+
+IRQ线是从0开始顺序编号的,因此,第一条IRQ线通常表示成IRQ0.与IRQn关联的Intel向量是n+32.如前所述,通过向中断控制器端口发布合适的指令,就可以修改IRQ和向量之间的映射.可以有选择地禁止每条IRQ线.因此,可以对PIC编程从而禁止IRQ,也就是说,可以告诉PIC停止对给定的IRQ线发布中断,或者激活它们.禁止的中断是丢失不了的,它
+
 ## 参考
 
 - [深入理解linux内核第三版--第四章: 中断和异常](https://zhuanlan.zhihu.com/p/634612418)
 - [异常和中断](https://nu-ll.github.io/2020/08/25/%E5%BC%82%E5%B8%B8%E5%92%8C%E4%B8%AD%E6%96%AD/)
+- [Linux下1号进程的前世(kernel_init)今生(init进程)----Linux进程的管理与调度(六)](https://blog.csdn.net/gatieme/article/details/51532804)
+- [<Linux内核分析>(三)_跟踪分析Linux内核的启动过程](https://blog.csdn.net/FIELDOFFIER/article/details/44518597)
+- [跟踪Linux启动_从start_kernel到init进程](https://www.cnblogs.com/slz-coder150315/articles/4357986.html)
+- [gdb调试的基本使用](https://www.cnblogs.com/HKUI/p/8955443.html)
