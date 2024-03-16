@@ -33,6 +33,7 @@ fs:
 - storage: 1
 proc:
 - cpu: 1
+- nice: 2
 device:
 - init: 1
 others:

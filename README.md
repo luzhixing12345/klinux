@@ -18,3 +18,4 @@ linux 技术文档, 介绍有关现代 linux kernel 的优秀新特性
 - [DF11G](https://www.cnblogs.com/DF11G)
 - [archbase document](https://foxsen.github.io/archbase/)
 - [<虚拟内存的架构和操作系统支持>笔记(一):基础](https://zhuanlan.zhihu.com/p/587353806)
+- [linuxStack](https://github.com/g0dA/linuxStack)
