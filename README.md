@@ -1,8 +1,6 @@
 # klinux
 
-linux 技术文档, 介绍有关现代 linux kernel 的优秀新特性
-
-由于笔者个人研究兴趣, 本项目重点关注 [内存管理] [网络] [文件系统] [运行时环境] 相关进展
+linux 技术文档
 
 ## 参考
 
@@ -19,3 +17,5 @@ linux 技术文档, 介绍有关现代 linux kernel 的优秀新特性
 - [archbase document](https://foxsen.github.io/archbase/)
 - [<虚拟内存的架构和操作系统支持>笔记(一):基础](https://zhuanlan.zhihu.com/p/587353806)
 - [linuxStack](https://github.com/g0dA/linuxStack)
+- [Microarchiture](https://blog.csdn.net/hit_shaoqi/category_9791833.html)
+- [【程序人生】HelloWorld_从程序到进程](https://blog.csdn.net/huiyeruzhou/article/details/130818548)

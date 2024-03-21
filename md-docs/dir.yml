@@ -13,6 +13,9 @@ mm:
 - buddy: 3
 - slab分配器: 4
 - memory compaction: 5
+- va-translate: 6
+vm:
+- intro: 1
 runtime:
 - proc: 1
 - vsdo: 2
