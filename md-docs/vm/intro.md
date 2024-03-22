@@ -92,7 +92,7 @@
 
 ![20240321234716](https://raw.githubusercontent.com/learner-lu/picbed/master/20240321234716.png)
 
-但是传统的IA32架构从硬件上只支持一次地址转换,即由CR3寄存器指向进程第一级页表的首地址,通过MMU查询进程的各级页表,获得物理地址.因此为了完成这种二级地址转换有两种实现方式, 软件页表虚拟化(shadow page)和硬件页表虚拟化(nested page)
+但是传统的IA32架构从硬件上只支持一次地址转换,即由CR3寄存器指向进程第一级页表的首地址,通过MMU查询进程的各级页表,获得物理地址.因此为了完成这种二级地址转换有两种实现方式, **软件页表虚拟化(shadow page)和硬件页表虚拟化(nested page)**
 
 ---
 
@@ -104,6 +104,43 @@
 
 ### 软件页表虚拟化 shadow page
 
+在一个运行Linux的guest VM中,每个进程有一个由内核维护的页表,用于GVA->GPA的转换,这里我们把它称作**gPT(guest Page Table)**, 为了支持GVA->GPA->HPA的两次转换, 我们需要计算出GVA->HPA的映射关系, 将其写入一个单独的影子页表 **sPT(shadow Page Table)**
+
+VMM层的软件会将gPT本身使用的物理页面设为**write protected**的,那么每当gPT有变动的时候(比如添加或删除了一个页表项),就会产生被VMM截获的**page fault异常**,之后VMM需要重新计算GVA->HPA的映射,更改sPT中对应的页表项, 如下图所示
+
+![20240322151633](https://raw.githubusercontent.com/learner-lu/picbed/master/20240322151633.png)
+
+这种纯软件的方法虽然能够解决问题,但是其存在两个缺点:
+
+- 实现较为复杂,需要**为每个guest VM中的每个进程的gPT都维护一个对应的sPT**,增加了内存的开销.
+- VMM使用的截获方法增多了**page fault和trap/vm-exit的数量**,加重了CPU的负担.
+
+在一些场景下,这种影子页表机制造成的开销可以占到整个VMM软件负载的75%.
+
+### 硬件页表虚拟化 nested page
+
+为了解决软件页表虚拟化效率低的问题, 各大CPU厂商相继推出了硬件辅助的内存虚拟化技术,比如Intel的EPT(Extended Page Table)和AMD的NPT(Nested Page Table),它们都能够从硬件上同时支持GVA->GPA和GPA->HPA的地址转换的技术.
+
+guest使用gCR3,指向guest系统的页表基地址.host系统使用nCR3,指向host系统的页表基地址. 因为**gCR3指向的地址也是gPA**,并且guest内部每次翻译得到的L2/L3/L4页表基地址也是gPA, 因此这些gPA都需要经过VMM的翻译才能得到真实的HPA
+
+GVA->GPA的转换依然是通过查找gPT页表完成的,而GPA->HPA的转换则通过查找nPT页表来实现,**每个guest VM有一个由VMM维护的nPT**, 它维护得是 GVA -> HPA 的映射.
+
+> 其实,EPT/NPT就是一种扩展的MMU(以下称EPT/NPT MMU),它可以交叉地查找gPT和nPT两个页表
+
+首先它会查找guest VM中CR3寄存器(gCR3)指向的PML4页表,由于gCR3中存储的地址是GPA,因此CPU需要查找nPT来获取gCR3的GPA对应的HPA, 我们称一次nPT的查找过程为一次nested walk. 如果找到了,也就是获得了一级页表的物理首地址后,就可以用对应的索引得到二级页表的GVA.接下来又是通过一次nested walk得到下一级页表的首地址,然后重复上述过程,最终获得该GVA对应的HPA, 整个流程如下图所示
+
+![20240322111926](https://raw.githubusercontent.com/learner-lu/picbed/master/20240322111926.png)
+
+不同于影子页表是一个进程需要一个sPT,EPT/NPT MMU解耦了GVA->GPA转换和GPA->HPA转换之间的依赖关系,**一个VM只需要一个nPT**,减少了内存开销.如果guest VM中发生了page fault,可直接由guest OS处理,**不会产生vm-exit,减少了CPU的开销**.可以说,EPT/NPT MMU这种硬件辅助的内存虚拟化技术解决了纯软件实现存在的两个问题.
+
+因为每次都需要对页基地址进行翻译,所以如果查询guest页表结构为n级,host页表结构为m级,那么翻译页表的gPA就需要n * m次 ,又因为最终获得的gPA还需要通过host页表进行查询,因此最后又需要m次,总计需要 n + nm + m 次访存, 整个过程完全由硬件实现:
+
+- n(guest page walk)
+- n * m(翻译所有的页表对应的sPA)
+- m (最后一轮翻译gPA)
+
+> 对于 4 级页表来说就是 24 次
+
 ## 参考
 
 - [虚拟化技术系列](https://zhuanlan.zhihu.com/p/93289632)
@@ -112,5 +149,6 @@
 - 深度探索Linux系统虚拟化:原理与实现 (王柏生  谢广军) 
 - NewBluePill深入理解硬件虚拟机 (于淼  戚正伟)
 - [vmware VMware_paravirtualization.pdf](https://www.vmware.com/content/dam/digitalmarketing/vmware/en/pdf/techpaper/VMware_paravirtualization.pdf)
+- [vmware Perf_ESX_Intel-EPT-eval.pdf](https://www.vmware.com/pdf/Perf_ESX_Intel-EPT-eval.pdf)
 - [memory virtualization: shadow page & nest page](https://blog.csdn.net/hit_shaoqi/article/details/121887459)
 - [内存虚拟化-shadow实现](https://blog.csdn.net/hx_op/article/details/103980411)
