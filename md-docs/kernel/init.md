@@ -286,3 +286,4 @@ int kthreadd(void *unused) {
 - [Linux下0号进程的前世(init_task进程)今生(idle进程)----Linux进程的管理与调度(五)【转】](https://cloud.tencent.com/developer/article/1339566)
 - [Linux中的特殊进程:idle进程、init进程、kthreadd进程](https://blog.csdn.net/JoggingPig/article/details/110239518)
 - [<Linux内核分析>(三)_跟踪分析Linux内核的启动过程](https://blog.csdn.net/FIELDOFFIER/article/details/44518597)
+- [操作系统启动过程分析(使用qdb调试qume)](https://www.cnblogs.com/ppbb/p/12439184.html)

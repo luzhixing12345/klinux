@@ -207,7 +207,7 @@ blockquote {
     margin-bottom: 0;
 }
 
-.markdown-body ol ol,
+/* .markdown-body ol ol,
 .markdown-body ul ol {
     list-style-type: lower-roman;
 }
@@ -217,7 +217,7 @@ blockquote {
 .markdown-body ul ol ol,
 .markdown-body ul ul ol {
     list-style-type: lower-alpha;
-}
+} */
 
 .markdown-body ul {
     margin-top: 0;
@@ -362,6 +362,12 @@ ul>li>ul>li {
     border-radius: 5px;
 }
 
+.markdown-body ol ul,
+.markdown-body ul ol {
+    padding-left: 1em;
+    margin-top: 10px;
+}
+
 .markdown-body ol li blockquote {
     margin-top: 10px;
 }
@@ -420,6 +426,8 @@ ul>li>ul>li {
     width: 95%;
     height: 90px;
 }
+
+/* 对目录树的调整 */
 
 .dir-tree::-webkit-scrollbar {
     display: none;
@@ -580,6 +588,8 @@ ul>li>ul>li {
     margin-right: 0.5em;
     /* 复选框和文本之间的间距 */
 }
+
+/* 对小标题索引树的调整 */
 
 .header-navigator {
     display: none;

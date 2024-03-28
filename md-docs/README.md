@@ -1,6 +1,11 @@
 # klinux
 
-linux 技术文档
+linux 内核技术文档
+
+本文档记录有关操作系统内核的技术细节, 部分模块内容保存在其他单独的仓库中
+
+- [文件系统 kfs](https://github.com/luzhixing12345/kfs)
+- [虚拟化技术 kvm](https://github.com/luzhixing12345/kvm)
 
 ## 写在前面
 

@@ -39,5 +39,7 @@ proc:
 - nice: 2
 device:
 - init: 1
+- disk: 2
+- ssd: 3
 others:
 - safety: 1
