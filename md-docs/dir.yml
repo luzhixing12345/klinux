@@ -14,6 +14,7 @@ mm:
 - slab分配器: 4
 - memory compaction: 5
 - va-translate: 6
+- tlb: 7
 vm:
 - intro: 1
 runtime:
@@ -23,7 +24,6 @@ runtime:
 - elf_loader: 4
 kernel:
 - init: 1
-- interrupt: 2
 arch:
 - cpu: 1
 - cache: 2
@@ -31,14 +31,14 @@ arch:
 - cache-coherence: 4
 - memory-coherence: 5
 - bus: 6
-- disk: 7
+- interrupt: 7
 fs:
 - storage: 1
 proc:
 - cpu: 1
 - nice: 2
 device:
-- init: 1
+- io: 1
 - disk: 2
 - ssd: 3
 others:

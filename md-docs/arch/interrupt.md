@@ -129,3 +129,4 @@ IRQ线是从0开始顺序编号的,因此,第一条IRQ线通常表示成IRQ0.与
 - [<Linux内核分析>(三)_跟踪分析Linux内核的启动过程](https://blog.csdn.net/FIELDOFFIER/article/details/44518597)
 - [跟踪Linux启动_从start_kernel到init进程](https://www.cnblogs.com/slz-coder150315/articles/4357986.html)
 - [gdb调试的基本使用](https://www.cnblogs.com/HKUI/p/8955443.html)
+- [计算机上"中断"的本质是什么?的回答](https://www.zhihu.com/question/21440586/answer/991259675)
