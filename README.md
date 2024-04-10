@@ -4,8 +4,10 @@ linux 内核技术文档
 
 本文档记录有关操作系统内核的技术细节, 部分模块内容保存在其他单独的仓库中
 
+- [操作系统 klinux](https://github.com/luzhixing12345/klinux)
 - [文件系统 kfs](https://github.com/luzhixing12345/kfs)
 - [虚拟化技术 kvm](https://github.com/luzhixing12345/kvm)
+- [驱动程序 kdriver](https://github.com/luzhixing12345/kdriver)
 
 ## 参考
 
@@ -24,4 +26,8 @@ linux 内核技术文档
 - [linuxStack](https://github.com/g0dA/linuxStack)
 - [Microarchiture](https://blog.csdn.net/hit_shaoqi/category_9791833.html)
 - [【程序人生】HelloWorld_从程序到进程](https://blog.csdn.net/huiyeruzhou/article/details/130818548)
-- [junmajinlong tags](https://www.junmajinlong.com/tags/)
+- [linux 技术博客](https://www.junmajinlong.com/tags/Linux/)
+- [操作系统 技术博客](https://www.junmajinlong.com/tags/OS/)
+- [The Linux Storage, Filesystem, Memory Management & BPF Summit @ OSS NA 2023](https://www.youtube.com/playlist?list=PLbzoR-pLrL6rlmdpJ3-oMgU_zxc1wAhjS)
+- [linuxcatalog](https://github.com/zhangjaycee/real_tech/wiki/linuxcatalog)
+- [PCIe 扫盲](http://blog.chinaaet.com/justlxy/p/5100053251)

@@ -13,8 +13,6 @@ mm:
 - memory compaction: 5
 - va-translate: 6
 - tlb: 7
-vm:
-- intro: 1
 runtime:
 - proc: 1
 - vsdo: 2
@@ -30,13 +28,6 @@ arch:
 - memory-coherence: 5
 - bus: 6
 - interrupt: 7
-fs:
-- storage: 1
-- intro: 2
-- mount: 3
-- fhs: 4
-- fat: 5
-- ext: 6
 proc:
 - cpu: 1
 - nice: 2
