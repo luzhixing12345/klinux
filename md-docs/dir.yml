@@ -18,6 +18,7 @@ runtime:
 - vsdo: 2
 - elf_format: 3
 - elf_loader: 4
+- ld: 5
 kernel:
 - init: 1
 arch:
@@ -29,8 +30,10 @@ arch:
 - bus: 6
 - interrupt: 7
 proc:
-- cpu: 1
+- schedule: 1
 - nice: 2
+- manage: 3
+- signal: 4
 device:
 - io: 1
 - disk: 2
@@ -38,3 +41,4 @@ device:
 - driver: 4
 others:
 - safety: 1
+- Q&A: 2

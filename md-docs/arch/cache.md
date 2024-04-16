@@ -202,3 +202,4 @@ Caches (sum of all):
 - [Cache Line操作和Cache相关概念介绍](https://www.cnblogs.com/gujiangtaoFuture/articles/11163844.html)
 - [天玑 9300 架构测试既 vivo X100 系列体验报告](https://zhuanlan.zhihu.com/p/668289721)
 - [天玑9300性能前瞻:发哥太强了!](https://www.bilibili.com/video/BV1dQ4y1J7LC)
+- [每个程序员都应该了解的硬件知识](https://zhuanlan.zhihu.com/p/690189852)
