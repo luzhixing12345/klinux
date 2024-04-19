@@ -82,7 +82,7 @@ void rest_init(void)
 
 > 6.6 的 kernel 使用的是 [user_mode_thread](https://github.com/torvalds/linux/blob/ffc253263a1375a65fa6c9f62a893e9767fbebfa/init/main.c#L691) 来创建用户级进程 "kernel_init", 它和使用 kernel_thread 创建的没有[区别](https://github.com/torvalds/linux/blob/480e035fc4c714fb5536e64ab9db04fedc89e910/kernel/fork.c#L2845-L2875)
 
-kernel_thread 调用 _do_fork 创建一个新的**线程**, 创建之初是线程, 随后后会**演变为进程**, 但此时需要注意的是该线程**还并没有被调度执行**
+kernel_thread 调用 _do_fork 创建一个新的**线程**, 创建之初是线程, 随后后会**演变为进程**
 
 ```c
 /*
@@ -101,47 +101,54 @@ pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags)
 
 ![20240314231716](https://raw.githubusercontent.com/learner-lu/picbed/master/20240314231716.png)
 
+`rest_init` 函数代码含义如下
+
 ```c
-static void __init_refok rest_init(void)
+void __ref __noreturn rest_init(void)
 {
-	int pid;
+    struct task_struct *tsk;
+    int pid;
 
-	rcu_scheduler_starting();
-	smpboot_thread_init();
-	/*
-	 * We need to spawn init first so that it obtains pid 1, however
-	 * the init task will end up wanting to create kthreads, which, if
-	 * we schedule it before we create kthreadd, will OOPS.
-	 */
-	kernel_thread(kernel_init, NULL, CLONE_FS);
-	numa_default_policy();
-	pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
-	rcu_read_lock();
-	kthreadd_task = find_task_by_pid_ns(pid, &init_pid_ns);
-	rcu_read_unlock();
-	complete(&kthreadd_done);
+    
+    rcu_scheduler_starting(); // 通知内核RCU子系统调度器正在启动
 
-	/*
-	 * The boot idle thread must execute schedule()
-	 * at least once to get things moving:
-	 */
-	init_idle_bootup_task(current);
-	schedule_preempt_disabled();
-	/* Call into cpu_idle with preempt disabled */
-	cpu_startup_entry(CPUHP_ONLINE);
+    // 首先需要启动init进程(通常获得PID 1),并且解释了如果kthreadd(内核线程管理进程)在init之前启动,可能会导致错误
+    pid = user_mode_thread(kernel_init, NULL, CLONE_FS); // 创建名为kernel_init的内核线程
+
+    /*
+     * Pin init on the boot CPU. Task migration is not properly working
+     * until sched_init_smp() has been run. It will set the allowed
+     * CPUs for init to the non isolated CPUs.
+     */
+    rcu_read_lock(); // 获取RCU读锁
+    tsk = find_task_by_pid_ns(pid, &init_pid_ns); // 通过PID查找对应的任务结构
+    tsk->flags |= PF_NO_SETAFFINITY; // 设置任务标志,禁止CPU亲和性设置
+    set_cpus_allowed_ptr(tsk, cpumask_of(smp_processor_id())); // 将任务限制在启动CPU上执行
+    rcu_read_unlock(); // 释放RCU读锁
+
+    numa_default_policy(); // 设置NUMA的默认策略
+
+    pid = kernel_thread(kthreadd, NULL, NULL, CLONE_FS | CLONE_FILES); // 创建kthreadd内核线程
+
+    rcu_read_lock(); // 再次获取RCU读锁
+    kthreadd_task = find_task_by_pid_ns(pid, &init_pid_ns); // 通过PID查找kthreadd任务结构
+    rcu_read_unlock(); // 释放RCU读锁
+
+    system_state = SYSTEM_SCHEDULING; // 设置系统状态为可调度状态
+    complete(&kthreadd_done); // 完成kthreadd_done信号量,表示kthreadd初始化完成
+
+    /*
+     * The boot idle thread must execute schedule()
+     * at least once to get things moving:
+     */
+    schedule_preempt_disabled(); // 执行调度,但禁用抢占式调度
+
+    /* Call into cpu_idle with preempt disabled */
+    cpu_startup_entry(CPUHP_ONLINE); // 调用CPU启动入口点,将CPU状态设置为在线
 }
 ```
 
-init_idle_bootup_task():当前0号进程init_task最终会退化成idle进程,所以这里调用init_idle_bootup_task()函数,让init_task进程隶属到idle调度类中.即选择idle的调度相关函数.
-
-```c
-static struct task_struct *get_current(void)
-{
-	return this_cpu_read_stable(current_task);
-}
-
-#define current get_current()
-```
+> 关于 RCU 的部分参见 [rcu](./rcu.md)
 
 这里不会深入探讨有关 kernel_thread 实现的细节(我们将在描述调度程序详细展开).现在我们只需要知道我们用 kernel_thread 函数创建了新的内核线程 ,其中包含 `PID = 1` 的 init 进程和 `PID = 2` 的 kthreadd 进程, 进入 shell 之后也可以使用 ps 查看
 

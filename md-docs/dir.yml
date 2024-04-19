@@ -21,6 +21,7 @@ runtime:
 - ld: 5
 kernel:
 - init: 1
+- rcu: 2
 arch:
 - cpu: 1
 - cache: 2
