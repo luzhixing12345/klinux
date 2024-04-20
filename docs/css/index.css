@@ -437,14 +437,14 @@ ul>li>ul>li {
 .dir-tree {
     font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
     position: fixed;
-    left: 4%;
-    top: 6%;
-    width: 12%;
+    left: 6%;
+    top: 10%;
+    width: 10%;
     max-width: 200px;
     box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
     background-color: #f6f8fa;
     border-radius: 10px;
-    max-height: 90%;
+    max-height: 80%;
     overflow: auto;
     scrollbar-width: none;
     /* Firefox */

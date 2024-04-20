@@ -10,6 +10,9 @@ linux 内核技术文档: [klinux document](https://luzhixing12345.github.io/kli
 
 ## 参考
 
+- code
+  - [linux v6.6](https://github.com/torvalds/linux/tree/v6.6)
+  - [linux v4.4](https://github.com/torvalds/linux/tree/v4.4)
 - 书籍
   - [Linux内核完全注释](http://oldlinux.org/download/CLK-5.0-WithCover.pdf)
   - 深入linux内核架构

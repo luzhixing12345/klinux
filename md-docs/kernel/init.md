@@ -5,7 +5,7 @@
 
 ## idle 进程
 
-[/init/main.c](https://github.com/torvalds/linux/blob/v6.6/init/main.c) 文件中的[start_kernel()](https://github.com/torvalds/linux/blob/ffc253263a1375a65fa6c9f62a893e9767fbebfa/init/main.c#L870C6-L870C18)函数是一切的起点,在这个函数被调用之前都是系统的初始化工作(汇编语言),所以对内核的启动分析一般都从这个函数开始
+[init/main.c](../../init/main.c) 文件中的 `start_kernel` 是一切的起点,在这个函数被调用之前都是系统的初始化工作(汇编语言),所以对内核的启动分析一般都从这个函数开始
 
 这个函数在执行的过程中初始化、定义了内核中一些十分重要的内容,其执行过程几乎涉及到了内核的所有模块的初始化, 我们这里主要关注**进程初始化**的部分.
 
@@ -21,11 +21,11 @@ void __init start_kernel(void)
 }
 ```
 
-首先第一行就使用 [set_task_stack_end_magic(&init_task)](https://github.com/torvalds/linux/blob/ffc253263a1375a65fa6c9f62a893e9767fbebfa/init/main.c#L875) 去初始化 `init_task`, 这个函数本身不稀奇, 只是单纯的为 init_task 添加一个栈溢出的标记保护位, 值得注意的是 `init_task` 变量本身, 它实际上是在 C 中被[初始化定义](https://github.com/torvalds/linux/blob/ffc253263a1375a65fa6c9f62a893e9767fbebfa/init/init_task.c#L64) 的
+首先第一行就使用 `set_task_stack_end_magic` 去初始化 `init_task`, 这个函数本身不稀奇, 只是单纯的为 init_task 添加一个栈溢出的标记保护位, 值得注意的是 `init_task` 变量本身, 它实际上是在 C 中被[初始化定义](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/init/init_task.c#L64)的
 
 > 在早期的一些版本(4.4)中也会使用 [INIT_TASK](https://github.com/torvalds/linux/blob/afd2ff9b7e1b367172f18ba7f693dfb62bdcb2dc/init/init_task.c#L18) 宏来进行[展开](https://github.com/torvalds/linux/blob/afd2ff9b7e1b367172f18ba7f693dfb62bdcb2dc/include/linux/init_task.h#L190), 效果是完全相同的
 
-init_task 这个变量的 `comm` 字段的名字是 ["swapper"](https://github.com/torvalds/linux/blob/ffc253263a1375a65fa6c9f62a893e9767fbebfa/include/linux/init_task.h#L38), 这个字段在 `task_struct` 即进程结构体中的含义是[可执行文件的名字](https://github.com/torvalds/linux/blob/ffc253263a1375a65fa6c9f62a893e9767fbebfa/include/linux/sched.h#L1072-L1078)
+init_task 这个变量的 `comm` 字段的名字是 ["swapper"](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/include/linux/init_task.h#L38), 这个字段在 `task_struct` 即进程结构体中的含义是[可执行文件的名字](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/include/linux/sched.h#L1072-L1078)
 
 > 初始(idle)进程的名字 swapper 其实就是从 UNIX 时代延续下来的, 曾经也有人给 linux 提过 [patch](https://www.uwsg.indiana.edu/hypermail/linux/kernel/0604.2/1270.html) 想要将名字改为 "idle" 但被拒绝了
 >
@@ -68,38 +68,22 @@ $2 = "swapper\000\000\000\000\000\000\000\000"
 
 之后start_kernel()函数继续调用各个系统模块进行各种初始化之类的工作, 比如 `trap_init()`是中断向量的相关设置, `mm_init()`是内存管理的设置, `sched_init()`是调度模块的初始化
 
-idle 运行在**内核态**, 在执行了上面的各项工作之后, 在 start_kernel() 函数的最后一行代码调用了另一个非常重要的函数 [rest_init](https://github.com/torvalds/linux/blob/ffc253263a1375a65fa6c9f62a893e9767fbebfa/init/main.c#L680), 创建了两个进程 `kernel_init` 和 `kthreadd`
+idle 运行在**内核态**, 在执行了上面的各项工作之后, 在 start_kernel() 函数的最后一行代码调用了另一个非常重要的函数 [rest_init](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/init/main.c#L680), 创建了两个线程 `kernel_init` 和 `kthreadd`
 
 ```c
 void rest_init(void)
 {
     // ...
-	kernel_thread(kernel_init, NULL, CLONE_FS); // 创建 1 号内核线程
-	pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES); // 创建 2 号内核线程
+	pid = user_mode_thread(kernel_init, NULL, CLONE_FS); // 创建 1 号用户态线程
+    // ...
+	pid = kernel_thread(kthreadd, NULL, NULL, CLONE_FS | CLONE_FILES); // 创建 2 号内核线程
 	// ...
 }
 ```
 
-> 6.6 的 kernel 使用的是 [user_mode_thread](https://github.com/torvalds/linux/blob/ffc253263a1375a65fa6c9f62a893e9767fbebfa/init/main.c#L691) 来创建用户级进程 "kernel_init", 它和使用 kernel_thread 创建的没有[区别](https://github.com/torvalds/linux/blob/480e035fc4c714fb5536e64ab9db04fedc89e910/kernel/fork.c#L2845-L2875)
+kernel_thread 调用 kernel_clone 创建一个新的**线程**, 创建之初是线程, 随后后会**演变为进程**. 两个线程分别是用户态和内核态, 这两个函数的区别就在于 `kernel_clone_args` 中的 `.kthread = 1` 用于标记是否是内核态线程
 
-kernel_thread 调用 _do_fork 创建一个新的**线程**, 创建之初是线程, 随后后会**演变为进程**
-
-```c
-/*
- * Create a kernel thread.
- */
-pid_t kernel_thread(int (*fn)(void *), void *arg, unsigned long flags)
-{
-	return _do_fork(flags|CLONE_VM|CLONE_UNTRACED, (unsigned long)fn,
-		(unsigned long)arg, NULL, NULL, 0);
-}
-```
-
-> 6.6 实际调用的是 [kernel_clone](https://github.com/torvalds/linux/blob/480e035fc4c714fb5536e64ab9db04fedc89e910/kernel/fork.c#L2755), 原理与 _do_fork 类似
-
-可以看到创建完第二个内核线程之后 pid 的值为 2
-
-![20240314231716](https://raw.githubusercontent.com/learner-lu/picbed/master/20240314231716.png)
+![](../../images/1.png)
 
 `rest_init` 函数代码含义如下
 
@@ -108,18 +92,13 @@ void __ref __noreturn rest_init(void)
 {
     struct task_struct *tsk;
     int pid;
-
-    
     rcu_scheduler_starting(); // 通知内核RCU子系统调度器正在启动
 
     // 首先需要启动init进程(通常获得PID 1),并且解释了如果kthreadd(内核线程管理进程)在init之前启动,可能会导致错误
-    pid = user_mode_thread(kernel_init, NULL, CLONE_FS); // 创建名为kernel_init的内核线程
-
-    /*
-     * Pin init on the boot CPU. Task migration is not properly working
-     * until sched_init_smp() has been run. It will set the allowed
-     * CPUs for init to the non isolated CPUs.
-     */
+    // 创建名为kernel_init的内核线程
+    // pid = 1
+    pid = user_mode_thread(kernel_init, NULL, CLONE_FS); 
+    
     rcu_read_lock(); // 获取RCU读锁
     tsk = find_task_by_pid_ns(pid, &init_pid_ns); // 通过PID查找对应的任务结构
     tsk->flags |= PF_NO_SETAFFINITY; // 设置任务标志,禁止CPU亲和性设置
@@ -128,8 +107,10 @@ void __ref __noreturn rest_init(void)
 
     numa_default_policy(); // 设置NUMA的默认策略
 
-    pid = kernel_thread(kthreadd, NULL, NULL, CLONE_FS | CLONE_FILES); // 创建kthreadd内核线程
-
+    // 创建kthreadd内核线程
+    // pid = 2
+    pid = kernel_thread(kthreadd, NULL, NULL, CLONE_FS | CLONE_FILES);
+    
     rcu_read_lock(); // 再次获取RCU读锁
     kthreadd_task = find_task_by_pid_ns(pid, &init_pid_ns); // 通过PID查找kthreadd任务结构
     rcu_read_unlock(); // 释放RCU读锁
@@ -154,28 +135,20 @@ void __ref __noreturn rest_init(void)
 
 ![20240314231941](https://raw.githubusercontent.com/learner-lu/picbed/master/20240314231941.png)
 
-idle 进程初始化的时候进程的优先级被设置为了 `.prio = MAX_PRIO-20`(120), 数值越低代表优先级越高, 因此 idle 实际上是优先级最低的一个进程
+idle 进程初始化的时候进程的优先级被设置为了 `.prio = MAX_PRIO-20`(120), 数值越低代表优先级越高, 因此 idle 实际上是**优先级最低**的一个进程
 
-idle 进程最后调用 cpu_startup_entry, 调用 cpu_idle_loop, 简化后的执行逻辑如下, 当系统无事可做时,会调度其执行, 此时该内核会变为idle进程,让出CPU,自己进入睡眠, 进入一个无限循环
+idle 进程最后调用 `cpu_startup_entry`, 此时该会变为idle进程, 让出CPU, 自己进入睡眠, 进入一个无限循环
 
 ```c
-void cpu_idle(void) {
-    /* endless idle loop with no priority at all */
-    while (1) {
-        while (!need_resched()) {
-            if (cpu_is_offline(smp_processor_id())) {
-                tick_set_cpu_plugoff_flag(1);
-                cpu_die(); /* plugoff CPU */
-            }
-            if (cpuidle_idle_call())
-                pm_idle(); /* 进入低电 */
-        }
-        schedule_preempt_disabled(); /* 调用schedule() */
-    }
+void cpu_startup_entry(enum cpuhp_state state)
+{
+	current->flags |= PF_IDLE;
+	arch_cpu_idle_prepare();
+	cpuhp_online_idle(state);
+	while (1)
+		do_idle();
 }
 ```
-
-> 早先版本中,idle是参与调度的,所以将其优先级设低点,当没有其他进程可以运行时,才会调度执行 idle.而目前的版本中idle并不在运行队列中参与调度,而是在运行队列结构中含idle指针,指向idle进程,在调度器发现运行队列为空的时候运行,调入运行
 
 ## init
 
@@ -189,21 +162,17 @@ kernel_thread(kernel_init, NULL, CLONE_FS);
 
 init进程应该是一个用户空间的进程, 但是这里却是**通过kernel_thread的方式创建**的, 哪岂不是一个永远运行在**内核态的内核线程**么, 它是怎么演变为真正意义上**用户空间的init进程**的?
 
-1号kernel_init进程完成linux的各项配置后(kernel_init_freeable),就会尝试执行 init 程序, 如果没有手动指定 init 位置会在 `sbin/init` `etc/init` `bin/init` 等位置搜索, 如果都没有找到则进入 panic.
-
-> 可以在 qemu 启动时的传递参数包含了 rdinit=sbin/init 来指定位置, 此时会进入 ramdisk_execute_command 分支执行
+1号kernel_init进程完成linux的各项配置后(kernel_init_freeable),就会尝试执行 init 程序. 默认执行的 `ramdisk_execute_command` 初值为 ["/init"](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/init/main.c#L159), 也可以在内核启动时(通过qemu)传递参数 [rdinit=](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/init/main.c#L589-L599) 来指定位置; 如果没有找到或者执行出错则尝试执行 [init=](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/init/main.c#L572-L587) 的参数, 否则去几个可能的位置 `/sbin/init` `/etc/init` `/bin/init` `/bin/sh` 尝试执行. 流程简化如下
 
 ```c
 static int kernel_init(void *unused)
 {
 	int ret;
 
-	kernel_init_freeable();
+    kernel_init_freeable();
+    // 一些初始化
 
-    // ...
-
-    // qemu 启动时的传递参数包含了 rdinit=sbin/init
-    // 该路径位于制作的 initramfs 中的 sbin/init 的位置
+    // rdinit=xxx
 	if (ramdisk_execute_command) {
 		ret = run_init_process(ramdisk_execute_command); // 执行 init
 		if (!ret)
@@ -218,6 +187,7 @@ static int kernel_init(void *unused)
 	 * The Bourne shell can be used instead of init if we are
 	 * trying to recover a really broken machine.
 	 */
+    // init=xxx
 	if (execute_command) {
 		ret = run_init_process(execute_command);
 		if (!ret)
@@ -237,17 +207,20 @@ static int kernel_init(void *unused)
 }
 ```
 
-run_init_process 就是使用 do_execve 将核心进程kernel_init转换成用户进程init
+`run_init_process` 通过调用 [kernel_execve](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/fs/exec.c#L1973-L2030) 来完成二进制文件的运行, 通过 alloc_bprm 来创建一个 **bprm**(binary program loader) 结构体, 然后调用 bprm_execve 执行
 
-```c
-static int run_init_process(const char *init_filename)
-{
-	argv_init[0] = init_filename;
-	return do_execve(getname_kernel(init_filename),
-		(const char __user *const __user *)argv_init,
-		(const char __user *const __user *)envp_init);
-}
-```
+> 早期的 run_init_process 是直接使用 [do_execve](https://github.com/torvalds/linux/blob/afd2ff9b7e1b367172f18ba7f693dfb62bdcb2dc/init/main.c#L908-L914) 来执行 init 的, 后由 [be619f7](https://github.com/torvalds/linux/commit/be619f7f063a49c656f620a46af4f8ea3e759e91#diff-ff6060da281bd9ef3f24e17b77a9b0b5b2ed2d7208bb69b29107bee69732bd31) 实现了 kernel_execve 函数, 为了允许内核在不通过 set_fs(设置文件系统)的情况下执行二进制文件, 将原本在内核空间中使用 do_execve 函数的调用被替换为对 kernel_execve 的调用
+> 
+> ```c
+> // 早期的实现
+> static int run_init_process(const char *init_filename)
+> {
+>     argv_init[0] = init_filename;
+>     return do_execve(getname_kernel(init_filename),
+>         (const char __user *const __user *)argv_init,
+>         (const char __user *const __user *)envp_init);
+> }
+> ```
 
 ## kthreadd
 
