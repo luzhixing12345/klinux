@@ -1,6 +1,6 @@
 # klinux
 
-linux 内核技术文档
+linux 内核技术文档: [klinux document](https://luzhixing12345.github.io/klinux/)
 
 本文档记录有关操作系统内核的技术细节, 部分模块内容保存在其他单独的仓库中
 
