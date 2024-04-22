@@ -20,8 +20,9 @@ runtime:
 - elf_loader: 4
 - ld: 5
 kernel:
-- init: 1
+- 内核初始化: 1
 - rcu: 2
+- 工作队列: 3
 arch:
 - cpu: 1
 - cache: 2
@@ -35,6 +36,7 @@ proc:
 - nice: 2
 - manage: 3
 - signal: 4
+- cgroup: 5
 device:
 - io: 1
 - disk: 2
