@@ -29,8 +29,8 @@ arch:
 - multicore: 3
 - cache-coherence: 4
 - memory-coherence: 5
-- bus: 6
-- interrupt: 7
+- 总线: 6
+- 中断: 7
 proc:
 - schedule: 1
 - nice: 2
@@ -42,6 +42,7 @@ device:
 - disk: 2
 - ssd: 3
 - driver: 4
+- io_uring: 5
 others:
 - safety: 1
 - Q&A: 2
