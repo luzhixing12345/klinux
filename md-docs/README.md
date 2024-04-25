@@ -1,19 +1,14 @@
 # klinux
 
-linux 内核技术文档
+linux 内核技术文档: [klinux document](https://luzhixing12345.github.io/klinux/)
 
-本文档记录有关操作系统内核的技术细节, 部分模块内容保存在其他单独的仓库中
-
-- [文件系统 kfs](https://github.com/luzhixing12345/kfs)
-- [虚拟化技术 kvm](https://github.com/luzhixing12345/kvm)
-- [驱动程序 kdriver](https://github.com/luzhixing12345/kdriver)
-
-## 写在前面
-
-本系列基础内容是基于 [linux6.6.0](https://mirrors.edge.kernel.org/pub/linux/kernel/v6.x/linux-6.6.tar.gz) 源码进行阅读和分析的, 对于后续内核版本新加入的内容会标明对应的内核版本
+本文档记录有关操作系统内核的技术细节
 
 ## 参考
 
+- code
+  - [linux v6.6](https://github.com/torvalds/linux/tree/v6.6)
+  - [linux v4.4](https://github.com/torvalds/linux/tree/v4.4)
 - 书籍
   - [Linux内核完全注释](http://oldlinux.org/download/CLK-5.0-WithCover.pdf)
   - 深入linux内核架构
@@ -34,5 +29,13 @@ linux 内核技术文档
   - [操作系统 技术博客](https://www.junmajinlong.com/tags/OS/)
   - [linuxcatalog](https://github.com/zhangjaycee/real_tech/wiki/linuxcatalog)
   - [PCIe 扫盲](http://blog.chinaaet.com/justlxy/p/5100053251)
+  - [宋宝华](https://blog.csdn.net/21cnbao?type=blog)
+  - [blog kernel](https://kernel.blog.csdn.net/?type=blog)
+  - [gatieme的文章](https://www.zhihu.com/people/gatieme/posts)
+    - [内存管理](https://kernel.blog.csdn.net/article/details/52384965)
+    - [进程管理](https://kernel.blog.csdn.net/article/details/51456569)
+  - [linux 技术文档](https://arthurchiao.art/categories/)
+  - [chinaunix blog](http://blog.chinaunix.net/uid/23769728.html)
+  - [Linux内核学习与研究 专栏](https://www.zhihu.com/column/fishland)
 - talk
   - [The Linux Storage, Filesystem, Memory Management & BPF Summit @ OSS NA 2023](https://www.youtube.com/playlist?list=PLbzoR-pLrL6rlmdpJ3-oMgU_zxc1wAhjS)
