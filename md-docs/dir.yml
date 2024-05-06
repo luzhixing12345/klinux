@@ -15,9 +15,11 @@ mm:
 - tlb: 7
 fs:
 - storage: 1
-- intro: 2
+- filesystem: 2
 - mount: 3
 - fhs: 4
+- ext4: 5
+- vfs: 6
 runtime:
 - proc: 1
 - vsdo: 2
@@ -25,17 +27,17 @@ runtime:
 - elf_loader: 4
 - ld: 5
 kernel:
-- 内核初始化: 1
+- init: 1
 - rcu: 2
-- 工作队列: 3
+- workqueue: 3
 arch:
 - cpu: 1
 - cache: 2
 - multicore: 3
 - cache-coherence: 4
 - memory-coherence: 5
-- 总线: 6
-- 中断: 7
+- bus: 6
+- interrupt: 7
 proc:
 - schedule: 1
 - nice: 2

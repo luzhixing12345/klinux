@@ -37,5 +37,8 @@ linux 内核技术文档: [klinux document](https://luzhixing12345.github.io/kli
   - [linux 技术文档](https://arthurchiao.art/categories/)
   - [chinaunix blog](http://blog.chinaunix.net/uid/23769728.html)
   - [Linux内核学习与研究 专栏](https://www.zhihu.com/column/fishland)
+  - [kernel_awsome_feature](https://github.com/0voice/kernel_awsome_feature)
+  - [realwujing 技术博客](https://realwujing.github.io/tags/)
+  - [小坚学Linux](https://blog.csdn.net/sinat_22338935?type=blog)
 - talk
   - [The Linux Storage, Filesystem, Memory Management & BPF Summit @ OSS NA 2023](https://www.youtube.com/playlist?list=PLbzoR-pLrL6rlmdpJ3-oMgU_zxc1wAhjS)
