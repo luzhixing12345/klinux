@@ -73,7 +73,10 @@ struct File {
 };
 ```
 
-因此文件系统实际上维护的是从文件名到文件的一个映射: `Map<string, File>`. 文件系统的第一步就是将文件名映射到索引节点, 我们称为 inode_num, 即 `file_path -> inode_num`; 第二步是将 inode 映射到文件, 即 `inode_num -> File`, 如下图所示
+因此文件系统最核心最重要的工作就是完成**从文件名到文件的一个映射**: `Map<string, File>`
+
+- 第一步就是将文件名映射到索引节点, 我们称为 inode_num, 即 `file_path -> inode_num`;
+- 第二步是将 inode 映射到文件, 即 `inode_num -> File`
 
 ![20240506221237](https://raw.githubusercontent.com/learner-lu/picbed/master/20240506221237.png)
 
@@ -85,7 +88,7 @@ struct File {
 
 > 因此一个普通目录的引用数为 [2](https://unix.stackexchange.com/a/101536); `/` 目录的 `.` 和 `..` 都指向它自己
 
-在这个系统中,"inode_num" 是一个非常重要的桥梁, 也是文件系统的主键(key). 大多数文件系统将其设计为 `uint_32`, 这也限制了文件系统的最大文件个数. 使用整数类型主要是为了方便利用例如红黑树的特性,可以在 O(logN) 时间内完成插入和搜索.
+在这个系统中 `inode_num` 是一个非常重要的桥梁, 也是文件系统的主键(key). 大多数文件系统将其设计为 `uint_32`, 这也限制了文件系统的最大文件个数. 使用整数类型主要是为了方便利用例如红黑树的特性,可以在 O(logN) 时间内完成插入和搜索.
 
 > 这并不是必要的, 如果文件名的字符串比较特殊, 例如 TFS 中将元数据保存在文件名当中, 可以不需要两次映射; 或者所有的文件名可以组成一个紧密的前缀树, 也可以直接以文件名作为主键. 具体取决于文件系统设计之初的需求和场景
 
@@ -120,6 +123,52 @@ struct FileSystem {
     int mkdir(char *path);
 };
 ```
+
+## 数据块(block)
+
+首先需要明晰一点, **扇区**(sector)和**数据块**(block)是两个不同的概念.
+
+- 扇区: **磁盘或光盘上磁道的细分**, 是硬盘的最小单位.对于大多数磁盘,每个扇区存储固定数量的用户可访问数据,传统上硬盘驱动器 (HDD) 为 512 字节,CD-ROM 和 DVD-ROM 为 2048 字节.较新的 HDD 和 SSD 使用 4096 字节 (4 KiB) 扇区,称为高级格式 ([AF](https://en.wikipedia.org/wiki/Advanced_Format))
+
+  第一代高级格式(4K 扇区技术)通过将存储在 8 个 512 字节扇区中的数据合并为一个长度为 4096 字节 (4 KB) 的扇区,更有效地使用存储表面介质.保留了传统 512 字节扇区架构的关键设计元素,特别是扇区开头的标识和同步标记以及扇区末尾的纠错编码 (ECC) 区域.在扇区标头和 ECC 区域之间,合并了 8 个 512 字节扇区,无需在每个单独的 512 字节数据块之间使用冗余标头区域
+
+  ![20240507233327](https://raw.githubusercontent.com/learner-lu/picbed/master/20240507233327.png)
+
+  > 简而言之, 可以认为现代磁盘(绝大部分)已经是 4 KB 的扇区大小了,  磁盘厂商省材料了, 进而省钱了. ~~陈旧的知识该更新了~~
+
+- 块: 也称为逻辑块,是**文件系统层面的概念**.文件系统不是按照扇区的来读数据, 而是按照是数据块来读取数据,就是说块(block)是文件系统存取数据的最小单位,一般大小是4KB(这个值可以修改,在格式化分区的时候修改)
+
+  BSD FFS 的作者也曾在 [一篇杂志](https://www.usenix.org/system/files/login/articles/584-mckusick.pdf) 中提及, "增加 block size 可以使文件系统的性能提升"
+
+  ![20240505233657](https://raw.githubusercontent.com/learner-lu/picbed/master/20240505233657.png)
+
+  在其[发展历史](https://freebsdfoundation.org/wp-content/uploads/2016/04/A-Brief-History-of-the-BSD-Fast-Filesystem.pdf)中也可以看到 block size 的不断变化
+
+找到磁盘剩余空间的大小很快, 因为它保存在 super block 中, 可以在 O(1) 的时间内完成; 但是如果要数一下一个目录下的文件占了多少空间很慢, 需要遍历所有的文件
+
+block 的分配与否记录在 bitmap 当中
+
+> 现代 CPU 可以通过多种CPU指令集来加速 bitmap 的查找, 这些指令集通常属于单指令多数据(SIMD)技术,它们可以同时对多个数据执行相同的操作,从而提高处理速度, 例如 MMX, SSE, AVX
+
+在一个 4KB Block 的文件系统当中, 一个非空的普通文件至少需要 4KB. 一个空的目录也需要占据至少 4KB. 
+
+> 大多数文件系统的优化特例: 一个小于 60B 的符号链接可以被保存在 inode 中
+
+块大小对性能有一定的影响, 大块可以显著提高吞吐量, 而且元数据的占比更小; 小块可以有更高效的空间占用, 对于很多小文件来说比较合适.
+
+也有早期的 [论文](https://dl.acm.org/doi/abs/10.1145/1113361.1113364) 研究过系统中文件大小的变化规律, 整体来说文件的体积是在不断变大的, web 服务器上的小文件是很多的(很多小脚本, 小图标)
+
+![20240507233556](https://raw.githubusercontent.com/learner-lu/picbed/master/20240507233556.png)
+
+disk sector size <= block size <= memory page size (4KB), 现在都是 4KB, 算是巧合也是必然
+
+如果块大小为 4KB, 那么对于一个 32 位的 block number (ext2)来说, 可以计算得到文件系统支持的最大容量为 `4KB * 2^32 = 16TB`, 而对于一个 48 bit 的block number(ext4) 足以支持 1EB(1024PB)
+
+> 但是因为考虑到块组(block group)的上限为 256TB, 128MB pre group, 因此需要开启 meta block group 的选项
+
+用一个 block 来存 bitmap, 对于 4KB 的 block 有 32K 个 bits, 因此每个组最多 32K 个 blocks, 因此每个组最多 32K x 4KB = 128MB
+
+传统UNIX文件系统采用的ext文件系统引入了块组(block group)概念,以增强数据的**局部性**,提高硬盘驱动器(HDD)的文件读写吞吐量,减少寻道时间和距离.个人猜测,对于SSD或闪存等非机械存储介质,块组的概念可能不太重要.此外,超级块(super block)和块组描述符(group descriptor)是文件系统的关键元数据,它们不仅在文件系统级别上存在主备份,还会在其他块组中多次备份,以确保在主备份损坏时,仍能通过其他备份恢复文件系统,避免数据丢失和系统尺寸、分布信息的不可恢复性.
 
 ## 问题: 读写放大
 
@@ -209,42 +258,6 @@ Linux通过"**挂载**"(mounting)的概念来解决这个问题, 目录树的灵
 5. **统一的目录解析代码**:Linux操作系统中,无论是挂载了多少个不同类型的文件系统,如NTFS、ext4、FAT32等,操作系统都有一套统一的目录解析代码来处理这些请求.这套代码能够识别挂载点,并根据挂载表中的信息,正确地将请求路由到相应的文件系统.
 
 > 更多有关 mount 的讨论见 [mount](./mount.md)
-
-## 数据块(block)
-
-首先需要明晰一点, **数据块**(block)和**扇区**(sector)是两个不同的概念. 在计算机磁盘存储中,**扇区是磁盘或光盘上磁道的细分**.对于大多数磁盘,每个扇区存储固定数量的用户可访问数据,传统上硬盘驱动器 (HDD) 为 512 字节,CD-ROM 和 DVD-ROM 为 2048 字节.较新的 HDD 和 SSD 使用 4096 字节 (4 KiB) 扇区,称为高级格式 ([AF](https://en.wikipedia.org/wiki/Advanced_Format))
-
-> 简而言之, 可以认为现代磁盘(绝大部分)已经是 4 KB 的扇区大小了, ~~陈旧的知识该更新了~~
-
-[Marshall Kirk](https://en.wikipedia.org/wiki/Marshall_Kirk_McKusick) 在一篇杂志中[BSD 文件系统历史](https://www.usenix.org/system/files/login/articles/584-mckusick.pdf)中可以看到
-
-![20240505233657](https://raw.githubusercontent.com/learner-lu/picbed/master/20240505233657.png)
-
-[freebsdfoundation A-Brief-History-of-the-BSD-Fast-Filesystem.pdf](https://freebsdfoundation.org/wp-content/uploads/2016/04/A-Brief-History-of-the-BSD-Fast-Filesystem.pdf)
-
-找到磁盘剩余空间的大小很快, 因为它保存在 super block 中, 可以在 O(1) 的时间内完成; 但是如果要数一下一个目录下的文件占了多少空间很慢, 需要遍历所有的文件
-
-block 的分配与否记录在 bitmap 当中
-
-> 现代 CPU 可以通过多种CPU指令集来加速 bitmap 的查找, 这些指令集通常属于单指令多数据(SIMD)技术,它们可以同时对多个数据执行相同的操作,从而提高处理速度, 例如 MMX, SSE, AVX
-
-在一个 4KB Block 的文件系统当中, 一个非空的普通文件至少需要 4KB. 一个空的目录也需要占据至少 4KB. 
-
-> 大多数文件系统的优化特例: 一个小于 60B 的符号链接可以被保存在 inode 中
-
-块大小对性能有一定的影响, 大块可以显著提高吞吐量, 而且元数据的占比更小; 小块可以有更高效的空间占用, 对于很多小文件来说比较合适.
-
-也有早期的 [论文](https://dl.acm.org/doi/abs/10.1145/1113361.1113364) 研究过系统中文件大小的变化规律, 整体来说文件的体积是在不断变大的, web 服务器上的小文件是很多的(很多小脚本, 小图标)
-
-![20240507233556](https://raw.githubusercontent.com/learner-lu/picbed/master/20240507233556.png)
-
-第一代高级格式(4K 扇区技术)通过将存储在 8 个 512 字节扇区中的数据合并为一个长度为 4096 字节 (4 KB) 的扇区,更有效地使用存储表面介质.保留了传统 512 字节扇区架构的关键设计元素,特别是扇区开头的标识和同步标记以及扇区末尾的纠错编码 (ECC) 区域.在扇区标头和 ECC 区域之间,合并了 8 个 512 字节扇区,无需在每个单独的 512 字节数据块之间使用冗余标头区域
-
-> 简单来说, 磁盘厂商省材料了, 进而省钱了
-
-![20240507233327](https://raw.githubusercontent.com/learner-lu/picbed/master/20240507233327.png)
-
-disk sector size <= block size <= memory page size (4KB), 现在都是 4KB, 算是巧合也是必然
 
 ## 参考
 

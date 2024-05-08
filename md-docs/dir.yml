@@ -16,10 +16,12 @@ mm:
 fs:
 - storage: 1
 - filesystem: 2
-- mount: 3
-- fhs: 4
-- ext4: 5
-- vfs: 6
+- fd: 3
+- inode: 4
+- mount: 5
+- fhs: 6
+- ext4: 7
+- vfs: 8
 runtime:
 - proc: 1
 - vsdo: 2
@@ -44,6 +46,7 @@ proc:
 - manage: 3
 - signal: 4
 - cgroup: 5
+- task_struct: 6
 device:
 - io: 1
 - disk: 2
