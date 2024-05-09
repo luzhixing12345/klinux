@@ -18,10 +18,13 @@ fs:
 - filesystem: 2
 - fd: 3
 - inode: 4
-- mount: 5
-- fhs: 6
-- ext4: 7
+- directory: 5
+- disk-layout: 6
+- mount: 7
 - vfs: 8
+- fhs: 9
+- ext4: 10
+- distribute-fs: 11
 runtime:
 - proc: 1
 - vsdo: 2

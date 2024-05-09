@@ -1,15 +1,7 @@
 
 # ext4
 
-文件系统中存储的最小单位是块(Block),一个块究竟多大是在格式化时确定的,例如mke2fs的-b选项可以设定块大小为1024、2048或4096字节
-
-> 其中通过 `man mke2fs` 查看其 `-b block-size` 参数含义可知:
-> 
-> 该选项用于指定块的大小,单位是字节.有效的块大小值是2的幂,从 **1024** 到 **65536** (但请注意,内核只能挂载块大小小于或等于系统页大小的文件系统 - 在x86系统上是4k,在ppc64或aarch64上,根据内核配置,可以达到64k).如果省略了这个选项,块大小将根据文件系统的大小和预期用途(见-T选项)由启发式方法确定.
->
->> ext 文件系统的配置文件位于 `/etc/mke2fs.conf`
-> 
-> 在大多数常见情况下,默认块大小是**4k**
+> ext 文件系统的配置文件位于 `/etc/mke2fs.conf`
 
 ## EXT2 磁盘格式
 
@@ -44,6 +36,21 @@ GDT(Group Descriptor Table) 由很多块组描述符组成,整个分区分成多
 - **符号链接**: 如果目标路径名较短则直接保存在inode中以便更快地查找,否则分配一个数据块来保存
 - **设备文件、FIFO和socket等特殊文件**: 没有数据块,设备文件的主设备号和次设备号保存在inode中
 
+如果块大小为 4KB, 那么对于一个 32 位的 block number (ext2)来说, 可以计算得到文件系统支持的最大容量为 `4KB * 2^32 = 16TB`, 而对于一个 48 bit 的block number(ext4) 足以支持 1EB(1024PB)
+
+> 但是因为考虑到块组(block group)的上限为 256TB, 128MB pre group, 因此需要开启 meta block group 的选项
+
+用一个 block 来存 bitmap, 对于 4KB 的 block 有 32K 个 bits, 因此每个组最多 32K 个 blocks, 因此每个组最多 32K x 4KB = 128MB
+
+如果块大小为 4KB, 那么对于一个 32 位的 block number (ext2)来说, 可以计算得到文件系统支持的最大容量为 `4KB * 2^32 = 16TB`, 而对于一个 48 bit 的block number(ext4) 足以支持 1EB(1024PB)
+
+> 但是因为考虑到块组(block group)的上限为 256TB, 128MB pre group, 因此需要开启 meta block group 的选项
+
+用一个 block 来存 bitmap, 对于 4KB 的 block 有 32K 个 bits, 因此每个组最多 32K 个 blocks, 因此每个组最多 32K x 4KB = 128MB
+
+传统UNIX文件系统采用的ext文件系统引入了块组(block group)概念,以增强数据的**局部性**,提高硬盘驱动器(HDD)的文件读写吞吐量,减少寻道时间和距离.个人猜测,对于SSD或闪存等非机械存储介质,块组的概念可能不太重要.此外,超级块(super block)和块组描述符(group descriptor)是文件系统的关键元数据,它们不仅在文件系统级别上存在主备份,还会在其他块组中多次备份,以确保在主备份损坏时,仍能通过其他备份恢复文件系统,避免数据丢失和系统尺寸、分布信息的不可恢复性.
+
+
 ## 参考
 
 - [14.ext2文件系统](https://www.bilibili.com/video/BV1V84y1A7or/)
@@ -56,3 +63,8 @@ GDT(Group Descriptor Table) 由很多块组描述符组成,整个分区分成多
 - [linux虚拟文件系统(二)-ext4文件系统结构](https://blog.csdn.net/sinat_22338935/article/details/119270371)
 - [漫谈Linux标准的文件系统(Ext2/Ext3/Ext4)](https://www.cnblogs.com/justmine/p/9128730.html)
 - [干货!大话EXT4文件系统完整版](https://cloud.tencent.com/developer/article/1551286)
+- [Linux ext2, ext3, ext4 文件系统解读[1]](https://blog.csdn.net/qwertyupoiuytr/article/details/70305582)
+- [Linux ext2, ext3, ext4 文件系统解读[2]](https://blog.csdn.net/qwertyupoiuytr/article/details/70471623)
+- [Linux ext2, ext3, ext4 文件系统解读[3]](https://blog.csdn.net/qwertyupoiuytr/article/details/70554469)
+- [Linux ext2, ext3, ext4 文件系统解读[4]](https://blog.csdn.net/qwertyupoiuytr/article/details/70833690)
+- [Linux ext2, ext3, ext4 文件系统解读[5]](https://blog.csdn.net/qwertyupoiuytr/article/details/70880547)
