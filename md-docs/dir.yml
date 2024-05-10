@@ -6,13 +6,15 @@
 - 制作linux发行版: 3
 - 邮件订阅: 4
 mm:
-- 物理布局探测: 1
-- NUMA: 2
+- detect: 1
+- numa: 2
 - buddy: 3
-- slab分配器: 4
-- memory compaction: 5
+- slab: 4
+- compaction: 5
 - va-translate: 6
 - tlb: 7
+- tier: 8
+- migration: 9
 fs:
 - storage: 1
 - filesystem: 2
@@ -39,8 +41,8 @@ arch:
 - cpu: 1
 - cache: 2
 - multicore: 3
-- cache-coherence: 4
-- memory-coherence: 5
+- cc: 4
+- mc: 5
 - bus: 6
 - interrupt: 7
 proc:

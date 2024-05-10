@@ -204,6 +204,36 @@ AMD当时工艺比较落后,但还想要堆多核,所以就采取了封装多个
 
 除了CPU之外,内存也有相应的外频和倍频,比如2400的内存,同样的为了保证和主板上其他设备同步其外频就为100Mhz,倍频为24,这时候等效频率为2400Mhz,这也就是我们说的2400内存
 
+## CPU 术语
+
+大多数CPU都是在二维平面上构建的.CPU还必须添加集成内存控制器.对于每个CPU核心,有四个内存总线(上,下,左,右)的简单解决方案允许完全可用的带宽,但仅此而已.CPU在很长一段时间内都停滞在4核状态.当芯片变成3D时,在上面和下面添加痕迹允许直接总线穿过对角线相反的CPU.在卡上放置一个四核CPU,然后连接到总线,这是合乎逻辑的下一步.
+
+如今每个处理器都包含许多核心,这些核心都有一个共享的片上缓存和片外内存,并且在服务器内不同内存部分的内存访问成本是可变的. 提高数据访问效率是当前CPU设计的主要目标之一, 因此每个CPU核都被赋予了一个较小的一级缓存(32 KB)和一个较大的二级缓存(256 KB).各个核心随后共享几个MB的3级缓存,其大小随着时间的推移而大幅增长.
+
+> 为了避免缓存丢失(请求不在缓存中的数据),需要花费大量的研究时间来寻找合适的CPU缓存数量,缓存结构和相应的算法. 详见 [缓存一致性](./cc.md)
+
+一个 CPU 有如下的一些术语: `socket` `core` `ucore` `threads`
+
+![20240510153146](https://raw.githubusercontent.com/learner-lu/picbed/master/20240510153146.png)
+
+- Socket: **一个Socket对应一个物理CPU**. 这个词大概是从CPU在主板上的物理连接方式上来的,可以理解为 Socket 就是主板上的 CPU 插槽.处理器通过主板的Socket来插到主板上. 尤其是有了多核(Multi-core)系统以后,Multi-socket系统被用来指明系统到底存在多少个物理CPU.
+- Core: **CPU的运算核心**. x86的核包含了CPU运算的基本部件,如逻辑运算单元(ALU), 浮点运算单元(FPU), L1和L2缓存. 一个Socket里可以有多个Core.如今的多核时代,即使是单个socket的系统, 由于每个socket也有多个core, 所以逻辑上也是SMP系统.
+
+  > 但是,一个物理CPU的系统不存在非本地内存,因此相当于UMA系统.
+
+- Uncore: Intel x86物理CPU里没有放在Core里的部件都被叫做Uncore.Uncore里集成了过去x86 UMA架构时代北桥芯片的基本功能. 在Nehalem时代,内存控制器被集成到CPU里,叫做iMC(Integrated Memory Controller). 而PCIe Root Complex还做为独立部件在IO Hub芯片里.到了SandyBridge时代,PCIe Root Complex也被集成到了CPU里. 现今的Uncore部分,除了iMC,PCIe Root Complex,还有QPI(QuickPath Interconnect)控制器, L3缓存,CBox(负责缓存一致性),及其它外设控制器.
+- Threads: 这里特指CPU的多线程技术.在Intel x86架构下,CPU的多线程技术被称作超线程(Hyper-Threading)技术. Intel的超线程技术在一个处理器Core内部引入了额外的硬件设计模拟了两个逻辑处理器(Logical Processor), 每个逻辑处理器都有独立的处理器状态,但共享Core内部的计算资源,如ALU,FPU,L1,L2缓存. 这样在最小的硬件投入下提高了CPU在多线程软件工作负载下的性能,提高了硬件使用效率. x86的超线程技术出现早于NUMA架构.
+
+因此, 一个CPU Socket里可以由多个CPU Core和一个Uncore部分组成.每个CPU Core内部又可以由两个CPU Thread组成. 每个CPU thread都是一个操作系统可见的逻辑CPU.对大多数操作系统来说,一个八核HT(Hyper-Threading)打开的CPU会被识别为16个CPU
+
+![image](https://raw.githubusercontent.com/learner-lu/picbed/master/2020-01-09_numa-imc-iio-smb.png)
+
+> QPI(QuickPath Interconnect)是英特尔(Intel)处理器架构中使用的一种高速互联技术.它用于处理器与其他组件(如内存,I/O设备和其他处理器)之间的通信.
+>
+> LLC(Last-Level Cache):LLC 是处理器架构中的最后一级缓存.在多级缓存结构中,处理器通常具有多个级别的缓存,而最后一级缓存(通常是共享的)被称为 LLC.LLC 位于处理器核心和主存之间,用于存储频繁访问的数据,以加快处理器对数据的访问速度.
+>
+> MI(Memory Interleaving):MI 是一种内存交错技术,用于提高内存子系统的性能.在内存交错中,内存地址空间被划分为多个连续的区域,并将这些区域分配到不同的物理内存模块中.这样,内存访问可以并行地在多个内存模块之间进行,提供更高的带宽和更快的数据访问速度.
+
 ## 参考
 
 - [处理器(CPU)流水线长度是否存在理论极限?](https://www.zhihu.com/question/26289306)
@@ -223,3 +253,4 @@ AMD当时工艺比较落后,但还想要堆多核,所以就采取了封装多个
 - [多核 CPU 和多个 CPU 有何区别?的回答](https://www.zhihu.com/question/20998226/answer/2055949351)
 - [How are microprocessors made?](https://stevenvh.net/electronics/cpu.php)
 - [【硬核科普】CPU居然会人格分裂,主板晶振和内存Ratio你知道是什么吗?详解CPU外频倍频主板晶振与内存Ratio](https://www.bilibili.com/video/BV1b4411w7DG/)
+- [虚拟 CPU 拓扑](https://michael2012z.medium.com/virtual-cpu-topology-20b67633ca19)

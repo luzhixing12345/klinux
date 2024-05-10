@@ -1,82 +1,19 @@
 
 # NUMA
 
-## SMP
+> 阅读本文需要掌握 [多处理器](../arch/multicore.md)的相关知识
 
-提高硬件性能最简单,最便宜的方法之一是在主板上放置多个 CPU.这可以通过让不同的 CPU 承担不同的作业(非对称多处理)或让它们全部并行运行来完成相同的作业(对称多处理,又名 SMP)来完成.有效地进行非对称多处理需要有关计算机应执行的任务的专业知识,而这在 Linux 等通用操作系统中是不可用的.另一方面,对称多处理相对容易实现.
-
-> 相对容易但并不是真的很容易.在对称多处理环境中,CPU 共享相同的内存,因此在一个 CPU 中运行的代码可能会影响另一个 CPU 使用的内存.无法再确定在上一行中设置为某个值的变量仍然具有该值;显然,这样的编程是不可能的.
-
-Symmetrical Multi-Processing,简称SMP,即**对称多处理技术**,是指将多CPU汇集在同一总线上,各CPU间进行内存和总线共享的技术.将同一个工作平衡地(run in parallel)分布到多个CPU上运行,该相同任务在不同CPU上共享着相同的物理内存.
-
-与 SMP 相对应的还有一个叫做 AMP(Asymmetric Multiprocessing), 即非对称多处理器架构的概念.
-
-- SMP的多个处理器都是同构的,使用相同架构的CPU;而AMP的多个处理器则可能是异构的.
-- SMP的多个处理器共享同一内存地址空间;而AMP的每个处理器则拥有自己独立的地址空间.
-- SMP的多个处理器操通常共享一个操作系统的实例;而AMP的每个处理器可以有或者没有运行操作系统, 运行操作系统的CPU也是在运行多个独立的实例.
-- SMP的多处理器之间可以通过共享内存来协同通信;而AMP则需要提供一种处理器间的通信机制.
-
-> 现今主流的x86多处理器服务器都是SMP架构的, 而很多嵌入式系统则是AMP架构的
-
-在现行的SMP架构中,发展出三种模型:UMA,NUMA和COMA.下面将介绍前两种模型,并详细介绍一下 NUMA 
-
-> 下文讨论的 CPU 是指物理 CPU , 而不是多核 CPU
-
-### UMA
-
-Uniform Memory Access,简称UMA, 即均匀存储器存取模型.**所有处理器对所有内存有相等的访问时间**
-
-![20240119232539](https://raw.githubusercontent.com/learner-lu/picbed/master/20240119232539.png)
-
-既然要连接多个 CPU 和内存, 这种 UMA 的方式很明显是最简单直接的, 但问题也同样明显, BUS 会成为性能的杀手. 多个 CPU 需要平分总线的带宽, 这显然非常不利于计算
-
-x86多处理器发展历史上,早期的多核和多处理器系统都是UMA架构的.这种架构下, 多个CPU通过同一个北桥(North Bridge)芯片与内存链接.北桥芯片里集成了内存控制器(Memory Controller),
-
-下图是一个典型的早期 x86 UMA 系统,四路处理器通过 FSB (前端系统总线, Front Side Bus) 和主板上的内存控制器芯片 (MCH, Memory Controller Hub) 相连, CPU 通过 PCH 访问内存, DRAM 是以 UMA 方式组织的,延迟并无访问差异. 
-
-> [PCH(Platform Controller Hub)](https://en.wikipedia.org/wiki/Platform_Controller_Hub) 是 Intel 于 2008 年起退出的一系列晶片组,用于取代以往的 I/O Controller Hub(ICH). PCI和PCH在计算机系统中扮演不同的角色,PCI提供了扩展插槽,允许用户通过插入PCI卡来扩展计算机的功能,而PCH则负责管理和控制各种接口和设备的通信.PCI和PCH是不同层次的技术,它们共同工作来实现计算机系统的功能
->
-> SMB(System Management Bus):SMB 是一种系统管理总线,用于连接计算机系统中的各种硬件设备和传感器,以进行系统管理和监控.SMB 主要用于与系统管理芯片(如电源管理,温度传感器,风扇控制等)进行通信,提供系统监控,电源管理,硬件调整等功能.**它在系统级别提供了对硬件设备的管理和监控功能,而不是直接用于CPU访问内存**
-
-![numa-fsb-3](https://raw.githubusercontent.com/learner-lu/picbed/master/numa-fsb-3.png)
-
-### NUMA
-
-基于总线的计算机系统有一个瓶颈_有限的带宽会导致可伸缩性问题.系统中添加的CPU越多,每个节点可用的带宽就越少.此外,添加的CPU越多,总线就越长,因此延迟就越高. 因此,AMD 在引入 64 位 x86 架构时,实现了 NUMA 架构.
-
-![numa-architecture](https://raw.githubusercontent.com/learner-lu/picbed/master/numa-architecture.png)
-
-与UMA不同的是,**在NUMA中每个处理器有属于自己的本地物理内存(local memory),对于其他CPU来说是远程物理内存(remote memory)**.一般而言,访问本地物理内存由于路径更短,其访存时间要更短.
-
-之后, Intel 也推出了 x64 的 Nehalem 架构,x86 终于全面进入到 NUMA 时代.x86 NUMA 目前的实现属于 ccNUMA. **NUMA 是目前服务器最为广泛使用的模式**
-
-> ccNUMA(Cache Coherent NUMA),即缓存一致性NUMA架构. 这种架构主要是在NUMA架构之上保证了多处理器之间的缓存一致性.降低了系统程序的编写难度.
->
-> Intel 的 CPU 架构演进顺序: 8086/8088架构 | 80286架构 | 80386架构 | 80486架构 | Pentium架构 | Pentium Pro/Pentium II/Pentium III架构 | Pentium 4架构 | Core架构 | Nehalem/Westmere架构 | Sandy Bridge/Ivy Bridge/Haswell架构 | Broadwell/Skylake/Kaby Lake架构 | Coffee Lake/Whiskey Lake/Cascade Lake架构 | Ice Lake/Tiger Lake架构 | Alder Lake架构
-
-从 Nehalem 架构开始,x86 开始转向 NUMA 架构,内存控制器芯片被集成到处理器内部,多个处理器通过 QPI 链路相连,从此 DRAM 有了远近之分. 而 Sandybridge 架构则更近一步,将片外的 IOH 芯片也集成到了处理器内部,至此,内存控制器和 PCIe Root Complex 全部在处理器内部了. 下图就是一个典型的 x86 的 NUMA 架构:
-
-> QPI(QuickPath Interconnect)是英特尔(Intel)处理器架构中使用的一种高速互联技术.它用于处理器与其他组件(如内存,I/O设备和其他处理器)之间的通信.
-> 
-> LLC(Last-Level Cache):LLC 是处理器架构中的最后一级缓存.在多级缓存结构中,处理器通常具有多个级别的缓存,而最后一级缓存(通常是共享的)被称为 LLC.LLC 位于处理器核心和主存之间,用于存储频繁访问的数据,以加快处理器对数据的访问速度.
->
-> MI(Memory Interleaving):MI 是一种内存交错技术,用于提高内存子系统的性能.在内存交错中,内存地址空间被划分为多个连续的区域,并将这些区域分配到不同的物理内存模块中.这样,内存访问可以并行地在多个内存模块之间进行,提供更高的带宽和更快的数据访问速度.
-
-![2020-01-09_numa-imc-iio-smb](https://raw.githubusercontent.com/learner-lu/picbed/master/2020-01-09_numa-imc-iio-smb.png)
-
-NUMA架构解决了可伸缩性问题,这是它的主要优点之一.在NUMA CPU中,一个节点将拥有更高的带宽或更低的延迟来访问同一节点上的内存(例如,本地CPU在远程访问的同时请求内存访问;优先级在本地CPU上).如果将数据本地化到特定的进程(以及处理器),这将显著提高内存吞吐量.缺点是将数据从一个处理器移动到另一个处理器的成本较高.只要这种情况不经常发生,NUMA系统将优于具有更传统架构的系统
-
-### CPU
-
-在正式开始介绍 NUMA 之前, 我们需要先介绍一些关于 CPU 的基本术语和概念
+## CPU 术语
 
 大多数CPU都是在二维平面上构建的.CPU还必须添加集成内存控制器.对于每个CPU核心,有四个内存总线(上,下,左,右)的简单解决方案允许完全可用的带宽,但仅此而已.CPU在很长一段时间内都停滞在4核状态.当芯片变成3D时,在上面和下面添加痕迹允许直接总线穿过对角线相反的CPU.在卡上放置一个四核CPU,然后连接到总线,这是合乎逻辑的下一步.
 
-如今,每个处理器都包含许多核心,**这些核心都有一个共享的片上缓存和片外内存**,并且在服务器内不同内存部分的内存访问成本是可变的.
+如今每个处理器都包含许多核心,这些核心都有一个共享的片上缓存和片外内存,并且在服务器内不同内存部分的内存访问成本是可变的. 提高数据访问效率是当前CPU设计的主要目标之一, 因此每个CPU核都被赋予了一个较小的一级缓存(32 KB)和一个较大的二级缓存(256 KB).各个核心随后共享几个MB的3级缓存,其大小随着时间的推移而大幅增长.
 
-提高数据访问效率是当前CPU设计的主要目标之一.**每个CPU核都被赋予了一个较小的一级缓存(32 KB)和一个较大的二级缓存(256 KB).各个核心随后共享几个MB的3级缓存,其大小随着时间的推移而大幅增长**.
+> 为了避免缓存丢失(请求不在缓存中的数据),需要花费大量的研究时间来寻找合适的CPU缓存数量,缓存结构和相应的算法. 详见 [缓存一致性](./cc.md)
 
-> 为了避免缓存丢失(请求不在缓存中的数据),需要花费大量的研究时间来寻找合适的CPU缓存数量,缓存结构和相应的算法.关于[缓存snoop协议](https://en.wikipedia.org/wiki/Bus_snooping)和 [缓存一致性](https://www.geeksforgeeks.org/cache-coherence-protocols-in-multiprocessor-system/) 的更详细的解释.
+一个 CPU 有如下的一些术语: `socket` `core` `ucore` `threads`
+
+![20240510153146](https://raw.githubusercontent.com/learner-lu/picbed/master/20240510153146.png)
 
 - Socket: **一个Socket对应一个物理CPU**. 这个词大概是从CPU在主板上的物理连接方式上来的,可以理解为 Socket 就是主板上的 CPU 插槽.处理器通过主板的Socket来插到主板上. 尤其是有了多核(Multi-core)系统以后,Multi-socket系统被用来指明系统到底存在多少个物理CPU.
 - Core: **CPU的运算核心**. x86的核包含了CPU运算的基本部件,如逻辑运算单元(ALU), 浮点运算单元(FPU), L1和L2缓存. 一个Socket里可以有多个Core.如今的多核时代,即使是单个socket的系统, 由于每个socket也有多个core, 所以逻辑上也是SMP系统.
@@ -86,17 +23,26 @@ NUMA架构解决了可伸缩性问题,这是它的主要优点之一.在NUMA CPU
 - Uncore: Intel x86物理CPU里没有放在Core里的部件都被叫做Uncore.Uncore里集成了过去x86 UMA架构时代北桥芯片的基本功能. 在Nehalem时代,内存控制器被集成到CPU里,叫做iMC(Integrated Memory Controller). 而PCIe Root Complex还做为独立部件在IO Hub芯片里.到了SandyBridge时代,PCIe Root Complex也被集成到了CPU里. 现今的Uncore部分,除了iMC,PCIe Root Complex,还有QPI(QuickPath Interconnect)控制器, L3缓存,CBox(负责缓存一致性),及其它外设控制器.
 - Threads: 这里特指CPU的多线程技术.在Intel x86架构下,CPU的多线程技术被称作超线程(Hyper-Threading)技术. Intel的超线程技术在一个处理器Core内部引入了额外的硬件设计模拟了两个逻辑处理器(Logical Processor), 每个逻辑处理器都有独立的处理器状态,但共享Core内部的计算资源,如ALU,FPU,L1,L2缓存. 这样在最小的硬件投入下提高了CPU在多线程软件工作负载下的性能,提高了硬件使用效率. x86的超线程技术出现早于NUMA架构.
 
-> PCIe Root Complex 是总线的起点和顶层设备.它通常由主板上的北桥芯片或处理器内部的PCIe控制器实现, 是总线架构中的核心组件
-
-![Core-and-uncore-in-multicore-processors](https://raw.githubusercontent.com/learner-lu/picbed/master/Core-and-uncore-in-multicore-processors.png)
-
 因此, 一个CPU Socket里可以由多个CPU Core和一个Uncore部分组成.每个CPU Core内部又可以由两个CPU Thread组成. 每个CPU thread都是一个操作系统可见的逻辑CPU.对大多数操作系统来说,一个八核HT(Hyper-Threading)打开的CPU会被识别为16个CPU
+
+如下图所示
+
+![20240510165348](https://raw.githubusercontent.com/learner-lu/picbed/master/20240510165348.png)
+
+> QPI(QuickPath Interconnect)是英特尔(Intel)处理器架构中使用的一种高速互联技术.它用于处理器与其他组件(如内存,I/O设备和其他处理器)之间的通信.
+>
+> LLC(Last-Level Cache):LLC 是处理器架构中的最后一级缓存.在多级缓存结构中,处理器通常具有多个级别的缓存,而最后一级缓存(通常是共享的)被称为 LLC.LLC 位于处理器核心和主存之间,用于存储频繁访问的数据,以加快处理器对数据的访问速度.
 
 ## NUMA系统
 
 NUMA体系结构中多了Node的概念,这个概念其实是用来解决core的分组的问题.**每个node有自己的内部CPU,总线和内存**,同时还可以访问其他node内的内存,NUMA的最大的优势就是可以方便的增加CPU的数量.NUMA系统中,**内存的划分是根据物理内存模块和内存控制器的布局来确定的**
 
-在Intel x86平台上,所谓本地内存,就是CPU指可以经过Uncore部件里的iMC访问到的内存.而那些非本地的, 远程内存(Remote Memory),则需要经过QPI的链路到该内存所在的本地CPU的iMC来访问.
+![image](https://raw.githubusercontent.com/learner-lu/picbed/master/20240224114939.png)
+
+在Intel x86平台上:
+
+- 本地内存指 CPU 可以经过Uncore部件里的iMC访问到的内存.
+- 远程内存(Remote Memory),则需要经过QPI的链路到该内存所在的CPU的iMC来访问.
 
 与本地内存一样,所谓本地IO资源,就是CPU可以经过Uncore部件里的PCIe Root Complex直接访问到的IO资源. 如果是非本地IO资源,则需要经过QPI链路到该IO资源所属的CPU,再通过该CPU PCIe Root Complex访问. 如果同一个NUMA Node内的CPU和内存和另外一个NUMA Node的IO资源发生互操作,因为要跨越QPI链路, 会存在额外的访问延迟问题
 
@@ -105,16 +51,24 @@ NUMA体系结构中多了Node的概念,这个概念其实是用来解决core的�
 一个NUMA Node内部是由一个物理CPU和它所有的本地内存, 本地IO资源组成的. 通常一个 Socket 有一个 Node,也有可能一个 Socket 有多个 Node.
 
 ```bash
-root@kamilu:~# sudo apt install numactl
+root@kamilu:~$ sudo apt install numactl
 
-root@kamilu:~# numactl --hardware
-available: 1 nodes (0)
-node 0 cpus: 0
-node 0 size: 914 MB
-node 0 free: 148 MB
+root@kamilu:~$ numactl -H
+available: 3 nodes (0-2)
+node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 24 25 26 27 28 29 30 31 32 33 34 35
+node 0 size: 31819 MB
+node 0 free: 10283 MB
+node 1 cpus: 12 13 14 15 16 17 18 19 20 21 22 23 36 37 38 39 40 41 42 43 44 45 46 47
+node 1 size: 32193 MB
+node 1 free: 26965 MB
+node 2 cpus:
+node 2 size: 16384 MB
+node 2 free: 16375 MB
 node distances:
-node   0
-  0:  10
+node   0   1   2
+  0:  10  21  24
+  1:  21  10  14
+  2:  24  14  10
 ```
 
 ### NUMA互联

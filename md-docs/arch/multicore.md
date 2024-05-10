@@ -62,10 +62,6 @@ Uniform Memory Access,简称UMA, 即均匀存储器存取模型.**所有处理�
 
 UMA这种方式是最简单直接的,但问题也同样明显, **BUS 会成为性能的杀手**. **多个 CPU 需要平分总线的带宽**, 这显然非常不利于计算.
 
-![image](https://raw.githubusercontent.com/learner-lu/picbed/master/numa-fsb-3.png)
-
-> 早期 x86 UMA 系统就是这样四路处理器通过前端系统总线和主板上的内存控制器芯片 (MCH, Memory Controller Hub) 相连,现在的话一部分部件都从北桥整合到CPU核心内部了,这种方式也就逐渐被淘汰了
-
 ### NUMA
 
 基于总线的计算机系统有一个瓶颈, 有限的带宽会导致可伸缩性问题.系统中添加的CPU越多,每个节点可用的带宽就越少.此外,添加的CPU越多,总线就越长, 延迟也就越高.
@@ -75,6 +71,12 @@ UMA这种方式是最简单直接的,但问题也同样明显, **BUS 会成为�
 ![20240120202032](https://raw.githubusercontent.com/learner-lu/picbed/master/20240120202032.png)
 
 将存储器分散在节点之间, 既增加了带宽, 也缩短了到本地存储器的延迟. DSM 多处理器也被称为 NUMA(非一致存储器访问), 这是因为它的**访问时间取决于数据字在存储器的位置.** DSM 的关键缺点是处理器之间传送数据的过程变得复杂了一些, 需要在软件中多花一些力气, 以充分利用分布式存储器提升的存储器带宽.
+
+其中中间部分的互联网络可以是主板上的总线(PCIe/QPI等高速总线), 如下所示
+
+![20240510165348](https://raw.githubusercontent.com/learner-lu/picbed/master/20240510165348.png)
+
+也可以是互联网络, 例如无线网卡, 光纤等
 
 与UMA不同的是,**在NUMA中每个处理器有属于自己的本地物理内存(local memory),对于其他CPU来说是远程物理内存(remote memory)**.一般而言,访问本地物理内存由于路径更短,其访存时间要更短.
 
