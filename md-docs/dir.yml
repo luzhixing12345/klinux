@@ -24,7 +24,7 @@ fs:
 - disk-layout: 6
 - mount: 7
 - vfs: 8
-- fhs: 9
+- file_op: 9
 - ext4: 10
 - distribute-fs: 11
 runtime:

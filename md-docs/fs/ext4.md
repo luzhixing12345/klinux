@@ -50,6 +50,83 @@ GDT(Group Descriptor Table) 由很多块组描述符组成,整个分区分成多
 
 传统UNIX文件系统采用的ext文件系统引入了块组(block group)概念,以增强数据的**局部性**,提高硬盘驱动器(HDD)的文件读写吞吐量,减少寻道时间和距离.个人猜测,对于SSD或闪存等非机械存储介质,块组的概念可能不太重要.此外,超级块(super block)和块组描述符(group descriptor)是文件系统的关键元数据,它们不仅在文件系统级别上存在主备份,还会在其他块组中多次备份,以确保在主备份损坏时,仍能通过其他备份恢复文件系统,避免数据丢失和系统尺寸、分布信息的不可恢复性.
 
+## EXT4
+
+ext4 使用 extend 取代了 ext2 和 ext3 使用的传统块映射方案.盘区是一系列连续的物理块,可提高大文件性能并减少碎片.
+
+其中 `ext4_extent` 的数据结构如下所示, 根据 [ext4 文档](https://kernel.org/doc/html/v6.6/filesystems/ext4/dynamic.html#extent-tree) 信息可知, 其中 `ee_len` 字段用于表示范围覆盖的块数. 如果此字段的值为 <= 32768,则认为该块没有被使用. 如果字段的值为 > 32768,则数据块正在使用,实际数据块长度为 `ee_len - 32768`.
+
+因此通过计算可以得到, 扩展块的最大大小为 2^(16-1) x 2^12(4KB) = 128MB, 因此 ext4 中的单个扩展块最多可以映射 128 MiB 的连续空间
+
+```c
+struct ext4_extent {
+    __le32  ee_block;       /* 文件逻辑块号的第一个块,表示这个扩展的起始块 */
+    __le16  ee_len;         /* 这个扩展覆盖的数据块数量 */
+    __le16  ee_start_hi;    /* 物理块号的高 16 位 */
+    __le32  ee_start_lo;    /* 物理块号的低 32 位 */
+};
+```
+
+```c
+struct ext4_inode {
+    __le16 i_mode;        /* 文件模式,包括文件类型和文件的访问权限 */
+    __le16 i_uid;         /* 文件所有者的低16位用户ID */
+    __le32 i_size_lo;     /* 文件大小的低32位 */
+    __le32 i_atime;       /* 文件最后访问时间 */
+    __le32 i_ctime;       /* inode最后改变时间 */
+    __le32 i_mtime;       /* 文件最后修改时间 */
+    __le32 i_dtime;       /* 文件删除时间 */
+    __le16 i_gid;         /* 文件所有组的低16位组ID */
+    __le16 i_links_count; /* 指向该inode的硬链接数量 */
+    __le32 i_blocks_lo;   /* 文件占用的块数的低32位 */
+    __le32 i_flags;       /* 文件标志,用于存储文件的特定属性 */
+    union {
+        struct {
+            __le32 l_i_version; /* 用于NFS的文件版本号 */
+        } linux1;
+        struct {
+            __u32 h_i_translator; /* Hurd的特定字段 */
+        } hurd1;
+        struct {
+            __u32 m_i_reserved1; /* Masix的保留字段 */
+        } masix1;
+    } osd1;                        /* 操作系统依赖字段1 */
+    __le32 i_block[EXT4_N_BLOCKS]; /* 指向文件数据块的指针数组 */
+    __le32 i_generation;           /* 文件版本号,用于NFS */
+    __le32 i_file_acl_lo;          /* 文件访问控制列表的低32位 */
+    __le32 i_size_high;            /* 文件大小的高32位 */
+    __le32 i_obso_faddr;           /* 已废弃的碎片地址 */
+    union {
+        struct {
+            __le16 l_i_blocks_high;   /* 文件占用块数的高16位 */
+            __le16 l_i_file_acl_high; /* 文件ACL的高16位 */
+            __le16 l_i_uid_high;      /* 用户ID的高16位 */
+            __le16 l_i_gid_high;      /* 组ID的高16位 */
+            __u32 l_i_reserved2;      /* 保留字段 */
+        } linux2;
+        struct {
+            __le16 h_i_reserved1; /* 已废弃的碎片编号/大小 */
+            __u16 h_i_mode_high;  /* 文件模式的高16位 */
+            __u16 h_i_uid_high;   /* 用户ID的高16位 */
+            __u16 h_i_gid_high;   /* 组ID的高16位 */
+            __u32 h_i_author;     /* Hurd的作者字段 */
+        } hurd2;
+        struct {
+            __le16 m_i_reserved1;     /* 已废弃的碎片编号/大小 */
+            __le16 m_i_file_acl_high; /* 文件ACL的高16位 */
+            __u32 m_i_reserved2[2];   /* Masix的保留字段 */
+        } masix2;
+    } osd2;                /* 操作系统依赖字段2 */
+    __le16 i_extra_isize;  /* inode结构体扩展大小 */
+    __le16 i_pad1;         /* 对齐填充 */
+    __le32 i_ctime_extra;  /* inode最后改变时间的额外信息(纳秒和纪元) */
+    __le32 i_mtime_extra;  /* 文件最后修改时间的额外信息(纳秒和纪元) */
+    __le32 i_atime_extra;  /* 文件最后访问时间的额外信息(纳秒和纪元) */
+    __le32 i_crtime;       /* 文件创建时间 */
+    __le32 i_crtime_extra; /* 文件创建时间的额外信息(纳秒和纪元) */
+    __le32 i_version_hi;   /* 64位版本号的高32位 */
+};
+```
 
 ## 参考
 
@@ -68,3 +145,4 @@ GDT(Group Descriptor Table) 由很多块组描述符组成,整个分区分成多
 - [Linux ext2, ext3, ext4 文件系统解读[3]](https://blog.csdn.net/qwertyupoiuytr/article/details/70554469)
 - [Linux ext2, ext3, ext4 文件系统解读[4]](https://blog.csdn.net/qwertyupoiuytr/article/details/70833690)
 - [Linux ext2, ext3, ext4 文件系统解读[5]](https://blog.csdn.net/qwertyupoiuytr/article/details/70880547)
+- [大话EXT4文件系统](http://www.ssdfans.com/?p=8136)

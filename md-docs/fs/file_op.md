@@ -1,5 +1,5 @@
 
-# fhs
+# file_op
 
 macOS 是 UNIX 的内核 (BSD), 但不遵循 Linux FHS
 

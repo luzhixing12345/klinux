@@ -204,13 +204,137 @@ struct files_struct {
 current->files->fdt->fd[fd];
 ```
 
-## 多线程安全问题
+fdtable 中的 max_fds 记录一个进程最大可以打开的文件的个数, 可以使用如下指令查看
 
-在Linux内核的早期版本中,更新`struct file`中的偏移量存在多线程安全问题.这是因为在多线程环境下,如果没有适当的同步机制,可能会导致多个线程同时修改同一个文件偏移量,从而引发数据竞争和不一致的问题.
+```bash
+cat /proc/sys/fs/file-max
+```
 
-这个问题直到Linux 3.14版本才得到修复,该版本在2014年3月底发布.因此,在Linux 3.14之前的版本,如Ubuntu 14.04,默认情况下的`write(2)`系统调用并不保证线程安全性.
+## 文件的打开
+
+当一个进程打开文件的时候, 操作系统内核的数据成员链如下所示
+
+![20240511172159](https://raw.githubusercontent.com/learner-lu/picbed/master/20240511172159.png)
+
+> 这里的 inode 用于保存所有的文件字节数据和元数据, 更多内容见 [inode](./inode.md)
+
+首先每一个进程维护自己内部的文件描述符(fd), **不同进程看到的 fd 是不同的**. 每当打开一个文件的时候会分配一个**最小可用的fd**. 当 close 文件之后该 fd 会被回收
+
+> 默认 fd 0/1/2 分别对应 stdin, stdout, stderr
+
+`file` 结构体字段中
+
+- `f_inode` 指向文件对应的 inode, 也就是文件实际对应的字节数据和元数据.
+- `f_count` 用于跟踪当前有多少个引用指向这个 file 结构体.每当一个进程打开一个文件并获得一个 file 结构体的引用时,这个计数会增加.当进程关闭文件或者释放对 file 结构体的引用时,计数会减少
+
+  当 f_count 不为零时,表示还有引用存在,因此内核不会释放 file 结构体相关的资源.只有当 f_count 减少到零时,才表示没有进程再使用这个 file 结构体,内核可以安全地释放与其相关的资源
+
+  > `atomic_long_t` 类型保证了对 f_count 的增减操作是原子的
+  >
+  > 上图中 files_struct 中的 count 也是相同的作用
+
+- `f_flags` 用于表示打开文件时的各种状态标志和文件描述符的标志, 使用 `open("xxx", flags)` 打开的文件的标志(例如 `O_APPEND` `O_ASYNC`) 都保存在此处
+
+  > 比较特殊的是 `O_CLOEXEC`, 它会被单独保存在 `fdtable` 中的 `close_on_exec` 中, 而非 flag 中
+
+- `f_pos` 偏移量, 每个打开的文件的偏移量保存在 file 中
+- `fp` 与文件系统操作相关的字段, 所有对于该文件的 open/write/access 等操作都会通过 vfs 层传递到文件系统执行
+
+如果**多个进程打开了同一个文件**, 此时它们会创建自己**独立**的 `file`, 但是指向**相同**的 `inode`
+
+![20240511172717](https://raw.githubusercontent.com/learner-lu/picbed/master/20240511172717.png)
+
+但如果是同一进程中的不同线程打开了同一个文件, 那么它们共享 fdt
+
+![20240511173303](https://raw.githubusercontent.com/learner-lu/picbed/master/20240511173303.png)
+
+```c
+#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+// 线程函数,接收一个整数参数作为线程号
+void* thread_function(void* arg) {
+    int thread_id = *((int *)arg); // 强制转换void*参数为int*
+    const char* filename = "a.c"; // 所有线程打开相同的文件
+
+    int fd = open(filename, O_RDONLY);
+    if (fd == -1) {
+        perror("Error opening file");
+        return NULL;
+    }
+
+    // 打印线程号和文件描述符
+    printf("Thread ID %d - File '%s' opened with FD: %d\n", thread_id, filename, fd);
+    sleep(1); // 加一点延迟, 不然可能一个线程快速执行结束释放 fd
+    printf("Thread ID %d - File '%s' closed with FD: %d\n", thread_id, filename, fd);
+    close(fd);
+    return NULL;
+}
+
+int main() {
+    pthread_t t1, t2;
+
+    // 创建第一个线程并传递线程号1
+    int thread_id_1 = 1;
+    if (pthread_create(&t1, NULL, thread_function, &thread_id_1) != 0) {
+        perror("Failed to create thread 1");
+        return 1;
+    }
+
+    // 创建第二个线程并传递线程号2
+    int thread_id_2 = 2;
+    if (pthread_create(&t2, NULL, thread_function, &thread_id_2) != 0) {
+        perror("Failed to create thread 2");
+        return 1;
+    }
+
+    // 等待线程结束
+    pthread_join(t1, NULL);
+    pthread_join(t2, NULL);
+
+    return 0;
+}
+```
+
+编译运行可以发现文件描述符 fd 是顺次增长的, 而并非独立的, 由此可以验证结论
+
+```bash
+(base) kamilu@LZX:~/libc$ gcc a.c -lpthread -o a
+(base) kamilu@LZX:~/libc$ ./a
+Thread ID 1 - File 'a.c' opened with FD: 3
+Thread ID 2 - File 'a.c' opened with FD: 4
+Thread ID 1 - File 'a.c' closed with FD: 3
+Thread ID 2 - File 'a.c' closed with FD: 4
+```
+
+> 在Linux内核的早期版本中,更新`struct file`中的偏移量存在多线程安全问题.这是因为在多线程环境下,如果没有适当的同步机制,可能会导致多个线程同时修改同一个文件偏移量,从而引发数据竞争和不一致的问题.
+>
+> 这个问题直到Linux 3.14版本才得到修复,该版本在2014年3月底发布.因此,在Linux 3.14之前的版本,如Ubuntu 14.04,默认情况下的`write(2)`系统调用并不保证线程安全性.
+
+下面我们考虑一些比较复杂的情况
+
+- **open+open**: 文件连续打开两次, 每一次 open 会创建一个 fd 中创建一个表项, 对应两个不同的 `file`. 如果分别使用 write 对 fd 进行写入则由于打开文件的偏移量默认为 0, 后写入的内容会覆盖前面的内容
+
+  ![20240511182428](https://raw.githubusercontent.com/learner-lu/picbed/master/20240511182428.png)
+
+  > 测试代码见 [open_open.c](https://github.com/luzhixing12345/libc/blob/main/examples/fs/open_open.c)
+
+- **open+dup**: 打开一个文件然后dup得到一个新的文件描述符, 此时虽然有两个 fd 但是对应同一个 `file`, 共享包括 flag/pos 的信息. 此时 `file` 中的 `f_count` 引用计数为 2
+
+  ![20240511183938](https://raw.githubusercontent.com/learner-lu/picbed/master/20240511183938.png)
+
+  > 测试代码见 [open_dup.c](https://github.com/luzhixing12345/libc/blob/main/examples/fs/open_dup.c)
+
+- **open+fork**: 打开一个文件然后 fork, 此时会有两个 task_struct, 但是它们共享同一个 `file`, 共享相同的偏移量, 因此父子进程可以分别 write 而不会覆盖
+
+  ![20240511190013](https://raw.githubusercontent.com/learner-lu/picbed/master/20240511190013.png)
+
+  > 测试代码见 [open_fork.c](https://github.com/luzhixing12345/libc/blob/main/examples/fs/open_fork.c)
 
 ## 参考
 
 - [Linux 内核文件描述符表的演变](https://zhuanlan.zhihu.com/p/34280875)
 - [File descriptor](https://en.wikipedia.org/wiki/File_descriptor)
+- [Linux 文件系统(三):分块读写](https://www.bilibili.com/video/BV1QT411r738/)

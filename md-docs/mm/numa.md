@@ -27,7 +27,7 @@
 
 如下图所示
 
-![20240510165348](https://raw.githubusercontent.com/learner-lu/picbed/master/20240510165348.png)
+![20240512092458](https://raw.githubusercontent.com/learner-lu/picbed/master/20240512092458.png)
 
 > QPI(QuickPath Interconnect)是英特尔(Intel)处理器架构中使用的一种高速互联技术.它用于处理器与其他组件(如内存,I/O设备和其他处理器)之间的通信.
 >
