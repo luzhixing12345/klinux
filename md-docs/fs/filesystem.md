@@ -37,8 +37,8 @@ struct File {
 
 文件系统最核心最重要的工作就是完成**从文件名到文件的一个映射**: `Map<string, File>`
 
-- 第一步就是将文件名映射到索引节点, 我们称为 inode_num, 即 `file_path -> inode_num`;
-- 第二步是将 inode 映射到文件, 即 `inode_num -> File`
+1. 将文件名映射到索引节点, 我们称为 inode_num, 即 `file_path -> inode_num`;
+2. 将 inode 映射到文件, 即 `inode_num -> File`
 
 ![20240506221237](https://raw.githubusercontent.com/learner-lu/picbed/master/20240506221237.png)
 
@@ -49,6 +49,8 @@ struct File {
 ![20240506231735](https://raw.githubusercontent.com/learner-lu/picbed/master/20240506231735.png)
 
 > 因此一个普通目录的引用数为 [2](https://unix.stackexchange.com/a/101536); `/` 目录的 `.` 和 `..` 都指向它自己
+>
+> 在同一个文件系统中, inode_num 是唯一的, 硬链接(hard-link)不能跨文件系统, 软链接(soft-link/symbolic link)可以
 
 在这个系统中 `inode_num` 是一个非常重要的桥梁, 也是文件系统的主键(key). 大多数文件系统将其设计为 `uint_32`, 这也限制了文件系统的最大文件个数. 使用整数类型主要是为了方便利用例如红黑树的特性,可以在 O(logN) 时间内完成插入和搜索.
 
@@ -190,7 +192,7 @@ superblock包含了一个文件系统所有的控制信息,比如文件系统中
 
 在挂载文件系统时,操作系统会首先读取超级块,初始化各种参数,然后将卷附加到文件系统树上.这样当访问卷中的文件时,系统就能准确地知道在哪里可以找到所需的磁盘结构了.
 
-此时如果想要读出 inode_number 为 32 的文件, 首先通过 superblock 得到 inode_table 的块号(3), 然后计算得到偏移量 4KB * 3 = 12KB, 然后找到 32 号的 inode 的偏移量 32 * sizeof(struct inode) = 8KB, 然后相加读取该地址的 inode 结构体, 然后读取其中的 blocks 字段得到该文件包含的数据块号, 然后再通过偏移量读取出对应的数据块即可, 如下所示
+此时如果想要读出 inode_num 为 32 的文件, 首先通过 superblock 得到 inode_table 的块号(3), 然后计算得到偏移量 4KB * 3 = 12KB, 然后找到 32 号的 inode 的偏移量 32 * sizeof(struct inode) = 8KB, 然后相加读取该地址的 inode 结构体, 然后读取其中的 blocks 字段得到该文件包含的数据块号, 然后再通过偏移量读取出对应的数据块即可, 如下所示
 
 ![20240509214353](https://raw.githubusercontent.com/learner-lu/picbed/master/20240509214353.png)
 
@@ -263,6 +265,22 @@ ext3 的继任者 **ext4** 最初是 ext3 的一系列向后兼容扩展, 其他
 - **网络文件系统**, 它充当远程文件访问协议的客户端,提供对服务器上文件的访问.使用本地接口的程序可以透明地创建、管理和访问远程联网计算机中的分层目录和文件.网络文件系统的示例包括 NFS 、AFS、SMB 协议的客户端,以及用于 FTP, SSH (sshfs)
 - **用户态文件系统**, 例如 FUSE
 - **分布式文件系统**
+
+## FHS
+
+macOS 是 UNIX 的内核 (BSD), 但不遵循 Linux FHS
+
+![20240408165721](https://raw.githubusercontent.com/learner-lu/picbed/master/20240408165721.png)
+
+## 参考
+
+- [Filesystem Hierarchy Standard](https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard)
+- [FHS 3.0 文档](https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.pdf)
+- [【linux】rootfs根文件系统镜像制作](https://blog.csdn.net/iriczhao/article/details/127078414)
+- [直接引导Linux内核.md](https://www.bookstack.cn/read/learn-kvm/docs-QEMU%E5%8A%9F%E8%83%BD-%E7%9B%B4%E6%8E%A5%E5%BC%95%E5%AF%BCLinux%E5%86%85%E6%A0%B8.md)
+- [深入理解 Linux 启动过程 | QEMU 启动 linux 内核和自制根文件系统](https://cloud.tencent.com/developer/article/2347447)
+- [cyberciti description-of-linux-file-system-directories](https://www.cyberciti.biz/tips/description-of-linux-file-system-directories.html)
+- [The Filesystem Hierarchy Standard of Linux](https://zhuanlan.zhihu.com/p/23862856)
 
 ## 参考
 

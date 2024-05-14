@@ -40,5 +40,6 @@ linux 内核技术文档: [klinux document](https://luzhixing12345.github.io/kli
   - [kernel_awsome_feature](https://github.com/0voice/kernel_awsome_feature)
   - [realwujing 技术博客](https://realwujing.github.io/tags/)
   - [小坚学Linux](https://blog.csdn.net/sinat_22338935?type=blog)
+  - [archives](https://abcdxyzk.github.io/blog/archives/)
 - talk
   - [The Linux Storage, Filesystem, Memory Management & BPF Summit @ OSS NA 2023](https://www.youtube.com/playlist?list=PLbzoR-pLrL6rlmdpJ3-oMgU_zxc1wAhjS)
