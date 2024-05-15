@@ -97,7 +97,7 @@ struct ext2_inode {
 };
 ```
 
-> 位于源码中 [fs/ext2/ext2.h](https://github.com/luzhixing12345/klinux/blob/0abe96b48167520ec079828b2ee341a100eb416d/fs/ext2/ext2.h#L290-L342)
+> 该字段位于源码中 [fs/ext2/ext2.h](https://github.com/luzhixing12345/klinux/blob/0abe96b48167520ec079828b2ee341a100eb416d/fs/ext2/ext2.h#L290-L342), linux kernel 也有一个通用的 [inode 字段](https://github.com/luzhixing12345/klinux/blob/63286f3344a3a2a227648da72f5c7fccf5c1f428/include/linux/fs.h#L639-L749), 但它是为内核使用的, 每一个文件系统应当实现自己的 struct inode
 > 
 > 字段含义见 [ext2 inode table](https://www.nongnu.org/ext2-doc/ext2.html#inode-table)
 
@@ -113,15 +113,7 @@ struct ext2_inode {
 
 ext2 非常适合小文件(12KB)以内的文件, 因为只需要查找到 inode 即可从中直接读取出所有数据块的 block_number, 然后就可以通过偏移量找到对应的地址了; 如果再大的文件那么就需要访问间接块, 从而会因为多几次间接查找带来一定的开销
 
----
-
-ext2 的 inode 结构我们可以看出, 文件的追加很容易, 但是插入很麻烦(因为需要整体移动). 文件大小 != 占用磁盘大小, 大多数情况下占用的磁盘大小要比文件大小大(因为会有空余的块). 但是也可能相反, 比如说对于一个稀疏文件, 即 lseek(1MB) + write(1KB)
-
-例如我们使用 `dd` 生成了一个 1000MB 的全0文件, 然后在某一个偏移量的地方写入了几个字节, 此时再使用 `du` 查看时就会发现文件大小要小很多
-
-> 因为 ext4 中可以延迟写入, 对于全 0 的块可以暂时不分配 data block, 直到写入非 0 值时才进行更新
-
-![20240509221631](https://raw.githubusercontent.com/learner-lu/picbed/master/20240509221631.png)
+从 ext2 的 inode 结构我们可以看出, 文件的追加很容易, 但是插入很麻烦(因为需要整体移动). 文件大小 != 占用磁盘大小, 大多数情况下占用的磁盘大小要比文件大小大(因为会有空余的块). 但是也可能相反, 比如说对于一个稀疏文件, 即 lseek(1MB) + write(1KB)
 
 ## ext4 inode
 
@@ -188,29 +180,6 @@ TODO EXT4 EXTENT TREE PIC
 - 较高的`inode_ratio`值意味着每个inode占用更多的磁盘空间,适合存储较少的**大文件**,因为每个inode可以存储更多的元数据.
 
 > 可以使用 `df -i` 来查看磁盘和分区的 inode 的使用情况
-
-## ext 文件系统参数
-
-||ext2|ext4|
-|:--:|:--:|:--:|
-|inode size(bytes)|128|256|
-|logical block num(bit)|32|32|
-|physical block num(bit)|32|48|
-|max fs size|4GB|1EB|
-|max file size|16GB|16TB|
-
-> - ext2 max fs size = 1KB * 2^32 = 4GB
-> - ext2 max file size = 1KB * (12 + 256 + 256x256 + 256x256x256) ~= 16GB
-> - ext4 max fs size = 4KB * 2^48 = 1EB
-> - ext4 max file size = 4KB * 2^32 = 16TB
-
-如果块大小为 4KB, 那么对于一个 32 位的 block number (ext2)来说, 可以计算得到文件系统支持的最大容量为 `4KB * 2^32 = 16TB`, 而对于一个 48 bit 的block number(ext4) 足以支持 1EB(1024PB)
-
-> 但是因为考虑到块组(block group)的上限为 256TB, 128MB pre group, 因此需要开启 meta block group 的选项
-
-用一个 block 来存 bitmap, 对于 4KB 的 block 有 32K 个 bits, 因此每个组最多 32K 个 blocks, 因此每个组最多 32K x 4KB = 128MB
-
-传统UNIX文件系统采用的ext文件系统引入了块组(block group)概念,以增强数据的**局部性**,提高硬盘驱动器(HDD)的文件读写吞吐量,减少寻道时间和距离.个人猜测,对于SSD或闪存等非机械存储介质,块组的概念可能不太重要.此外,超级块(super block)和块组描述符(group descriptor)是文件系统的关键元数据,它们不仅在文件系统级别上存在主备份,还会在其他块组中多次备份,以确保在主备份损坏时,仍能通过其他备份恢复文件系统,避免数据丢失和系统尺寸、分布信息的不可恢复性.
 
 ## 链接
 

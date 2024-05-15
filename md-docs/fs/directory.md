@@ -74,6 +74,8 @@ mv a b
 
 如此递归的查找下去, 如果未找到目录项则报错返回, 直到找到最后一项 `a.c`. 其 dentry 的 `file_type` 类型为普通文件, 所以通过其 inode_num 找到的是其对应的 inode 结构. 最后根据该结构的 `i_blocks` 属性读取到对应的文件数据块所在的内容
 
+> 上述的情况是假设每一层目录都处于同一个文件系统当中, 如果 `/` 和 `/home` 挂载在不同的文件系统, 那么切换路径的时候需要重新通过 superblock 来确定根目录的位置
+
 ---
 
 可以明显看出这种查找的复杂度为 O(MN), M 为目录的深度, N 为目录中项的个数. 通常来说 M 不会很大(即不会很深), 因此 N 会成为查找时影响性能的主要原因. N 的查找和文件大小无关, 因为**目录中的文件数量/文件名多从而影响查找的性能**
@@ -106,12 +108,61 @@ drwxr-xr-x   2 kamilu kamilu     20480 May 14 23:28 tmp
 
 > rsync 会在复制文件之前提前将目录创建出来, 可以有效减少大目录下的目录碎片问题
 
-open ftrace
+## 目录 API
 
-dentry hashmap 大目录 block 启用?
+和文件系统相关的 API, 包括 open/close/read/write大致如下所示
 
-1. 将文件名映射到索引节点, 我们称为 inode_num, 即 `file_path -> inode_num`;
-2. 将 inode 映射到文件, 即 `inode_num -> File`
+```c
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+
+int open(const char *pathname, int flags);
+ssize_t read(int fd, void *buf, size_t count);
+ssize_t write(int fd, const void *buf, size_t count);
+int close(int fd);
+int fstat(int fd, struct stat *statbuf);
+```
+
+可以使用 open/fstat 查看一个目录, 但是 read 会返回错误码 `EISDIR`, 因为目录的格式是文件系统相关的, 并不是 read 适合处理的这种简单字节流, buf/count 参数也不好传参. 因此操作系统单独为目录设计了一套 API
+
+```c
+#include <sys/types.h>
+#include <dirent.h>
+
+DIR *opendir(const char *name);
+struct dirent *readdir(DIR *dirp);
+int closedir(DIR *dirp);
+
+// 上面的 API 是给用户空间使用的, LIBC 会在底层调用 getdents64 完成对目录的操作
+ssize_t getdents64(int fd, void *dirp, size_t count);
+```
+
+下面两个结构体是对于 dentry 的一层抽象, 用户使用的是 dirent, 而内核使用的是 linux_dirent64
+
+> dirent 中的 `d_name` 字段是 256 而非前面提到的 255 是因为需要以 `\0` 结尾
+
+```c
+// user api struct
+struct dirent {
+    ino_t          d_ino;       /* Inode number */
+    off_t          d_off;       /* Not an offset; see below */
+    unsigned short d_reclen;    /* Length of this record */
+    unsigned char  d_type;      /* Type of file; not supported
+                                   by all filesystem types */
+    char           d_name[256]; /* Null-terminated filename */
+};
+
+// kernel api struct
+struct linux_dirent64 {
+    ino64_t        d_ino;    /* 64-bit inode number */
+    off64_t        d_off;    /* 64-bit offset to next structure */
+    unsigned short d_reclen; /* Size of this dirent */
+    unsigned char  d_type;   /* File type */
+    char           d_name[]; /* Filename (null-terminated) */
+};
+```
 
 ## 参考
 

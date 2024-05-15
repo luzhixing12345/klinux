@@ -14,3 +14,4 @@
 ## 参考
 
 - [MATRYOSHKA: Non-Exclusive Memory Tiering via Transactional Page Migration](https://arxiv.org/pdf/2401.13154)
+- [Linux memory watermark 内存水位](https://zhuanlan.zhihu.com/p/697378785)

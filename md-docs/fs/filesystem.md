@@ -151,7 +151,7 @@ struct FileSystem {
 
 > 图中的 D 目前不指代任何实际的数据, 只是暂时划分出来一块数据区域; 将后 56 个块(8-63)标记位数据区域也只是简化考虑
 
-除了文件本身包含的数据,还有文件的访问权限、大小和创建时间等控制信息,这些信息被称为**meta data**. 这些meta data存储的数据结构就是inode(对应下图的"I")
+除了文件本身包含的数据,还有文件的访问权限、大小和创建时间等控制信息,这些信息被称为**元数据(meta data)**. 这些meta data存储的数据结构就是inode(对应下图的"I"), 这个 inodes 区域也称为 **inode table**
 
 在早期的Unix系统中,这些nodes是通过数组组织起来的,因此需要依靠index来索引数组中的node.假设一个inode占据256字节,那么一个4KB的block可以存放16个inodes,使用5个blocks可以存放80个inodes,也就是最多支持80个文件
 
@@ -188,7 +188,7 @@ superblock包含了一个文件系统所有的控制信息,比如文件系统中
 
 > 图中没有标出 InodeIndex(3)
 >
-> ext4 的 super block 结构: [linux ext4.h](https://github.com/torvalds/linux/blob/master/fs/ext4/ext4.h#L394)
+> 这里的 superblock 的概念**并不准确**, 准确来说合并了 superblock 和 Block Group Descriptor 两个概念, 我们将在 [disk-layout](./disk-layout.md) 中详细介绍
 
 在挂载文件系统时,操作系统会首先读取超级块,初始化各种参数,然后将卷附加到文件系统树上.这样当访问卷中的文件时,系统就能准确地知道在哪里可以找到所需的磁盘结构了.
 
