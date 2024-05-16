@@ -170,6 +170,8 @@ TODO EXT4 EXTENT TREE PIC
 
 我们可以通过 `cat /etc/mke2fs.conf` 查看 ext4 的默认 inode ratio 为 16384(16K), 也就是说估算的平均文件体积是 16KB. 如果大多数文件小于这个体积则会优先耗尽 inode 空间而磁盘还有剩余空间, 反之大文件则会优先耗尽磁盘空间而剩余 inode 空间
 
+> 16K的ratio相当于4:1, 如果总共的数据块有 256K, 那么就应当有 64K 个 inode 的空间, 大概需要占据 64K x 256(B)/4KB = 4096 个数据块用来保存 inode table
+
 ![20240512214708](https://raw.githubusercontent.com/learner-lu/picbed/master/20240512214708.png)
 
 在这段配置文本中,`inode_ratio` 是用来定义不同文件系统类型或配置的inode与磁盘块之间的比例.每个文件系统类型或配置(如 `small`, `floppy`, `big`, `huge`, `news`, `largefile`, `largefile4`, `hurd` 对应从小文件到大文件的适用场景)有不同的`inode_ratio`值,这取决于它们设计时的预期用途和性能特点.

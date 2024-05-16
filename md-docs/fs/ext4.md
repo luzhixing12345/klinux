@@ -130,6 +130,20 @@ struct ext4_extent_header {
 - `eh_depth`:索引树的深度.在ext4文件系统中,扩展索引可以形成一个树状结构,这个字段表示树的层次.如果一个索引树只有一个头节点而没有分支节点,那么它的深度为0;如果树有分支节点,则深度为1或更大.
 - `eh_generation`:扩展索引树的版本号.这个字段用于跟踪索引树的变更,以确保在并发操作中保持数据的一致性.每当索引树发生变化时,这个值会增加,帮助系统检测到不一致的状态.
 
+## ext 文件系统参数
+
+||ext2|ext4|
+|:--:|:--:|:--:|
+|inode size(bytes)|128|256|
+|logical block num(bit)|32|32|
+|physical block num(bit)|32|48|
+|max fs size|4GB|1EB|
+|max file size|16GB|16TB|
+
+> - ext2 max fs size = 1KB * 2^32 = 4GB
+> - ext2 max file size = 1KB * (12 + 256 + 256x256 + 256x256x256) ~= 16GB
+> - ext4 max fs size = 4KB * 2^48 = 1EB
+> - ext4 max file size = 4KB * 2^32 = 16TB
 
 ## 参考
 
