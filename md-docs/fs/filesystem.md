@@ -196,6 +196,8 @@ superblock包含了一个文件系统所有的控制信息,比如文件系统中
 
 ![20240509214353](https://raw.githubusercontent.com/learner-lu/picbed/master/20240509214353.png)
 
+> 如果是 34 号的话还需要再加上block内的两个 inode 的偏移量 (+2*256)
+
 ## 问题: 读写放大
 
 相比于内存 RAM 的读写设计, 磁盘没有办法做到 1 bit 的修改. 其中一个主要的挑战是**读写放大**.例如,当用户程序仅需要修改一个文件中的一小部分数据时, 文件系统仍然需要将一整个数据块读出, 修改后再将其写入.
@@ -274,16 +276,6 @@ macOS 是 UNIX 的内核 (BSD), 但不遵循 Linux FHS
 
 ## 参考
 
-- [Filesystem Hierarchy Standard](https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard)
-- [FHS 3.0 文档](https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.pdf)
-- [【linux】rootfs根文件系统镜像制作](https://blog.csdn.net/iriczhao/article/details/127078414)
-- [直接引导Linux内核.md](https://www.bookstack.cn/read/learn-kvm/docs-QEMU%E5%8A%9F%E8%83%BD-%E7%9B%B4%E6%8E%A5%E5%BC%95%E5%AF%BCLinux%E5%86%85%E6%A0%B8.md)
-- [深入理解 Linux 启动过程 | QEMU 启动 linux 内核和自制根文件系统](https://cloud.tencent.com/developer/article/2347447)
-- [cyberciti description-of-linux-file-system-directories](https://www.cyberciti.biz/tips/description-of-linux-file-system-directories.html)
-- [The Filesystem Hierarchy Standard of Linux](https://zhuanlan.zhihu.com/p/23862856)
-
-## 参考
-
 - [设备驱动程序与文件系统 (Linux 设备驱动;目录管理 API) [南京大学2023操作系统-P27] (蒋炎岩)](https://www.bilibili.com/video/BV1m24y1A7Fi/)
 - [FAT 和 UNIX 文件系统 (磁盘上的数据结构) [南京大学2023操作系统-P28] (蒋炎岩)](https://www.bilibili.com/video/BV1xN411C74V)
 - [【存储知识】文件系统与硬盘存储(分区、格式化、挂载、inode、软链接与硬链接)](https://zhuanlan.zhihu.com/p/693575325)
@@ -300,3 +292,13 @@ macOS 是 UNIX 的内核 (BSD), 但不遵循 Linux FHS
   - [Ext3](https://en.wikipedia.org/wiki/Ext3)
 - [OSTEP fs implementation](https://pages.cs.wisc.edu/~remzi/OSTEP/file-implementation.pdf)
 - [文件系统的原理](https://zhuanlan.zhihu.com/p/106459445)
+
+FHS
+
+- [Filesystem Hierarchy Standard](https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard)
+- [FHS 3.0 文档](https://refspecs.linuxfoundation.org/FHS_3.0/fhs-3.0.pdf)
+- [【linux】rootfs根文件系统镜像制作](https://blog.csdn.net/iriczhao/article/details/127078414)
+- [直接引导Linux内核.md](https://www.bookstack.cn/read/learn-kvm/docs-QEMU%E5%8A%9F%E8%83%BD-%E7%9B%B4%E6%8E%A5%E5%BC%95%E5%AF%BCLinux%E5%86%85%E6%A0%B8.md)
+- [深入理解 Linux 启动过程 | QEMU 启动 linux 内核和自制根文件系统](https://cloud.tencent.com/developer/article/2347447)
+- [cyberciti description-of-linux-file-system-directories](https://www.cyberciti.biz/tips/description-of-linux-file-system-directories.html)
+- [The Filesystem Hierarchy Standard of Linux](https://zhuanlan.zhihu.com/p/23862856)

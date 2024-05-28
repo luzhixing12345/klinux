@@ -7,25 +7,38 @@
 
 ## 目录项的结构
 
-目录的数据结构是一个链表, 其中每一项都是 `dentry`. ext4 的 dentry 结构体字段如下
+目录的数据结构是一个链表, 其中每一项都是 `ext4_dir_entry_2`. ext4 的 dentry 结构体字段如下
+
+> 这里的 _2 是为了兼容老 ext2 的 ext4_dir_entry
 
 ```c
 #define EXT4_NAME_LEN 255
 
+// https://ext4.wiki.kernel.org/index.php/Ext4_Disk_Layout#Directory_Entries
 struct ext4_dir_entry_2 {
-    __le32 inode;             /* Inode number: 存储文件的索引节点号 */
+    __le32 inode_idx;         /* Inode number: 存储文件的索引节点号 */
     __le16 rec_len;           /* Directory entry length: 存储目录项的总长度 */
     __u8 name_len;            /* Name length: 存储文件名的长度 */
     __u8 file_type;           /* File type: 存储文件类型 */
     char name[EXT4_NAME_LEN]; /* File name: 存储文件名,最大长度由EXT4_NAME_LEN定义 */
 };
+
+struct ext4_dir_entry_tail {
+    __le32 det_reserved_zero1;  // Inode number, which must be zero.
+    __le16 det_rec_len;         // Length of this directory entry, which must be 12
+    __u8 det_reserved_zero2;    // Length of the file name, which must be zero.
+    __u8 det_reserved_ft;       // File type, which must be 0xDE.
+    __le32 det_checksum;        // Directory leaf block checksum.
+};
 ```
 
 目录的结构如下图所示:
 
-![20240513233036](https://raw.githubusercontent.com/learner-lu/picbed/master/20240513233036.png)
+![20240527091858](https://raw.githubusercontent.com/learner-lu/picbed/master/20240527091858.png)
 
 其中 `rec_len` 字段为整个结构体的长度, 可以计算得到最大长度为 263, 但是并不是所有文件都需要全部的 name[255], `name_len` 字段表示实际的文件名长度, 如果文件名小于这个长度会直接截断然后 padding 到内存对齐的位置(4 bytes align), 由 `rec_len` 来确定下一个 dentry 的开头位置.
+
+目录的最后一项以 `ext4_dir_entry_tail` 结尾, 它的结构体内存分布以与 `ext4_dir_entry_2` 相似, 但是所有字段都是确定的, 其中 inode_idx == 0 && name_len == 0 && file_type == 0xDE 可以作为目录达到最后一项的判断
 
 可以在 `<limit.h>` 头文件中查看到文件名和路径的最大长度限制, 在编程中可以使用这两个宏来做一些限制
 
@@ -49,7 +62,7 @@ mv a b
 
 此时最开始目录中只有 `.` 和 `..` 两个目录项, 由 `..` 管理剩余的磁盘空间
 
-![20240513233827](https://raw.githubusercontent.com/learner-lu/picbed/master/20240513233827.png)
+![20240527092234](https://raw.githubusercontent.com/learner-lu/picbed/master/20240527092234.png)
 
 当执行 touch 后创建了一个新的文件 "a", 创建 inode 后此时需要在目录中创建一个新的 dentry, 填入文件名 "a", 对应的 inode_num 等字段. 然后修改前面 `..` 的 `rec_len` 字段
 

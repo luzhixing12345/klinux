@@ -24,8 +24,8 @@ fs:
 - disk-layout: 6
 - mount: 7
 - vfs: 8
-- file_op: 9
-- ext4: 10
+- ext4: 9
+- fuse: 10
 - distribute-fs: 11
 runtime:
 - proc: 1
@@ -52,6 +52,7 @@ proc:
 - signal: 4
 - cgroup: 5
 - task_struct: 6
+- rb-tree: 7
 device:
 - io: 1
 - disk: 2

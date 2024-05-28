@@ -75,9 +75,9 @@ dumpe2fs test.img
 
 ![20240516114033](https://raw.githubusercontent.com/learner-lu/picbed/master/20240516114033.png)
 
-注意这里的 bitmap 和 inode table 的 block id 是连续的, 也就是说 8 个 block group 并不是分别保存的, 而是**统一保存** 8 个块的 bitmap 和 inode table. 除此之外没有 superblock 备份的 group 之间可以**连续保存 data block**, 例如 group5 和 group6 的区域的序号是连续的, 可以有更大的连续空间保存文件
+> 这里 group2 中的 data block 并不是从 65535 开始的, 跳过的 4096 个 block 是 ext4 的日志(Journaling)
 
-> group2 的 data block 的范围应为 65536-98303, **图中绘制错误**
+注意这里的 bitmap 和 inode table 的 block id 是连续的, 也就是说 8 个 block group 并不是分别保存的, 而是**统一保存** 8 个块的 bitmap 和 inode table. 除此之外没有 superblock 备份的 group 之间可以**连续保存 data block**, 例如 group5 和 group6 的区域的序号是连续的, 可以有更大的连续空间保存文件
 
 这样的数据布局一方面使得 metadata 的存储集中, 有更好的**布局性**; 同时将所有 group 的元数据都保存到第一个 group 中, 那么其余的 group 可以省出 bitmap 和 inode table 的空间来保存更多的数据, 且 data block 可以获得更大的连续空间
 
