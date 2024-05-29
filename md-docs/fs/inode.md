@@ -154,7 +154,9 @@ struct ext4_extent_header {
 
 因此一个 inode 中可以直接保存四个 extent 结构. 如果有超过 4 个 extent, 此时扩展索引可以形成一个树状结构. 
 
-TODO EXT4 EXTENT TREE PIC
+![20240527094310](https://raw.githubusercontent.com/learner-lu/picbed/master/20240527094310.png)
+
+![20240527095313](https://raw.githubusercontent.com/learner-lu/picbed/master/20240527095313.png)
 
 > 关于 ext4 的更多信息详见 [ext4](./ext4.md)
 

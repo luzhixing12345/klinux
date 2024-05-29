@@ -7,14 +7,14 @@
 - 邮件订阅: 4
 mm:
 - detect: 1
-- numa: 2
-- buddy: 3
-- slab: 4
-- compaction: 5
-- va-translate: 6
-- tlb: 7
-- tier: 8
-- migration: 9
+- va_trans: 2
+- numa: 3
+- buddy: 4
+- slab: 5
+- compaction: 6
+- tier: 7
+- migration: 8
+- mm_struct: 9
 fs:
 - storage: 1
 - filesystem: 2
