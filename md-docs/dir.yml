@@ -5,6 +5,7 @@
 - 调试内核: 2
 - 制作linux发行版: 3
 - 邮件订阅: 4
+- patch: 5
 mm:
 - detect: 1
 - va_trans: 2
