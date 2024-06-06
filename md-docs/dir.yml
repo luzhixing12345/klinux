@@ -16,6 +16,7 @@ mm:
 - tier: 7
 - migration: 8
 - mm_struct: 9
+- mmio: 10
 fs:
 - storage: 1
 - filesystem: 2
@@ -36,14 +37,16 @@ runtime:
 - ld: 5
 kernel:
 - init: 1
-- rcu: 2
-- workqueue: 3
+- atomic: 2
+- rcu: 3
+- workqueue: 4
+- lock: 5
 arch:
 - cpu: 1
 - cache: 2
 - multicore: 3
-- cc: 4
-- mc: 5
+- cache-co: 4
+- memory-co: 5
 - bus: 6
 - interrupt: 7
 proc:
@@ -65,3 +68,11 @@ others:
 - Q&A: 2
 driver:
 - intro: 1
+- usb: 2
+- pcie: 3
+cve:
+- dirtycow: 1
+- dirtypipe: 2
+- sudo: 3
+- meltdown: 4
+- smashex: 5
