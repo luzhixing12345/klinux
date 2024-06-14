@@ -42,3 +42,23 @@ exec busybox switch_root /newroot/ /etc/init
 ```
 
 通过 pivot_root (2) 实现根文件系统的切换
+
+## mount 偏移量
+
+如果只有一个分区直接 mount 就可以了, 如果磁盘分为了多个分区, 比如说前面的分区作为 /boot 分区, 这时候没办法直接 mount
+
+可以先查看一下该磁盘的分区
+
+```bash
+sudo fdisk -l ubuntu.raw
+```
+
+此时发现该磁盘有两个分区, 第二个分区为根分区, 所以应该跳过第一个分区, 找到对应的偏移量开始挂载
+
+![20240613182359](https://raw.githubusercontent.com/learner-lu/picbed/master/20240613182359.png)
+
+偏移量计算为 (4095 + 1) * 512 = 2097152
+
+```bash
+sudo mount -o loop,offset=2097152 ubuntu.raw tmp
+```

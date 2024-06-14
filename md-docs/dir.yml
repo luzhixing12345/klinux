@@ -58,6 +58,13 @@ proc:
 - cgroup: 5
 - task_struct: 6
 - rb-tree: 7
+net:
+- net-arch: 1
+- ip: 2
+- route: 3
+- udp: 4
+- tcp: 5
+- tools: 6
 device:
 - io: 1
 - disk: 2
