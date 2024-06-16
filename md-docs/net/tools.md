@@ -9,6 +9,8 @@
 tcpdump -ni eth0
 ```
 
+tcpdump -eni
+
 ## ip
 
 ip link show
@@ -18,3 +20,7 @@ brctl
 brctl showmacs switch0
 
 [fasionchan hub-switch-lab](https://fasionchan.com/network/ethernet/hub-switch-lab/)
+
+arp -n
+
+route -n
