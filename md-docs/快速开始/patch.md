@@ -9,6 +9,10 @@ sudo apt install patatt b4
 
 [kernel patchwork](https://patchwork.kernel.org/project/linux-trace-kernel/list/)
 
+```bash
+patch -p1 < ./xxx.mbx
+```
+
 ## 参考
 
 - [如何从linux社区下载和合入内核patch?](https://blog.csdn.net/pengdonglin137/article/details/131148344)

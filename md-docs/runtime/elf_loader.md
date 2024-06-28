@@ -1,6 +1,16 @@
 
 # elf_loader
 
+linux环境下我们启动一个程序一般都是通过shell拉起来的.或者通过一个程序调用exec系列函数进行进程替换的
+
+```bash
+grep -rnw . -e 'register_binfmt' --include \*.c --include \*.h
+```
+
+![20240621154352](https://raw.githubusercontent.com/learner-lu/picbed/master/20240621154352.png)
+
+> 6.6 相比于 4.4.6 删除了对于 em86/a.out 格式的支持
+
 ```c
 #include <fcntl.h>
 #include <stdio.h>
@@ -49,3 +59,7 @@ int main(int argc, char *argv[]) {
 ```
 
 > /usr/src/linux/fs/binfmt_elf.c
+
+## 参考
+
+- [进程装载过程分析(execve系统调用分析)](https://www.cnblogs.com/tjyuanxi/p/9313253.html)

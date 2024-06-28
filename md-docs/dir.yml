@@ -84,3 +84,5 @@ cve:
 - sudo: 3
 - meltdown: 4
 - smashex: 5
+perf:
+- perf: 1

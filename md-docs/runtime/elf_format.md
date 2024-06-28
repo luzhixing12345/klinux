@@ -1,29 +1,7 @@
 
 # ELF文件格式
 
-本文来详细介绍一下 ELF 文件格式
-
-> 笔者在 [binutils](https://github.com/luzhixing12345/binutils) 实现了 readelf, 感兴趣的读者可自行阅读源码
->
-> ```bash
-> (base) kamilu@LZX:~/binutils$ ./src/readelf --help
-> Usage: readelf [OPTION]... [files]...
-> Display information about the contents of ELF format files
-> 
->   -H   --help                show help information
->   -v   --version             show version
->   -h   --file-header         Display the ELF file header
->   -S   --section-headers     Display the sections' header
->        --sections            An alias for --section-headers
->   -s   --syms                Display the symbol table
->        --symbols             An alias for --syms
->   -r   --relocs              Display the relocations (if present)
->   -l   --program-header      Display the program headers
->        --segments            An alias for --program-headers
->   -T   --silent-truncation   If a symbol name is truncated, do not add [...] suffix
-> ```
-
-## ELF 文件标准历史
+## 历史
 
 20世纪90年代, 一些厂商联合成立了一个委员会, 起草并发布了一个 ELF 文件格式标准供公开使用, 并希望所有人都可以遵循这项标准并从中获益. 1993 年委员会发布了 [ELF 文件标准](https://refspecs.linuxfoundation.org/elf/TIS1.1.pdf), 当时参与该委员会的有来自于编译器的厂商, 比如 Watcom(Watcom C/C++ 编译器) 和 Borland(Borland Turbo Pascal 编译器); 来自 CPU 的厂商比如 IBM 和 Intel; 来自操作系统的厂商比如IBM 和 Microsoft. 1995 年委员会发布了 [ELF1.2标准](https://refspecs.linuxfoundation.org/elf/elf.pdf), 自此委员会完成了自己的使命, 不久就解散了, 所以 ELF 文件格式标准的最新版本也是最后一个版本就是 1.2
 
@@ -78,6 +56,8 @@ ELF 目标文件格式的最前部是 **ELF 文件头(ELF Header)**, **它包含
 
 ELF 文件中有很多个段组成, 可以使用 `readelf -S` 可以查看一个 ELF 文件的所有段的信息, 比如查看前文提到的 SimpleSection.o, 它会依次列出所有段的信息, 如下所示
 
+> 笔者在 [binutils](https://github.com/luzhixing12345/binutils) 实现了 readelf, 感兴趣的读者可自行阅读源码
+
 ```bash
 (base) kamilu@LZX:~/miniCRT/notes$ readelf -S SimpleSection.o
 There are 14 section headers, starting at offset 0x410:
@@ -122,17 +102,17 @@ Key to Flags:
 
 根据输出信息可以画出整个 ELF 文件的排布, Offset 对应每一个段的起始位置, Size 对应段的大小
 
+![20240111210915](https://raw.githubusercontent.com/learner-lu/picbed/master/20240111210915.png)
+
 ELF Header 对应第 0 个无名段, 1-13 section 依次对应右侧的段. 最后一个段 `shstrtab` 的大小为 0x74, 所以段结尾的地址是 0x398 + 0x74 = 0x40c
 
 0x000 - 0x40c 之间分别对应各个段, 0x40c - 0x410 地址对齐. 0x410 之后是段表.
 
 > 段表并不算一个段, 它是独立于段之外的, 用于记录所有段信息的一个数组. ELF Header 是一个需要单独处理的特殊块, 始终位于文件起始位置.
 
-![20240111210915](https://raw.githubusercontent.com/learner-lu/picbed/master/20240111210915.png)
+## 段表(Section Header Table)
 
-## 段表
-
-上文我们通过 `readelf -S` 的输出信息画出了该 ELF 文件的段分布情况, 为了保存所有的诸如 "段的段名,段长度,文件中的偏移量,读写权限和段的其他属性" , ELF 并没有将这些信息分布保存在每一个段中, 而是使用 **(Section Header Table)段表** 来统一保存所有段的信息.
+每一个段有各自的含义和信息, 诸如"段的段名,段长度,文件中的偏移量,读写权限和段的其他属性" , ELF 并没有将这些信息分布保存在每一个段中, 而是使用 **(Section Header Table)段表** 来统一保存所有段的信息.
 
 段表实际上是一个**数组**, 数组中每一个元素都是 `Elf64_Shdr` 结构体, 用于储存每一个段的信息, 可以计算得到该结构体占据 (4x4+8x6) = 64 个字节, 其定义如下所示, 不难看出和前文的输出的对应关系
 
@@ -160,7 +140,7 @@ typedef struct {
 
 ## ELF Header
 
-这里我们可以注意到一个段表位于所有段的最后面, **那么如何通过偏移量找到段表的位置呢**? 前面我们提到了 ELF Header 为整个 ELF 文件的文件头, **段表的起始地址和段表项的数量**都记录在 ELF Header 当中
+这里我们可以注意到一个段表位于所有段的最后面, **那么如何通过偏移量找到段表的位置呢**? 前面我们提到了第 0 个无名段 ELF Header 是整个 ELF 文件的文件头, **段表的起始地址和段表项的数量**都记录在 ELF Header 当中
 
 我们可以使用 `readelf -h` 参数查看 ELF 文件头信息
 
@@ -232,8 +212,6 @@ $ size SimpleSection.o
 ```
 
 其中 text 的大小并不是指 .text 段, 而是 `.text`(0x64) + `.rodata`(0x4) + `.note.GNU-stack`(0) + `.note.gnu.property`(0x20) + `.eh_frame`(0x58) = 0xe0 = 224
-
-解析 ELF 文件的方式是先从文件开头开始读取 ELF Header, 从中找到段表的位置, 再根据段表的内容可以找到每一个段
 
 因此找到每一个段的流程如下:
 
