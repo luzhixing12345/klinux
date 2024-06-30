@@ -56,6 +56,10 @@
 #include <linux/buildid.h>
 #include <linux/task_work.h>
 
+#ifdef CONFIG_HTMM /* include header */
+#include <linux/htmm.h>
+#endif
+
 #include "internal.h"
 
 #include <asm/irq_regs.h>
@@ -12741,6 +12745,83 @@ err_fd:
 	put_unused_fd(event_fd);
 	return err;
 }
+
+#ifndef CONFIG_HTMM
+SYSCALL_DEFINE2(htmm_start,
+		pid_t, pid, int, node)
+{
+    return 0;
+}
+
+SYSCALL_DEFINE1(htmm_end,
+		pid_t, pid)
+{
+    return 0;
+}
+
+#else
+SYSCALL_DEFINE2(htmm_start,
+		pid_t, pid, int, node)
+{
+    ksamplingd_init(pid, node);
+    return 0;
+}
+
+SYSCALL_DEFINE1(htmm_end,
+		pid_t, pid)
+{
+    ksamplingd_exit();
+    return 0;
+}
+
+/* allocates perf_buffer instead of calling perf_mmap() */
+int htmm_perf_event_init(struct perf_event *event, unsigned long nr_pages)
+{
+    struct perf_buffer *rb = NULL;
+    int ret = 0, flags = 0;
+
+    if (event->cpu == -1 && event->attr.inherit)
+	return -EINVAL;
+
+    ret = security_perf_event_read(event);
+    if (ret)
+	return ret;
+
+    if (nr_pages != 0 && !is_power_of_2(nr_pages))
+	return -EINVAL;
+
+    WARN_ON_ONCE(event->ctx->parent_ctx);
+    mutex_lock(&event->mmap_mutex);
+
+    WARN_ON(event->rb);
+
+    rb = rb_alloc(nr_pages,
+	    event->attr.watermark ? event->attr.wakeup_watermark : 0,
+	    event->cpu, flags);
+    if (!rb) {
+	ret = -ENOMEM;
+	goto unlock;
+    }
+
+    ring_buffer_attach(event, rb);
+    perf_event_init_userpage(event);
+    perf_event_update_userpage(event);
+
+unlock:
+    if (!ret) {
+	atomic_inc(&event->mmap_count);
+    }
+    mutex_unlock(&event->mmap_mutex);
+    return ret;
+}
+
+/* sys_perf_event_open for htmm use */
+int htmm_perf_event_open(struct perf_event_attr *attr_ptr, pid_t pid,
+	int cpu, int group_fd, unsigned long flags) 
+{
+    return __do_sys_perf_event_open(attr_ptr, pid, cpu, group_fd, flags);
+}
+#endif
 
 /**
  * perf_event_create_kernel_counter
