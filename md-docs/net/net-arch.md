@@ -216,14 +216,6 @@ $ ip link show dev enp0s3 | grep 'link/ether' | awk '{print $2}'
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 
-/**
- *  Convert binary MAC address to readable format.
- *
- *  Arguments
- *      n: binary format, must be 6 bytes.
- *
- *      a: buffer for readable format, 18 bytes at least(`\0` included).
- **/
 void mac_ntoa(unsigned char *n, char *a) {
     // traverse 6 bytes one by one
     sprintf(a, "%02x:%02x:%02x:%02x:%02x:%02x", n[0], n[1], n[2], n[3], n[4], n[5]);
