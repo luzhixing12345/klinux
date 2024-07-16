@@ -14,9 +14,18 @@ pre[class*="language-diff"] .Token.SUB_FILE {
 pre[class*="language-diff"] .Token.TAG_LINE {
     color: #C586C0;
 }
-pre[class*="language-diff"] .Token.ADD_LINE {
-    background-color: #033a16; color: #aff5b4;
+
+pre[class*="language-diff"] .Token.HighlightLine {
+    background-color: #2d3c4d;
+    padding: 2px 0;
 }
+
+pre[class*="language-diff"] .Token.ADD_LINE {
+    background-color: #033a16;
+    color: #aff5b4;
+}
+
 pre[class*="language-diff"] .Token.SUB_LINE {
-    background-color: #67060c; color: #fad2d0;
+    background-color: #67060c;
+    color: #fad2d0;
 }

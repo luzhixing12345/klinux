@@ -144,7 +144,7 @@ typedef struct {
 
 我们可以使用 `readelf -h` 参数查看 ELF 文件头信息
 
-```bash
+```bash{14,20}
 (base) kamilu@LZX:~/miniCRT/notes$ readelf -h SimpleSection.o
 ELF Header:
   Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
@@ -170,7 +170,7 @@ ELF Header:
 
 其中 ELF Header 的结构体如下所示, 相关结构体元素的含义以注释的形式说明. , 其中的 `e_shoff` 就记录了段表在整个 ELF 文件中的偏移地址, `e_shnum` 记录了段的个数
 
-```c
+```c{8,14}
 typedef struct {
     unsigned char e_ident[EI_NIDENT]; // 一些信息
     uint16_t      e_type;             // 文件类型
@@ -188,10 +188,6 @@ typedef struct {
     uint16_t      e_shstrndx;         // 段表字符串表的在段表中的索引值
 } ElfN_Ehdr;
 ```
-
-> 对应 readelf -h 的输出中的 `Start of section headers` = 1040 以及 `Number of section headers` = 14
->
-> ![20230820224330](https://raw.githubusercontent.com/learner-lu/picbed/master/20230820224330.png) 
 
 ## 段
 
@@ -283,7 +279,7 @@ objdump -s -d SimpleSection.o
 
 我们将 .data .bss .rodata 统称为数据段, 但他们三者略有差别.
 
-```c
+```c{3-5,12-14}
 int printf(const char *format, ...);
 
 int global_init_var = 84;
@@ -517,3 +513,4 @@ gcc -Wl,--gc-sections file.o -o program
 
 - [ELF 文件解析 1-前述+文件头分析](https://zhuanlan.zhihu.com/p/380908650)
 - [linuxfoundation refspecs](https://refspecs.linuxfoundation.org/)
+- [书上说代码地址总是从0x400000开始,但是查看编译好的elf头起始地址是从0开始的,这是为什么?](https://www.zhihu.com/question/552957041/answer/2738625402)

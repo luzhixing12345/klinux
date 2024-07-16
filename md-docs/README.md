@@ -43,5 +43,9 @@ linux 内核技术文档: [klinux document](https://luzhixing12345.github.io/kli
   - [小坚学Linux](https://blog.csdn.net/sinat_22338935?type=blog)
   - [archives](https://abcdxyzk.github.io/blog/archives/)
   - [RTFSC 专栏](https://www.zhihu.com/column/c_1470701277923860480)
+  - [郭佳明的博客](https://gls.show/categories/)
+  - [大隐隐于野](https://blog.csdn.net/weixin_43778179?type=blog)
+  - [vmalloc](https://lzz5235.github.io/2015/05/26/vmalloc.html)
+  - [kernel_memory_management](https://github.com/luckyq/kernel_memory_management)
 - talk
   - [The Linux Storage, Filesystem, Memory Management & BPF Summit @ OSS NA 2023](https://www.youtube.com/playlist?list=PLbzoR-pLrL6rlmdpJ3-oMgU_zxc1wAhjS)

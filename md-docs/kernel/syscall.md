@@ -37,6 +37,8 @@ long sys_mycall(int number);
 在 `kernel/sys.c` 中添加如下代码
 
 ```c
+#define SYSCALL_DEFINE1() // 一个宏, 暂时不去看
+
 SYSCALL_DEFINE1(mycall, int, number)
 {
     printk("my syscall has been called with number %d\n", number);

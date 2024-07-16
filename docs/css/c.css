@@ -18,6 +18,11 @@ pre[class*="language-c"] .Token.BraceDepth-2 {
     color: #1A9DFF;
 }
 
+pre[class*="language-c"] .Token.HighlightLine {
+    background-color: #2d3c4d;
+    padding: 2px 0;
+}
+
 pre[class*="language-c"] .Token.VOID,
 pre[class*="language-c"] .Token.CHAR,
 pre[class*="language-c"] .Token.SHORT,
@@ -41,10 +46,12 @@ pre[class*="language-c"] .Token.RESTRICT,
 pre[class*="language-c"] .Token._ATOMIC,
 pre[class*="language-c"] .Token._STATIC_ASSERT,
 pre[class*="language-c"] .Token._GENERIC,
+pre[class*="language-c"] .Token.DOUBLE_HASH,
 pre[class*="language-c"] .Token.GNU_C_Assembly {
     color: #569cd6;
 }
 
+pre[class*="language-c"] .Token._ATTRIBUTE,
 pre[class*="language-c"] .Token.GNU_C_Assembly._ATTRIBUTE {
     color: #DCDCAA;
 }
@@ -90,6 +97,7 @@ pre[class*="language-c"] .Token.WHILE,
 pre[class*="language-c"] .Token.DO,
 pre[class*="language-c"] .Token.SWITCH,
 pre[class*="language-c"] .Token.CASE,
+pre[class*="language-c"] .Token.RETURN,
 pre[class*="language-c"] .Token.DEFAULT {
     color: #C586C0;
 }
@@ -123,6 +131,7 @@ pre[class*="language-c"] .Token.FunctionCall.ID {
 pre[class*="language-c"] .Token.MacroDefine.ID,
 pre[class*="language-c"] .Token.MacroDefine.TYPEDEF_ID,
 pre[class*="language-c"] .Token.MarcroFunction.ID,
+pre[class*="language-c"] .Token.MarcroFunction.TYPEDEF_ID,
 pre[class*="language-c"] .Token.BACK_SLASH {
     color: #569cd6;
 }

@@ -18,6 +18,11 @@ pre[class*="language-makefile"] .Token.BraceDepth-2 {
     color: #1A9DFF;
 }
 
+pre[class*="language-makefile"] .Token.HighlightLine {
+    background-color: #2d3c4d;
+    padding: 2px 0;
+}
+
 pre[class*="language-makefile"] .Token.NUMBER {
     color: #A2CEA8;
 }
@@ -29,6 +34,7 @@ pre[class*="language-makefile"] .Token.TAB {
 pre[class*="language-makefile"] .Token.DOLLAR {
     color: #CE9178;
 }
+
 pre[class*="language-makefile"] .Token.ID {
     color: #88D6FE;
 }
@@ -62,7 +68,8 @@ pre[class*="language-makefile"] .Token.Url {
     border-bottom: 1px solid #CE9178;
 }
 
-pre[class*="language-makefile"] .Token.AT_SIGN, pre[class*="language-makefile"] .Token.MINUS {
+pre[class*="language-makefile"] .Token.AT_SIGN,
+pre[class*="language-makefile"] .Token.MINUS {
     color: #C586C0;
 }
 
@@ -70,7 +77,8 @@ pre[class*="language-makefile"] .Token.STRING {
     color: #CE9178;
 }
 
-pre[class*="language-makefile"] .Token.Function, pre[class*="language-makefile"] .Token.Program {
+pre[class*="language-makefile"] .Token.Function,
+pre[class*="language-makefile"] .Token.Program {
     color: #DCDCAA;
 }
 

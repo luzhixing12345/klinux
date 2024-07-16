@@ -206,7 +206,7 @@ color:
 # Font
 font:
   font_size: 16px
-  font_family: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji
+  font_family: "Consolas, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji"
   letter_spacing: 0.02em
 
   # 一级条目字体大小

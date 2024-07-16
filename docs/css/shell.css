@@ -18,6 +18,11 @@ pre[class*="language-shell"] .Token.BraceDepth-2 {
     color: #1A9DFF;
 }
 
+pre[class*="language-shell"] .Token.HighlightLine {
+    background-color: #2d3c4d;
+    padding: 2px 0;
+}
+
 pre[class*="language-shell"] .Token.Program,
 pre[class*="language-shell"] .Token.Function,
 pre[class*="language-shell"] .Token.BACK_SLASH {

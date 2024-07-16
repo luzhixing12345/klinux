@@ -11,31 +11,22 @@ mm:
 - detect: 1
 - va_trans: 2
 - numa: 3
-- buddy: 4
-- slab: 5
-- compaction: 6
-- tier: 7
-- migration: 8
-- mm_struct: 9
-- mmio: 10
-fs:
-- storage: 1
-- filesystem: 2
-- fd: 3
-- inode: 4
-- directory: 5
-- disk-layout: 6
-- mount: 7
-- vfs: 8
-- ext4: 9
-- fuse: 10
-- distribute-fs: 11
+- vma: 4
+- zone: 5
+- buddy: 6
+- slab: 7
+- compaction: 8
+- tier: 9
+- migration: 10
+- mm_struct: 11
+- mmio: 12
 runtime:
 - proc: 1
-- vsdo: 2
-- elf_format: 3
-- elf_loader: 4
-- ld: 5
+- elf: 2
+- proc_mem: 3
+- vsdo: 4
+- elf_loader: 5
+- ld: 6
 kernel:
 - init: 1
 - atomic: 2
@@ -51,6 +42,7 @@ arch:
 - memory-co: 5
 - bus: 6
 - interrupt: 7
+- mem_access: 8
 proc:
 - schedule: 1
 - nice: 2
@@ -66,6 +58,18 @@ net:
 - udp: 4
 - tcp: 5
 - tools: 6
+fs:
+- storage: 1
+- filesystem: 2
+- fd: 3
+- inode: 4
+- directory: 5
+- disk-layout: 6
+- mount: 7
+- vfs: 8
+- ext4: 9
+- fuse: 10
+- distribute-fs: 11
 device:
 - io: 1
 - disk: 2
@@ -75,10 +79,6 @@ device:
 others:
 - safety: 1
 - Q&A: 2
-driver:
-- intro: 1
-- usb: 2
-- pcie: 3
 cve:
 - dirtycow: 1
 - dirtypipe: 2
