@@ -71,6 +71,18 @@ node   0   1   2
   2:  24  14  10
 ```
 
+可以使用 numactl 来控制运行该程序的 CPU 和内存节点, 例如指定程序的内存只能使用 NUMA 节点 1 的内存,而 CPU 则绑定在 NUMA 节点 0 上可以使用
+
+```bash
+numactl --membind=1 --cpunodebind=0 ./a
+```
+
+与 `--membind` 参数严格地限制内存分配在指定的节点上不同, 当使用 `--preferred` 参数时,操作系统将优先尝试在指定的 NUMA 节点上分配内存,但**如果该节点的内存不足,它会在其他节点上分配内存**.
+
+```bash
+numactl --preferred=1 ./my_program
+```
+
 ### NUMA互联
 
 在Intel x86上,NUMA Node之间的互联是通过 QPI(QuickPath Interconnect) Link的. CPU的Uncore部分有QPI的控制器来控制CPU到QPI的数据访问, 下图就是一个利用 QPI Switch 互联的 8 NUMA Node 的 x86 系统

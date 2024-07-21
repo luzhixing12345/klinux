@@ -273,27 +273,19 @@ index域是否需要呢? 这取决于cache的组织形式.**如果是全相连�
 
 ![20240321222006](https://raw.githubusercontent.com/learner-lu/picbed/master/20240321222006.png)
 
-### page structure cache
+### 多级页表项缓存
 
 在多级页表系统中, **TLB 其实只是最后一级PTE的缓存**. 多级页表的查找是一个串行的,链式的过程.试想一下,访问在虚拟地址空间里连续的两个pages(比如起始地址分别为"0x123456789000"和"0x12345678A000"),而这两个页面只有最后一级的 PTE 不一样, 难道在通过n次内存访问(n等于页表级数)查找到第一个page的物理页面号后,在访问相邻的(虚拟地址层面)第二个page时还需要再老老实实,一步一步的往下找?这对于在追求性能方面可谓无所不用其极的现代处理器来说是不可接受的
 
-既然最后一级的 PTE 都可以被缓存,那前面几级的 PTE 也应该可以被缓存吗? **可以的**,以intel的x86-64架构为例, 它支持其余的三级 PTE 的 cache. 除了最后一级页表PTE的entry是直接指向page 之外,其他级的页表的entry都是指向下一级页表首地址的,因此这些级的页表被称为**paging structure**,所以这些 PTE 的 cache被统称为**paging structure caches**.在ARM中,这些caches被称为table walk caches(名字应该是来自MMU里的table walk unit)
+既然最后一级的 PTE 都可以被缓存, 那**前面几级的 PTE 能否被缓存呢?** **可以的**,以intel的x86-64架构为例, 它支持其余的三级 PTE 的 cache. 除了最后一级页表PTE的entry是直接指向page 之外,其他级的页表的entry都是指向下一级页表首地址的,因此这些级的页表被称为**paging structure**,所以这些 PTE 的 cache被统称为**paging structure caches**.在ARM中,这些caches被称为table walk caches(名字应该是来自MMU里的table walk unit)
 
 因此即使发生TLB miss, 相当于最后一级 PTE cache 中没找到, 也会依次的去查找前面一级的 PTE cache, 减少了访存次数
 
-### TLB 别名问题
+### TLB 的别名和歧义
 
 既然TLB是虚拟高速缓存(VIVT),是否存在别名和歧义问题呢?如果存在,软件和硬件是如何配合解决这些问题呢?
 
-那么什么是别名问题呢? 主要是怕**同一个数据在不同的cacheline里存储**,然后修改,对于其他cacheline不可见.
-
-> TLB cache 和 CPU cache 都可能出现别名问题
-> 
-> 注意此处和 [MESI](../arch/cache-co) 解决的问题不是一回事,因为当前不同的cacheline属于同一个CPU
-
-那么什么情况下同一个数据会在不同的cacheline里存储呢? 我们知道对于单个进程来说,同一时间一个虚拟地址对应一个物理地址, 但是一个物理地址可以被多个虚拟地址映射. 所以可能出现对应同一个物理地址的不同的虚拟地址加载进了TLB 的情况
-
-但是 TLB 不存在修改的情况, **操作系统只会对数据进行读取**, 所以其实只是多冗余了一些数据而已, 因此虽然**存在别名的情况**但是**不存在别名带来的问题**
+由于共享内存的存在, 多个虚拟地址可能映射到同一个物理地址, 在 [cache](../arch/cache.md) 的地址访问中讨论了关于 VIVT/PIPT/VIPT 三种情况的设计. **但是 TLB 不存在修改的情况**, **所以不存在别名和歧义**, 只是会多冗余了一些数据而已, 因此虽然**存在别名的情况**但是**不存在别名带来的问题**
 
 ### TLB flush
 
@@ -431,6 +423,9 @@ arm64 架构通过引入两个新的体系结构 ARMv8.2 LVA(更大的虚拟寻�
 - `PTW(Page Write Through)`: 置为1表示该page对应的cache部分采用write through的方式,否则采用write back
 - `PCD(Page Cache Disabled)`: 置为1表示disable,即该page中的内容是不可以被cache的.如果置为0(enable),还要看CR0寄存器中的CD位这个总控开关是否也是0
   页表既然是放在普通内存中的,自然也可以被缓存到普通cache中,MMU在不得不去查找页表之前,也会先去普通cache里看看,实在没有再极不情愿的去访问内存.该位控制下级页表是否需要被缓存到普通cache中
+
+  该位大部分情况下为 1, 即默认启用 cache. 但是对于 [DMA](../arch/io.md) 以及 [VIVT 解决别名问题](../arch/cache.md) 中会关闭该位使得数据不经过 cache.
+
 - `A(access)`: 当该页正在被**访问**时,CPU设置该比特的值
   当这个page被访问(读/写)过后,硬件将该位置1,TLB只会缓存access的值为1的page对应的映射关系.软件可将该位置0,然后对应的TLB将会被flush掉.这样,软件可以统计出每个page被访问的次数,作为内存不足时,判断该page是否应该被回收的参考
 - `D(dirty)`: 当该页正在被**写入**时,CPU设置该比特的值

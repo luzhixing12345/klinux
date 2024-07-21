@@ -40,9 +40,10 @@ arch:
 - multicore: 3
 - cache-co: 4
 - memory-co: 5
-- bus: 6
-- interrupt: 7
-- mem_access: 8
+- io: 6
+- bus: 7
+- interrupt: 8
+- mem_access: 9
 proc:
 - schedule: 1
 - nice: 2
@@ -71,11 +72,11 @@ fs:
 - fuse: 10
 - distribute-fs: 11
 device:
-- io: 1
-- disk: 2
-- ssd: 3
-- driver: 4
-- io_uring: 5
+- disk: 1
+- ssd: 2
+- driver: 3
+- io_uring: 4
+- pcie: 5
 others:
 - safety: 1
 - Q&A: 2

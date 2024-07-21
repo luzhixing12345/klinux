@@ -306,3 +306,5 @@ git bisect reset
 - [how to configure and use git send email to work with gmail to email patches to](https://stackoverflow.com/questions/68238912/how-to-configure-and-use-git-send-email-to-work-with-gmail-to-email-patches-to)
 - [how to solve unable to initialize smtp properly when using using git send ema](https://stackoverflow.com/questions/28038662/how-to-solve-unable-to-initialize-smtp-properly-when-using-using-git-send-ema)
 - [Setup-git-send-email](https://gist.github.com/winksaville/dd69a860d0d05298d1945ceff048ce46)
+- [lifeislife 手把手教你向开源社区提Patch](https://lifeislife.cn/2022/11/20/%E6%89%8B%E6%8A%8A%E6%89%8B%E6%95%99%E4%BD%A0%E5%90%91%E5%BC%80%E6%BA%90%E7%A4%BE%E5%8C%BA%E6%8F%90Patch/)
+- [lifeislife 如何使用git-send-mail给开源社区提交Patch](https://lifeislife.cn/2022/09/28/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8git-send-mail%E7%BB%99%E5%BC%80%E6%BA%90%E7%A4%BE%E5%8C%BA%E6%8F%90%E4%BA%A4Patch/)

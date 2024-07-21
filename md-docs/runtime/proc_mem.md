@@ -192,6 +192,8 @@ Linux 选择按照1:1的比例划分,内核空间和用户空间各占128TB, 即
 
 可以查看 `/proc/iomem`, 该文件记录了物理地址的映射内容, 如下图所示. 可以看到当前系统内存位 16GB, [4GB-16GB] 就是系统内存映射的范围
 
+> 有关 /proc/iomem 的相关阅读: [mmio](../mm/mmio.md)
+
 ![20240716171157](https://raw.githubusercontent.com/learner-lu/picbed/master/20240716171157.png)
 
 前文 32 位中我们提到有 3 个zone区域, 分别是 `ZONE_DMA` `ZONE_NORMAL` 和 `ZONE_HIGHMEM`. 其中 `ZONE_DMA` 是为旧设备兼容而创建的, 而 `ZONE_HIGHMEM` 只是因为内核空间不足不得已的一种做法.
