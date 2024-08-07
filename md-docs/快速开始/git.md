@@ -299,6 +299,47 @@ git bisect reset
 
 通过 `git bisect`,可以快速有效地定位引入问题的提交,极大地节省了调试时间.
 
+## reset
+
+使用 `git reset HEAD^` 后,你会将当前分支的 HEAD 重置到它的上一个提交.这样会导致你丢失之后的所有提交.如果你想回到最开头的位置(即最初的提交),你有几种方法可以实现:
+
+1. **使用具体的提交 ID**:如果你知道最初提交的哈希值,可以使用以下命令:
+    ```bash
+    git reset --hard <commit-hash>
+    ```
+   你可以通过 `git log` 找到最初提交的哈希值.
+
+2. **使用 `--soft` 和 `--hard` 参数**:
+   - `--soft` 只会重置 HEAD 指向的提交,不会改变工作目录和暂存区的内容.
+   - `--hard` 会重置 HEAD 并清理工作目录和暂存区,使其与指定的提交完全一致.
+
+3. **回到最初的提交**:
+   - 查找最初的提交哈希值:
+     ```bash
+     git rev-list --max-parents=0 HEAD
+     ```
+   - 然后重置到该提交:
+     ```bash
+     git reset --hard <first-commit-hash>
+     ```
+
+4. **使用 `reflog` 回到之前的状态**:
+   如果你在使用 `git reset HEAD^` 之前有提交过其他的更改,你可以通过 `git reflog` 来查看 HEAD 的历史位置,然后重置到那个位置.例如:
+   ```bash
+   git reflog
+   ```
+   找到你想要回到的那个位置的哈希值,然后执行:
+   ```bash
+   git reset --hard <commit-hash>
+   ```
+
+举个例子,假设你的最初提交哈希值是 `a1b2c3d4`,那么你可以执行:
+```bash
+git reset --hard a1b2c3d4
+```
+
+这样,你就回到了最初的位置,丢弃了所有在此之后的提交和更改.请注意,使用 `--hard` 选项会丢失所有未提交的更改和提交,因此请确保在执行此操作之前备份任何重要的更改.
+
 ## 参考
 
 - [如何从linux社区下载和合入内核patch?](https://blog.csdn.net/pengdonglin137/article/details/131148344)

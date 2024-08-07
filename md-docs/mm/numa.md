@@ -1,7 +1,7 @@
 
 # NUMA
 
-> 阅读本文需要掌握 [多处理器](../arch/multicore.md)的相关知识
+> 相关阅读: [多处理器](../arch/multicore.md)
 
 ## CPU 术语
 

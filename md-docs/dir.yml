@@ -34,6 +34,7 @@ kernel:
 - workqueue: 4
 - lock: 5
 - syscall: 6
+- poll: 7
 arch:
 - cpu: 1
 - cache: 2

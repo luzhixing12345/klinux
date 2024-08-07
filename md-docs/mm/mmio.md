@@ -69,7 +69,7 @@
 由于 MMU 的存在, **CPU 不能直接访问物理地址**, 而是需要将物理地址映射到虚拟地址才能访问. 对系统内存如此,对 I/O 资源同样如此.如下图所示:
 
 - 当 CPU 访问 IO 设备的虚拟地址时, 首先通过 MMU 将虚拟地址 C 转换为物理地址 B, 这段物理地址应当位于该 IO 设备的 MMIO 区域. 物理地址B会通过总线(host brigde, 或者 PCIe 的 root complex)转化为总线地址A, 即可访问到设备.
-- 一般device是没有发起访问系统memory的能力, device想要访问内存的意图是cpu发起的, 例如 device 通过中断告知 CPU 收到了数据, CPU 通过 DMA 的方式从将设备内存拷贝到主机内存. 总线地址 Z 会通过 IOMMU 转为为物理地址 Y, 内核只需要分配一块区域建立从虚拟地址到物理地址的映射即可访问到这部分的数据.
+- 一般device是没有发起访问系统memory的能力, device想要访问内存的意图是cpu发起的, 例如 device 通过中断告知 CPU 收到了数据, CPU 通过 DMA 的方式从将设备内存拷贝到主机内存. 总线地址 Z 会通过 IOMMU 转为为物理地址 Y, 内核只需要分配一块区域建立从虚拟地址到物理地址的映射(kmap)即可访问到这部分的数据.
 
 ![20240722015006](https://raw.githubusercontent.com/learner-lu/picbed/master/20240722015006.png)
 
@@ -80,6 +80,10 @@ __iomem *ioremap(resource_size_t phys_addr, unsigned long size);
 第一个参数是被映射的 physical address(就是 `/proc/iomem` 看到的那个),第二个参数给出了映射的范围,函数的返回值则是一个 virtual address
 
 ## BAR空间
+
+> [【精讲】PCIe基础篇_BAR(Base Address Register)详解](https://blog.csdn.net/u013253075/article/details/119361574)
+>
+> [what is the base address register bar in pcie](https://stackoverflow.com/questions/30190050/what-is-the-base-address-register-bar-in-pcie)
 
 系统中的每个设备中,对地址空间的大小和访问方式可能有不同的需求,例如,一个设备可能有256字节的内部寄存器/存储,应该可以通过IO地址空间访问,而另一个设备可能有16KB的内部寄存器/存储,应该可以通过基于MMIO的设备访问.
 
