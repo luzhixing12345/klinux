@@ -49,5 +49,6 @@ linux 内核技术文档: [klinux document](https://luzhixing12345.github.io/kli
   - [kernel_memory_management](https://github.com/luckyq/kernel_memory_management)
   - [laumy linux](https://www.laumy.tech/category/linux)
   - [LoyenWang](https://www.cnblogs.com/LoyenWang/tag/linux/)
+  - [terenceli's blog](https://terenceli.github.io/)
 - talk
   - [The Linux Storage, Filesystem, Memory Management & BPF Summit @ OSS NA 2023](https://www.youtube.com/playlist?list=PLbzoR-pLrL6rlmdpJ3-oMgU_zxc1wAhjS)

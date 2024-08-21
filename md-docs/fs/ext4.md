@@ -72,7 +72,7 @@ struct ext4_extent_header {
 
 如果树的深度为 0, 即节点是叶子节点(eh.eh_depth == 0),那么头后面跟着eh.eh_entries个 `ext4_extent` 结构的实例;这些实例指向文件的数据块 如下图所示
 
-![20240527094310](https://raw.githubusercontent.com/learner-lu/picbed/master/20240527094310.png)
+![20240816154629](https://raw.githubusercontent.com/learner-lu/picbed/master/20240816154629.png)
 
 其中 `ext4_extent` 的数据结构如下所示, 根据 [ext4 文档](https://ext4.wiki.kernel.org/index.php/Ext4_Disk_Layout#Extent_Tree) 信息可知, 其中 `ee_len` 字段用于表示范围覆盖的块数. 如果此字段的值为 > 32768,则认为该块是未初始化的, 长度计算应为 `ee_len - 32768`, 所以extent 块最大长度为 32768.
 
@@ -93,7 +93,7 @@ struct ext4_extent {
 
 如果节点是内部节点(eh.eh_depth > 0),则头后面跟着eh.eh_entries 个 `ext4_extent_idx` 结构的实例;每个索引条目指向包含范围树中更多节点的块, 如下图所示
 
-![20240527095313](https://raw.githubusercontent.com/learner-lu/picbed/master/20240527095313.png)
+![20240816160116](https://raw.githubusercontent.com/learner-lu/picbed/master/20240816160116.png)
 
 其中 `ext4_extent_idx` 会指向一个 data block(4KB) 的数据块, 这个新的数据块依然以 `ext4_extent_header` 开头, 若干个 `ext4_extent_idx` 然后以 `ext4_extent_tail` 结尾, 两个结构体字段如下
 
@@ -119,7 +119,7 @@ struct ext4_extent_tail {
 
 [directory](./directory.md) 中我们介绍了文件查找的逻辑, 从 root 出发
 
-![20240514140002](https://raw.githubusercontent.com/learner-lu/picbed/master/20240514140002.png)
+![20240816161356](https://raw.githubusercontent.com/learner-lu/picbed/master/20240816161356.png)
 
 其中 ext4 文件系统有一些特殊的 inode_idx, 如下所示
 
