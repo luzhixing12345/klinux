@@ -8,25 +8,28 @@
 - 邮件订阅: 5
 - git: 6
 mm:
-- detect: 1
-- va_trans: 2
+- 物理内存探测: 1
+- 虚拟地址转换: 2
 - numa: 3
 - vma: 4
 - zone: 5
 - buddy: 6
 - slab: 7
 - compaction: 8
-- tier: 9
+- 分层内存: 9
 - migration: 10
 - mm_struct: 11
 - mmio: 12
 runtime:
-- proc: 1
-- elf: 2
-- proc_mem: 3
-- vsdo: 4
-- elf_loader: 5
-- ld: 6
+- ELF文件格式: 1
+- 符号表: 2
+- 静态链接: 3
+- 装载: 4
+- 动态链接: 5
+- 库与运行库: 6
+- execve: 7
+- 进程内存布局: 8
+- vsdo: 9
 kernel:
 - init: 1
 - atomic: 2
@@ -39,12 +42,11 @@ arch:
 - cpu: 1
 - cache: 2
 - multicore: 3
-- cache-co: 4
-- memory-co: 5
+- 缓存一致性: 4
+- 内存一致性: 5
 - io: 6
 - bus: 7
 - interrupt: 8
-- mem_access: 9
 proc:
 - schedule: 1
 - nice: 2

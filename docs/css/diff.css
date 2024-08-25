@@ -15,7 +15,8 @@ pre[class*="language-diff"] .Token.TAG_LINE {
     color: #C586C0;
 }
 
-pre[class*="language-diff"] .Token.HighlightLine {
+pre[class*="language-diff"] .Token.HighlightLine,
+pre[class*="language-diff"] .Token.HighlightToken {
     background-color: #2d3c4d;
     padding: 2px 0;
 }

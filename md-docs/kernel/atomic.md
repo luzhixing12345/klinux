@@ -105,7 +105,7 @@ static __always_inline void arch_atomic_add(int i, atomic_t *v)
 
 除了和I/O紧密相关的(比如MMIO),大部分的内存都是可以被cache的,对于特性为Cacheable的内存,**和CPU打交道的是缓存在它自己的cache中的内存数据**.所以,虽然使用的是"lock"指令前缀,但此时总线和内存都不会被上锁,bus lock实际成了**cache lock**.
 
-> cacheable 的内存在 [虚拟内存](../mm/va_trans.md) 的 页表格式 中介绍, 其 page flag 的 `PCD` 位为 1 表示可以被 cache
+> cacheable 的内存在 [虚拟内存](../mm/虚拟地址转换.md) 的 页表格式 中介绍, 其 page flag 的 `PCD` 位为 1 表示可以被 cache
 
 那如果RMW操作的数据不是自然对齐的呢?不是自然对齐也没有关系,只要操作的数据是在一条cache line里面,cache lock就足以保证原子性.
 
@@ -123,7 +123,7 @@ static __always_inline void arch_atomic_add(int i, atomic_t *v)
 
 接下来B将运行刚才没有获准执行的这条"lock add"指令,由于此时它的cache line是invalid状态,根据硬件维护的cache一致性协议,B中cache line中变量的值将变为6,并回到shared状态,B的"lock add"也将基于新的值(6)来做加1运算,所以最终结果就是7,不会因为竞态而出现结果的不一致.
 
-> 缓存一致性协议部分见 [cache-co](../arch/cache-co.md)
+> 缓存一致性协议部分见 [cache-co](../arch/缓存一致性.md)
 
 ### ARM: LL/SC
 

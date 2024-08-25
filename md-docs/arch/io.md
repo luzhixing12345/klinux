@@ -182,7 +182,7 @@ DMA的引入,优点是数据在内存和设备之间的搬运不需要CPU参与,
 
 DMA 需要在内存中申请一段内存当做buffer,这段内存用作需要使用DMA读取I/O设备的缓存,或者写入I/O设备的数据.为了避免cache的影响,我们可以将这段内存映射 `nocache`, 即不使用cache. 但是显而易见, 映射的这段内存将不会再享受到 cache 带来的好处, 如果数据量很小还可以接受, 但是如果是频繁访问的数据那么就会导致性能损失
 
-> nocache 对应 [虚拟地址转换](../mm/va_trans.md) 中页表格式中的 PCD, 在 [cache](../arch/cache.md) 中的 VIPT 解决方案中也有提到
+> nocache 对应 [虚拟地址转换](../mm/虚拟地址转换.md) 中页表格式中的 PCD, 在 [cache](../arch/cache.md) 中的 VIPT 解决方案中也有提到
 >
 > Linux 的 `dma_alloc_coherent()` 接口的实现方法即采用的是此方案
 

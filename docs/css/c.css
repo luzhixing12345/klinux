@@ -18,7 +18,8 @@ pre[class*="language-c"] .Token.BraceDepth-2 {
     color: #1A9DFF;
 }
 
-pre[class*="language-c"] .Token.HighlightLine {
+pre[class*="language-c"] .Token.HighlightLine,
+pre[class*="language-c"] .Token.HighlightToken {
     background-color: #2d3c4d;
     padding: 2px 0;
 }
@@ -41,12 +42,13 @@ pre[class*="language-c"] .Token.STATIC,
 pre[class*="language-c"] .Token.EXTERN,
 pre[class*="language-c"] .Token.TYPEDEF,
 pre[class*="language-c"] .Token.CONST,
-pre[class*="language-c"] .Token.VOLATITLE,
+pre[class*="language-c"] .Token.VOLATILE,
 pre[class*="language-c"] .Token.RESTRICT,
 pre[class*="language-c"] .Token._ATOMIC,
 pre[class*="language-c"] .Token._STATIC_ASSERT,
 pre[class*="language-c"] .Token._GENERIC,
 pre[class*="language-c"] .Token.DOUBLE_HASH,
+pre[class*="language-c"] .Token.TYPEOF,
 pre[class*="language-c"] .Token.GNU_C_Assembly {
     color: #569cd6;
 }
