@@ -1,24 +1,232 @@
 
 # execve
 
-在一个 shell 中最常见的操作就是执行程序, 此时 shell 会 fork 出一个子进程然后通过调用 `execve()` 来执行对应的任务. 该函数如果成功执行并不会返回, 原先子进程的栈.数据以及堆段会直接被新程序所替换. 当程序结束退出时由父进程 shell 来负责资源的回收(wait)
+shell 中最常见的操作就是执行程序, 此时 shell 会 fork 出一个子进程然后通过调用 `execve()` 来执行对应的任务. 
 
-一个进程一旦调用 exec函数,它本身就"死亡"了,系统把代码段替换成新程序的代码,放弃原有的数据段和堆栈段,并为新程序分配新的数据段与堆栈段,惟一保留的就是进程的 ID.也就是说,对系统而言,还是同一个进程,不过执行的已经是另外一个程序了.
+```c
+if ((pid = fork()) == 0) {
+    // 子进程执行任务
+    if (execve(argv[0],argv,environ) < 0) {
+        printf("%s: Command not found\n",argv[0]);
+        exit(0);
+    }
+} else {
+    // 父进程
+    wait();
+}
+```
 
-exec() 是一个函数族, 例如 execl/execlp/execle 等等, 略有区别不过最核心的功能都是运行可执行文件
+> 关于 shell 的实现参见 [09-ShellLab](https://luzhixing12345.github.io/csapplab/articles/md-docs/09-ShellLab/)
+
+exec() 是一个函数族, 有诸如 execl/execlp/execle 等功能相似但实际上都是调用execve的库函数, 最核心的 execve 函数加载并运行可执行目标文件filename,并且带参数列表argv和环境变量列表envp,与fork返回两次不同.execve调用一次并且不返回,只有出现错误,比如找到不到filename才会返回到调用程序, 成功执行后原先子进程的栈.数据以及堆段会直接被新程序所替换
 
 ```c
 #include <unistd.h>
 int execve(const char *filename, char *const argv[], char *const envp[]);
 ```
 
+![image](https://raw.githubusercontent.com/learner-lu/picbed/master/20221226211353.png)
+
+其中参数列表的数据结构如上图所示
+
+- `argv` 变量指向一个null结尾的指针数组,每个指针指向一个参数字符串,通常来说argv[0]是可执行目标文件的名字
+- `envp` 变量指向一个null结尾的指针数据,每个指针指向一个字符串,每个串都是类似"name=value"的键值对
+
+一个进程一旦调用 exec函数,它本身就"死亡"了,系统把代码段替换成新程序的代码,放弃原有的数据段和堆栈段,并为新程序分配新的数据段与堆栈段,唯一保留的就是进程的 PID.也就是说,对系统而言,还是同一个进程,不过执行的已经是另外一个程序了.
+
+## 加载过程
+
+当用户进程调用 `execve` 时,系统会从用户态切换到内核态,并进入内核的相应处理函数.这个处理过程大致可以分为以下几步:
+
+1. **用户态调用**: 用户进程调用 `execve` 函数.
+   
+2. **系统调用入口**: 系统调用通过中断或快速系统调用路径进入内核, 根据 [execve syscall number](https://github.com/luzhixing12345/klinux/blob/87d51ff1ac50fd0e21e1b8bbd17988476b4f19b1/arch/x86/entry/syscalls/syscall_64.tbl#L70) 定位到 `sys_execve` 函数.
+
+   ```c
+   // fs/exec.c
+   SYSCALL_DEFINE3(execve,
+                   const char __user *, filename,
+                   const char __user *const __user *, argv,
+                   const char __user *const __user *, envp)
+   {
+       return do_execve(getname(filename), argv, envp);
+   }
+   ```
+
+   > 详见 [syscall](../kernel/syscall.md)
+
+`do_execve` 是核心函数,它主要负责处理用户传入的参数、进行安全检查以及最终的进程替换. 指向程序参数argv和环境变量envp两个数组的指针以及数组中所有的指针都位于虚拟地址空间的用户空间部分.因此内核在当问用户空间内存时, 需要将其复制到内核空间. 
+
+> `__user` 宏定义为空, 该宏的作用只是用来标记信息以便自动化工具检测
+
+将指针封装为 user_arg_ptr 后进入 `do_execveat_common`, 该函数主要执行三部分内容:
+
+1. 创建 `linux_binprm` 结构体并初始化
+
+   该结构体用来保存要要执行的文件相关的信息, 包括可执行程序的路径, 参数和环境变量的信息. 这个结构体内容比较多, 关键字段如下
+
+   ```c{4-6}
+   struct linux_binprm {
+   	   struct file *executable;    /* Executable to pass to the interpreter */
+   	   struct file *interpreter;
+   	   struct file *file;          /*  要执行的文件  */
+   	   int argc, envc;             /*  命令行参数和环境变量数目  */
+   	   const char *filename;	    /* 要执行的文件的名称 */
+   	   char buf[BINPRM_BUF_SIZE];  /* 保存可执行文件的头128字节 */
+   } __randomize_layout;
+   ```
+
+2. 将用户空间的参数拷贝到内核空间
+   - 调用copy_strings_kernel()从内核空间获取二进制文件的路径名称
+   - 调用copy_string()从用户空间拷贝环境变量和命令行参数
+3. bprm_execve 执行程序
+
+```c{8,37,11-22}
+static int do_execveat_common(int fd, struct filename *filename,
+			      struct user_arg_ptr argv,
+			      struct user_arg_ptr envp,
+			      int flags)
+{
+	struct linux_binprm *bprm;
+	int retval;
+	bprm = alloc_bprm(fd, filename); // 创建二进制参数结构体,包含了关于可执行文件的信息
+	
+    // 将用户提供的 argv 和 envp 复制到内核空间
+	retval = copy_string_kernel(bprm->filename, bprm);
+	if (retval < 0)
+		goto out_free;
+	bprm->exec = bprm->p;
+
+	retval = copy_strings(bprm->envc, envp, bprm);
+	if (retval < 0)
+		goto out_free;
+
+	retval = copy_strings(bprm->argc, argv, bprm);
+	if (retval < 0)
+		goto out_free;
+
+	/*
+	 * When argv is empty, add an empty string ("") as argv[0] to
+	 * ensure confused userspace programs that start processing
+	 * from argv[1] won't end up walking envp. See also
+	 * bprm_stack_limits().
+	 */
+	if (bprm->argc == 0) {
+		retval = copy_string_kernel("", bprm);
+		if (retval < 0)
+			goto out_free;
+		bprm->argc = 1;
+	}
+    // // 加载可执行文件
+	retval = bprm_execve(bprm, fd, filename, flags);
+out_free:
+	free_bprm(bprm);
+
+out_ret:
+	putname(filename);
+	return retval;
+}
+```
+
+bprm_execve 中也分为三部分
+
+1. 调用 do_open_execat() 以可执行的模式打开文件
+
+   在打开文件时 do_open_execat() 的 open_flag 中包含 `__FMODE_EXEC`, 如果文件并没有可执行权限, 那么此时将会通过返回错误终止.
+
+   > 关于读写执行权限的判断会有 vfs 交由下层的文件系统处理, 详见 [vfs](../fs/vfs.md)
+
+   ```c{6,19-21}
+   static struct file *do_open_execat(int fd, struct filename *name, int flags)
+   {
+      	struct file *file;
+      	int err;
+      	struct open_flags open_exec_flags = {
+      		.open_flag = O_LARGEFILE | O_RDONLY | __FMODE_EXEC,
+      		.acc_mode = MAY_EXEC,
+      		.intent = LOOKUP_OPEN,
+      		.lookup_flags = LOOKUP_FOLLOW,
+      	};
+
+      	if ((flags & ~(AT_SYMLINK_NOFOLLOW | AT_EMPTY_PATH)) != 0)
+      		return ERR_PTR(-EINVAL);
+      	if (flags & AT_SYMLINK_NOFOLLOW)
+      		open_exec_flags.lookup_flags &= ~LOOKUP_FOLLOW;
+      	if (flags & AT_EMPTY_PATH)
+      		open_exec_flags.lookup_flags |= LOOKUP_EMPTY;
+
+      	file = do_filp_open(fd, name, &open_exec_flags);
+      	if (IS_ERR(file))
+      		goto out;
+   }
+   ```
+
+2. 调用 sched_exec() 找到最小负载的CPU,用来执行该二进制文件
+3. exec_binprm 执行
+
+```c{7,12,16}
+static int bprm_execve(struct linux_binprm *bprm,
+		       int fd, struct filename *filename, int flags)
+{
+	struct file *file;
+	int retval;
+
+	file = do_open_execat(fd, filename, flags);
+	retval = PTR_ERR(file);
+	if (IS_ERR(file))
+		goto out_unmark;
+
+	sched_exec();
+
+	bprm->file = file;
+
+	retval = exec_binprm(bprm);
+	if (retval < 0)
+		goto out;
+
+	return retval;
+}
+```
+
+exec_binprm 的核心函数 search_binary_handler 用于查找和设置可执行文件格式的处理器.这个函数会**搜索已注册的可执行文件格式(binfmt)并尝试找到可以处理给定二进制文件的格式**.这种机制允许内核支持多种不同的可执行文件格式,例如 ELF、script 等.
+
+注意到代码片段中使用了循环和 depth 变量是用来限制内核在查找合适的可执行文件格式处理器时可以进行的重写(rewrite)或重试的次数.这里的注释说明了内核在放弃之前允许的最大重写级别是 4 级. 这是因为**某些特殊的可执行文件可能需要特定的格式处理器来加载**.例如,一个可执行文件可能是一个脚本,它本身又调用了另一个程序.内核需要递归地查找合适的处理器来处理这些情况.
+
+> 例如执行 `.sh` 文件实际上就会转化为调用 bash 执行 `.sh`
+
+```c{9}
+static int exec_binprm(struct linux_binprm *bprm)
+{
+	/* This allows 4 levels of binfmt rewrites before failing hard. */
+	for (depth = 0;; depth++) {
+		struct file *exec;
+		if (depth > 5)
+			return -ELOOP;
+
+		ret = search_binary_handler(bprm);
+		if (ret < 0)
+			return ret;
+		if (!bprm->interpreter)
+			break;
+
+		exec = bprm->file;
+		bprm->file = bprm->interpreter;
+		bprm->interpreter = NULL;
+	}
+	return 0;
+}
+```
+
+## search_binary_handler
+
+search_binary_handler 是进程装载的核心函数,它负责找到合适的二进制处理程序(比如 ELF 加载器)并调用它来装载可执行文件.
+
 前文我们提到了 Linux 下标准的可执行文件格式是 [ELF](./ELF文件格式.md), 但严格来说其实只要一个文件拥有**可执行权限**, 并且可以被内核中的某一种解释器正确加载, 那么他就可以运行.
 
-> 例如以 `#!/bin/bash` 开头的 `.sh` 文件, 或者以 `#!/bin/python3` 开头的 `.py` 文件
+除了标准 ELF 格式 linux 也支持其他不同的可执行程序格式, 例如以 `#!/bin/bash` 开头的脚本文件, 或者以 `#!/bin/python3` 开头的 python 文件. 各个可执行程序的执行方式不尽相同, 因此linux内核每种被注册的可执行程序格式都用 linux_bin_fmt 来存储, 其中记录了可执行程序的加载和执行函数
 
-linux支持其他不同格式的可执行程序, 在这种方式下, linux能运行其他操作系统所编译的程序, 如MS-DOS程序, 活BSD Unix的COFF可执行格式, 因此linux内核用 `struct linux_binfmt` 来描述各种可执行程序.
-
-```c{4}
+```c{5}
+// include/linux/binfmts.h
 struct linux_binfmt {
 	struct list_head lh;
 	struct module *module;
@@ -33,13 +241,9 @@ struct linux_binfmt {
 
 其提供了3种方法来加载和执行可执行程序
 
-- load_binary: 通过读存放在可执行文件中的信息为当前进程建立一个新的执行环境
+- **load_binary: 通过读存放在可执行文件中的信息为当前进程建立一个新的执行环境**
 - load_shlib: 用于动态的把一个共享库捆绑到一个已经在运行的进程, 这是由uselib()系统调用激活的
 - core_dump: 在名为core的文件中, 存放当前进程的执行上下文. 这个文件通常是在进程接收到一个缺省操作为"dump"的信号时被创建的, 其格式取决于被执行程序的可执行类型
-
-当我们执行一个可执行程序的时候, 内核会 `list_for_each_entry` 遍历所有注册的linux_binfmt对象, 对其调用 `load_binrary` 方法来尝试加载, 直到加载成功为止.
-
-linux内核对所支持的每种可执行的程序类型都有个struct linux_binfmt的数据结构,定义如下
 
 所有支持的格式都需要通过 `register_binfmt` 函数注册到内核当中, 该函数的作用就是将一个结构体头插到 `format` 全局变量的链表中
 
@@ -59,6 +263,8 @@ void __register_binfmt(struct linux_binfmt * fmt, int insert)
 }
 ```
 
+> 当实现了一个新的可执行格式的模块正被装载时, 也执行这个函数, 当模块被卸载时, 执行 unregister_binfmt()函数. 可以动态的加载卸载新可执行文件的模块
+
 在代码库中全局搜索该函数, 可以看到内核支持的所有可执行文件格式
 
 ```bash
@@ -71,69 +277,100 @@ grep -rnw . -e 'register_binfmt' --include \*.c --include \*.h
 > 
 > 对应的注册位置见 [binfmt_elf.c](https://github.com/luzhixing12345/klinux/blob/98b724b922a1949f03d5b53f710a97753d76a338/fs/binfmt_elf.c#L2163-L2167) [binfmt_flat.c](https://github.com/luzhixing12345/klinux/blob/98b724b922a1949f03d5b53f710a97753d76a338/fs/binfmt_flat.c#L937-L941) [binfmt_script.c](https://github.com/luzhixing12345/klinux/blob/98b724b922a1949f03d5b53f710a97753d76a338/fs/binfmt_script.c#L145-L149)
 
+当我们执行一个可执行程序的时候, 内核会 `list_for_each_entry` 遍历所有注册的linux_binfmt对象, 对其调用 `load_binrary` 方法来尝试加载, 直到加载成功为止.
 
-当用户进程调用 `execve` 时,系统会从用户态切换到内核态,并进入内核的相应处理函数.这个处理过程大致可以分为以下几步:
-
-1. **用户态调用**: 用户进程调用 `execve` 函数.
-   
-2. **系统调用入口**: 系统调用通过中断或快速系统调用路径进入内核,定位到 `sys_execve` 函数.  
-   在 Linux 源码中,`sys_execve` 的定义可以在 `fs/exec.c` 文件中找到:
-
-   ```c
-   SYSCALL_DEFINE3(execve,
-                   const char __user *, filename,
-                   const char __user *const __user *, argv,
-                   const char __user *const __user *, envp)
-   {
-       return do_execve(getname(filename), argv, envp);
-   }
-   ```
-
-   该函数的核心是调用 `do_execve` 来处理实际的进程装载.
-
-`do_execve` 是核心函数,它主要负责处理用户传入的参数、进行安全检查以及最终的进程替换.源码如下:
-
-```c
-int do_execve(struct filename *filename,
-              const char __user *const __user *__argv,
-              const char __user *const __user *__envp)
+```c{16}
+static int search_binary_handler(struct linux_binprm *bprm)
 {
-    struct linux_binprm *bprm;
-    int retval;
+	bool need_retry = IS_ENABLED(CONFIG_MODULES);
+	struct linux_binfmt *fmt;
+	int retval;
 
-    // 创建二进制参数结构体,包含了关于可执行文件的信息
-    bprm = create_binprm(filename);
-    if (IS_ERR(bprm))
-        return PTR_ERR(bprm);
+	retval = prepare_binprm(bprm); // 读取该文件前 256 字节保存在 buf 中
+	if (retval < 0)
+		return retval;
 
-    // 将用户提供的 argv 和 envp 复制到内核空间
-    retval = copy_strings(bprm, __argv, __envp);
-    if (retval < 0)
-        goto out;
+	list_for_each_entry(fmt, &formats, lh) {
+		if (!try_module_get(fmt->module))
+			continue;
+		read_unlock(&binfmt_lock);
 
-    // 加载可执行文件
-    retval = search_binary_handler(bprm);
-    if (retval >= 0) {
-        return retval;  // 执行成功
-    }
+		retval = fmt->load_binary(bprm);
 
-out:
-    free_bprm(bprm);
-    return retval;
+		read_lock(&binfmt_lock);
+		put_binfmt(fmt);
+		if (bprm->point_of_no_return || (retval != -ENOEXEC)) {
+			read_unlock(&binfmt_lock);
+			return retval;
+		}
+	}
 }
 ```
 
-#### 1. `create_binprm`
+load_binary 为各个加载解释器的实现的方法, 例如对于最常见的 shell 脚本, 通常其开头都有 `#!/bin/bash`. 此时会读取其内容判断是否是以 "#!" 开头, 然后解析取出解释器的路径 /bin/bash 保存到 `i_name` 中, 打开该文件重新执行(前文提到的多次查找解释器)
 
-`create_binprm` 函数负责创建 `linux_binprm` 结构体,这是一个保存可执行文件信息的关键数据结构.它包含了文件描述符、参数信息、文件路径等.
+> `#!/bin/python3` 处理 python 文件也是同理
 
-#### 2. `copy_strings`
+```c
+static int load_script(struct linux_binprm *bprm)
+{
+	const char *i_name, *i_sep, *i_arg, *i_end, *buf_end;
+	struct file *file;
+	int retval;
 
-`copy_strings` 函数将用户空间的 `argv` 和 `envp` 参数复制到内核空间,这一步非常重要,因为内核在执行可执行文件时需要完全控制参数内容.
+	/* Not ours to exec if we don't start with "#!". */
+	if ((bprm->buf[0] != '#') || (bprm->buf[1] != '!'))
+		return -ENOEXEC;
 
-#### 3. `search_binary_handler`
+    // ...
+    // i_name 被解析为 /bin/bash
+	retval = bprm_change_interp(i_name, bprm);
+	if (retval < 0)
+		return retval;
 
-`search_binary_handler` 是进程装载的核心函数,它负责找到合适的二进制处理程序(比如 ELF 加载器)并调用它来装载可执行文件.以下是一个简化的流程:
+	/*
+	 * OK, now restart the process with the interpreter's dentry.
+	 */
+	file = open_exec(i_name);
+	if (IS_ERR(file))
+		return PTR_ERR(file);
+
+	bprm->interpreter = file;
+	return 0;
+}
+```
+
+对于其他格式的文件我们不深入研究, 下文重点介绍一下 ELF 文件的加载和执行. 对于 ELF 文件格式, list_for_each_entry(fmt, &formats, lh) 循环查找最终会匹配到 ELF 的函数调用 load_elf_binary, 从 execve 系统调用进入到 elf 文件加载执行的函数调用栈如下所示
+
+```txt
+do_execveat_common [exec.c]
+  bprm_execve [exec.c]
+    exec_binprm [exec.c]
+      search_binary_handler [exec.c]
+        load_elf_binary [binfmt_elf.c]
+```
+
+## load_elf_binary
+
+从编译/链接和运行的角度看,应用程序和库程序的连接有两种方式. 
+
+- 一种是固定的、静态的连接,就是把需要用到的库函数的目标代码(二进制)代码从程序库中抽取出来,链接进应用软件的目标映像中;
+- 另一种是动态链接,是指库函数的代码并不进入应用软件的目标映像,应用软件在编译/链接阶段并不完成跟库函数的链接,而是把函数库的映像也交给用户,到**启动应用软件目标映像运行时才把程序库的映像也装入用户空间**(并加以定位),再完成应用软件与库函数的连接.
+
+这样,就有了两种不同的ELF格式映像.
+
+- 一种是静态链接的,在装入/启动其运行时无需装入函数库映像、也无需进行动态链接.
+- 另一种是动态连接,需要在装入/启动其运行时同时装入函数库映像并进行动态链接.
+
+Linux内核既支持静态链接的ELF映像,也支持动态链接的ELF映像,而且装入/启动ELF映像必需由内核完成,而动态连接的实现则既可以在内核中完成,也可在用户空间完成.
+
+因此,GNU把对于动态链接ELF映像的支持作了分工:
+
+**把ELF映像的装入/启动入在Linux内核中;而把动态链接的实现放在用户空间(glibc),并为此提供一个称为"解释器"(ld-linux.so.2)的工具软件,而解释器的装入/启动也由内核负责**,这在后面我们分析ELF文件的加载时就可以看到
+
+前文我们介绍了关于 [ELF文件格式](./ELF文件格式.md) 和 [动态链接](./动态链接.md) 的相关知识
+
+这部分主要说明ELF文件在内核空间的加载过程,下一部分对用户空间符号的动态解析过程进行说明.
 
 1. **检查 ELF 文件头**:通过读取文件头判断它是否为 ELF 格式.
    
@@ -145,80 +382,10 @@ out:
 
 5. **处理动态链接**(如适用):如果是动态链接的 ELF 文件,动态链接器(`ld.so`)会被加载并负责加载共享库.
 
-### 四、进程替换和上下文切换
-
-当 `search_binary_handler` 成功执行后,旧进程的内存空间会被新进程的内存空间替换.以下是关键步骤:
-
-1. **清理旧进程的内存**:释放旧进程的内存,包括堆栈、堆、共享库等.
-   
-2. **加载新进程的内存**:根据 ELF 文件的描述加载新进程的内存布局.
-
-3. **设置新进程的寄存器状态**:根据 ELF 文件的入口点和其他信息,设置新进程的寄存器状态.
-
-4. **跳转到新程序的入口点**:开始执行新程序的代码.
-
-### 五、返回用户态
-
-在新进程的上下文被设置好之后,系统调用返回用户态,CPU 开始执行新程序的代码.此时,进程的内容已经完全变成新程序,旧程序的代码和数据已经被替换.
-
-### 六、小结
-
-`execve` 系统调用是 Linux 进程管理中的重要部分,通过 `execve` 调用,一个进程可以完全替换为另一个进程而保持相同的进程 ID.通过分析 `execve` 系统调用,我们可以看到进程的装载过程涉及多个步骤,包括参数复制、内存分配、可执行文件解析和最终的进程替换.这些步骤在 Linux 内核源码中通过多个函数实现,确保进程的安全和正确执行.
-
-通过这种深入的分析,我们可以更好地理解 Linux 系统的进程管理机制以及 `execve` 系统调用在其中的关键作用.
-
-```c
-#include <fcntl.h>
-#include <stdio.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        printf("Usage: %s \n", argv[0]);
-        return 1;
-    }
-
-    // Open the binary file
-    int fd = open(argv[1], O_RDONLY);
-    if (fd < 0) {
-        perror("open");
-        return 1;
-    }
-
-    // Get the file size
-    off_t file_size = lseek(fd, 0, SEEK_END);
-    lseek(fd, 0, SEEK_SET);
-
-    // Allocate memory for the binary
-    void *mem = mmap(NULL, file_size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE, fd, 0);
-    if (mem == MAP_FAILED) {
-        perror("mmap");
-        close(fd);
-        return 1;
-    }
-
-    // Close the file
-    close(fd);
-
-    // Cast the memory address to a function pointer and call it
-    void (*binary_func)() = (void (*)())mem;
-    binary_func();
-
-    // Clean up
-    munmap(mem, file_size);
-
-    return 0;
-}
-```
-
-> /usr/src/linux/fs/binfmt_elf.c
-
 ## 参考
 
 - [进程装载过程分析(execve系统调用分析)](https://www.cnblogs.com/tjyuanxi/p/9313253.html)
 - [深入理解 Linux 虚拟内存管理](https://www.xiaolincoding.com/os/3_memory/linux_mem.html#_5-3-%E5%86%85%E6%A0%B8%E5%A6%82%E4%BD%95%E7%AE%A1%E7%90%86%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F)
 - [ld-linux.so 加载流程](https://zhuanlan.zhihu.com/p/690824245)
 - [Linux进程启动过程分析do_execve(可执行程序的加载和运行)---Linux进程的管理与调度(十一)](https://www.cnblogs.com/linhaostudy/p/9650228.html)
+- [ELF文件的加载过程(load_elf_binary函数详解)--Linux进程的管理与调度(十三)](https://blog.csdn.net/gatieme/article/details/51628257)

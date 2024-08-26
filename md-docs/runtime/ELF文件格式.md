@@ -520,3 +520,4 @@ gcc -Wl,--gc-sections file.o -o program
 - [ELF 文件解析 1-前述+文件头分析](https://zhuanlan.zhihu.com/p/380908650)
 - [linuxfoundation refspecs](https://refspecs.linuxfoundation.org/)
 - [书上说代码地址总是从0x400000开始,但是查看编译好的elf头起始地址是从0开始的,这是为什么?](https://www.zhihu.com/question/552957041/answer/2738625402)
+- [LinuxELF文件格式详解--Linux进程的管理与调度(十二)](https://blog.csdn.net/gatieme/article/details/51615799)
