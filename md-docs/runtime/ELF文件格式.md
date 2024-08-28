@@ -329,48 +329,49 @@ int main(void) {
 
 ### 符号表和重定位表
 
-符号表和重定位表在可执行文件中并不是必须的, 可以在生成可执行文件时使用 `-s` 选项去掉相关信息. 但是在目标文件中这两个段的信息非常重要, 它涉及到数据如何重定位.
+符号表和重定位表在**可执行文件中并不是必须的**, 但是在目标文件中这两个段的信息非常重要, 它涉及到之后链接器 ld 对于地址进行**重定位**.
 
-- 重定位表为 `Elf64_Rela` 数组
-- 符号表为 `Elf64_Sym` 数组
-
-符号表(.symtab) 和 重定位表(.rela) 对于 ELF 文件来说是很重要的, 涉及到之后链接器 ld 对于地址进行**重定位**.
-
-- 符号表的 sh_type 为 `SHT_SYMTAB` 或 `SHT_DYNSYM`
-- 重定位表的 sh_type 是 `SHT_RELA`.
+- 符号表为 `Elf64_Sym` 数组, sh_type 为 `SHT_SYMTAB` 或 `SHT_DYNSYM`
+- 重定位表为 `Elf64_Rela` 数组,  sh_type 为 `SHT_RELA`
 
 > 如果要找到所有的符号表和重定位表, 那么只需要遍历段表的所有项, 判断 sh_type 类型即可
+>
+> 可以在生成可执行文件时使用 `-s` 选项去掉相关信息. 
 
-如果段的类型是与链接相关的, 比如重定位表(.rela)和符号表(.symtab), 那么 `sh_link` 和 `sh_info` 这两个段就有含义, 否则是无意义的.
+**对于与链接相关的重定位表(.rela)和符号表(.symtab)**, 段表项(Elf64_Shdr)中的 `sh_link` 和 `sh_info` 字段有意义, 其余段的段表项这两个字段无意义.
 
-对于重定位表 RELA, **`sh_link` 代表该段所对应的符号表(.symbol)的下标, `sh_info` 表示它作用的重定位的段**. 如下所示
+对于重定位表 RELA, sh_link 代表该段所对应的符号表(.symbol)的下标, sh_info 表示它作用的重定位的段. 如下所示. 
 
-![20230821095550](https://raw.githubusercontent.com/learner-lu/picbed/master/20230821095550.png)
+![20240827222649](https://raw.githubusercontent.com/learner-lu/picbed/master/20240827222649.png)
 
-重定位表中的每一个表项都是一个 Elf64_Rela 结构体, 成员含义如下所示
+- [2] 的类型为 RELA 说明是一个重定位段, 表项为 Elf64_Rela 结构体, 其中记录需要重定位的符号的索引, 地址, 偏移量
 
-```c
-typedef struct{
-    Elf64_Addr r_offset;     /* 地址 */
-    Elf64_Xword r_info;      /* 重定位类型和符号索引 */
-    Elf64_Sxword r_addend;   /* 偏移量 */
-} Elf64_Rela;
-```
+  ```c
+  typedef struct{
+      Elf64_Addr r_offset;     /* 地址 */
+      Elf64_Xword r_info;      /* 重定位类型和符号索引 */
+      Elf64_Sxword r_addend;   /* 偏移量 */
+  } Elf64_Rela;
+  ```
 
-符号表的每一个表项都是一个 `Elf64_Sym` 结构体, `sh_link` 指向对应的字符串表(通常是 .strtab), st_info 的低4位用于符号类型, 高4位用于符号绑定信息, 成员含义如下所示
+  [2] 段的段表项(Elf64_Shdr)中的 `sh_link` 和 `sh_info` 为 [11] 和 [1], **分别对重定位符号所在的符号表和需要重定位的段**
 
-```c
-typedef struct {
-    Elf64_Word st_name;      /* 符号名称(字符串表索引) */
-    unsigned char st_info;   /* 符号类型和绑定 */
-    unsigned char st_other;  /* 符号可见性 */
-    Elf64_Section st_shndx;  /* 节索引 */
-    Elf64_Addr st_value;     /* 符号值 */
-    Elf64_Xword st_size;     /* 符号大小 */
-} Elf64_Sym;
-```
+- [11] 为符号表. 表项为 Elf64_Sym 结构体, `sh_link` 指向对应的字符串表(通常是 .strtab), st_info 的低4位用于符号类型, 高4位用于符号绑定信息, 成员含义如下所示
 
-关于重定位相关的内容我们放在 "静态链接" 中单独进行介绍
+  ```c
+  typedef struct {
+      Elf64_Word st_name;      /* 符号名称(字符串表索引) */
+      unsigned char st_info;   /* 符号类型和绑定 */
+      unsigned char st_other;  /* 符号可见性 */
+      Elf64_Section st_shndx;  /* 节索引 */
+      Elf64_Addr st_value;     /* 符号值 */
+      Elf64_Xword st_size;     /* 符号大小 */
+  } Elf64_Sym;
+  ```
+
+- [1] 为代码段, 是重定位过程中需要修改的段
+
+重定位的相关内容详见 [静态链接](./静态链接.md)
 
 ### 字符串表(.strtab)和段表字符串表(.shstrtab)
 
@@ -406,6 +407,14 @@ typedef struct {
 ```
 
 > program header 在可重定位文件中不存在, 仅存在于已经完成链接的可执行文件, 可以使用 `-l` 选项查看, 其中还多出来了 .init .plt .plt.got 等等一些段, 这些是与运行时和动态链接相关的段, 我们暂不做介绍
+
+其中只有 `PT_LOAD` 的段需要被装载, 装载时需要根据段本身的一些属性由内核分配内存区域, 例如对齐方式, 段标志
+
+- **R**(只读): 对应只读数据段
+- **RE**(可读可执行): 对应代码段
+- **RW**(可读可写): 对应数据段
+
+`PT_INTERP` 的段为动态链接的解释器段, 可以通过读取其 p_offset 指向的字符串获取到动态链接器的路径(通常是 `/lib64/ld-linux-x86-64.so.2`)
 
 ### 其他特殊段
 

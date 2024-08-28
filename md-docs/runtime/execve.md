@@ -352,35 +352,304 @@ do_execveat_common [exec.c]
 
 ## load_elf_binary
 
-从编译/链接和运行的角度看,应用程序和库程序的连接有两种方式. 
+load_elf_binary 是装载处理 ELF 文件的核心逻辑, 这个函数很长我们分几段来看.
 
-- 一种是固定的、静态的连接,就是把需要用到的库函数的目标代码(二进制)代码从程序库中抽取出来,链接进应用软件的目标映像中;
-- 另一种是动态链接,是指库函数的代码并不进入应用软件的目标映像,应用软件在编译/链接阶段并不完成跟库函数的链接,而是把函数库的映像也交给用户,到**启动应用软件目标映像运行时才把程序库的映像也装入用户空间**(并加以定位),再完成应用软件与库函数的连接.
+1. 检查目标程序ELF头部
+2. load_elf_phdrs 加载目标程序的程序头表
+3. 如果需要动态链接, 则寻找和处理解释器段
+4. 检查并读取解释器的程序表头
+5. 装入目标程序的段segment
+6. 填写程序的入口地址
+7. create_elf_tables填写目标文件的参数环境变量等必要信息
+8. START_THREAD 宏准备进入新的程序入口
 
-这样,就有了两种不同的ELF格式映像.
+### 检查ELF头部
 
-- 一种是静态链接的,在装入/启动其运行时无需装入函数库映像、也无需进行动态链接.
-- 另一种是动态连接,需要在装入/启动其运行时同时装入函数库映像并进行动态链接.
+在进入 load_elf_binary 之前, search_binary_handler 中会调用 prepare_binprm() 读取映像文件的前 256 个字节对 bprm->buf 进行填充, 读取头部数据目的是**判断文件的格式**,每种可执行文件的格式的开头几个字节都是很特殊的,特别是开头4个字节,常常被称做**魔数**(Magic Number)
 
-Linux内核既支持静态链接的ELF映像,也支持动态链接的ELF映像,而且装入/启动ELF映像必需由内核完成,而动态连接的实现则既可以在内核中完成,也可在用户空间完成.
+通过对魔数的判断可以确定文件的格式和类型.比如
+- ELF的可执行文件格式的头4个字节为0x7F/'e'/"1'/"f';
+- Java 的可执行文件格式的头4个字节为'c'/'a'/"f"/'e';
+- Shell 脚本或perl/python 等这种解释型语言的脚本,那么它的第一行往往是"#!/bin/sh"或"#!/usr/bin/perl"或"#!/usr/bin/python",这时候前两个字节"#和"!就构成了魔数
+
+![20230506004437](https://raw.githubusercontent.com/learner-lu/picbed/master/20230506004437.png)
+
+魔数用来确定文件的类型, 操作系统在加载可执行文件的时候会确认魔数是否正确, 如果不正确会拒绝加载
+
+此处的逻辑为判断文件开头是否为 ELF 魔数, 并检查 ELF 类型以及处理器架构. 
+
+```c
+static int prepare_binprm(struct linux_binprm *bprm)
+{
+	loff_t pos = 0;
+
+	memset(bprm->buf, 0, BINPRM_BUF_SIZE);
+	return kernel_read(bprm->file, bprm->buf, BINPRM_BUF_SIZE, &pos);
+}
+
+static int load_elf_binary(struct linux_binprm *bprm)
+{
+    struct elfhdr *elf_ex = (struct elfhdr *)bprm->buf;
+	retval = -ENOEXEC;
+	// 判断开头四个字节为 "\177ELF"
+	if (memcmp(elf_ex->e_ident, ELFMAG, SELFMAG) != 0)
+		goto out;
+    // 判断是可执行文件或者动态链接库
+	if (elf_ex->e_type != ET_EXEC && elf_ex->e_type != ET_DYN)
+		goto out;
+    // 判断可执行文件和内核的处理器架构相同
+	if (!elf_check_arch(elf_ex))
+		goto out;
+}
+```
+
+### 加载程序头表
+
+从编译/链接和运行的角度看,应用程序和库程序的链接有两种方式. 
+
+- 一种是固定的、静态的链接,就是把需要用到的库函数的目标代码(二进制)代码从程序库中抽取出来,链接进应用软件的目标映像中;
+- 另一种是动态链接,是指库函数的代码并不进入应用软件的目标映像,应用软件在编译/链接阶段并不完成跟库函数的链接,而是把函数库的映像也交给用户,到**启动应用软件目标映像运行时才把程序库的映像也装入用户空间**(并加以定位),再完成应用软件与库函数的链接.
+
+Linux内核既支持静态链接的ELF映像,也支持动态链接的ELF映像,而且装入/启动ELF映像必需由内核完成,而动态链接的实现则既可以在内核中完成,也可在用户空间完成.
 
 因此,GNU把对于动态链接ELF映像的支持作了分工:
 
 **把ELF映像的装入/启动入在Linux内核中;而把动态链接的实现放在用户空间(glibc),并为此提供一个称为"解释器"(ld-linux.so.2)的工具软件,而解释器的装入/启动也由内核负责**,这在后面我们分析ELF文件的加载时就可以看到
 
-前文我们介绍了关于 [ELF文件格式](./ELF文件格式.md) 和 [动态链接](./动态链接.md) 的相关知识
+前文我们介绍了关于 [ELF文件格式](./ELF文件格式.md) 和 [动态链接](./动态链接.md) 的相关知识, 虽然 ELF 分为很多段且每个段有不同的作用, 但是在最终执行时**操作系统内核只关心需要装载的段**, program header(程序头表)中保存了这部分的信息
 
-这部分主要说明ELF文件在内核空间的加载过程,下一部分对用户空间符号的动态解析过程进行说明.
+![20240827141550](https://raw.githubusercontent.com/learner-lu/picbed/master/20240827141550.png)
 
-1. **检查 ELF 文件头**:通过读取文件头判断它是否为 ELF 格式.
-   
-2. **设置进程内存布局**:包括为代码段、数据段、堆和栈分配内存.
+上图中 LOAD 的部分就是需要装载的段, 可以看到分为三种类型 
 
-3. **加载程序头表**:读取可执行文件的程序头表,并根据其中的信息将相应的段(如 `.text`、`.data` 等)加载到内存.
+- **R**(只读): 对应只读数据段
+- **RE**(可读可执行): 对应代码段
+- **RW**(可读可写): 对应数据段
 
-4. **设置入口点**:根据 ELF 文件的入口点信息设置 CPU 的程序计数器(PC),以便执行从该入口点开始的代码.
+采用动态链接的文件还会有动态链接的解释器的段, 下文介绍
 
-5. **处理动态链接**(如适用):如果是动态链接的 ELF 文件,动态链接器(`ld.so`)会被加载并负责加载共享库.
+> 由于动态链接的种种优势, 绝大部分 ELF 包括编译器的默认编译选项都会生成动态链接的可执行文件
+
+### 寻找解释器
+
+如果需要动态链接, 则寻找和处理解释器段. 使用 load_elf_phdrs 加载程序头之后查找解释器段. "解释器"段的类型为 `PT_INTERP`, 如果找到就根据其位置的 p_offset 和大小 p_filesz 把整个"解释器"段的内容读入缓冲区. 该段实际上只是一个字符串, 即解释器的文件名, 64位机器上对应的叫做 `/lib64/ld-linux-x86-64.so.2`
+
+> 这是一个指向 `/lib/x86_64-linux-gnu/ld-linux-x86-64.so.2` 的软链接
+
+有了解释器的文件名以后,就通过 open_exec() 打开这个文件, 并读取解释器头部 256 字节数据
+
+```c{14,15,23}
+static int load_elf_binary(struct linux_binprm *bprm)
+{
+    // ...
+	elf_phdata = load_elf_phdrs(elf_ex, bprm->file);
+	elf_ppnt = elf_phdata;
+	for (i = 0; i < elf_ex->e_phnum; i++, elf_ppnt++) {
+		char *elf_interpreter;
+
+		if (elf_ppnt->p_type == PT_GNU_PROPERTY) {
+			elf_property_phdata = elf_ppnt;
+			continue;
+		}
+
+		if (elf_ppnt->p_type != PT_INTERP)
+			continue;
+
+		elf_interpreter = kmalloc(elf_ppnt->p_filesz, GFP_KERNEL);
+
+		retval = elf_read(bprm->file, elf_interpreter, elf_ppnt->p_filesz,
+				  elf_ppnt->p_offset);
+
+		interpreter = open_exec(elf_interpreter);
+		interp_elf_ex = kmalloc(sizeof(*interp_elf_ex), GFP_KERNEL);
+		if (!interp_elf_ex) {
+			retval = -ENOMEM;
+			goto out_free_file;
+		}
+
+		/* Get the exec headers */
+		retval = elf_read(interpreter, interp_elf_ex,
+				  sizeof(*interp_elf_ex), 0);
+	}
+}
+```
+
+### 检查并读取解释器的程序表头
+
+如果需要加载解释器, 前面经过一趟for循环已经找到了需要的解释器信息 `elf_interpreter`, 它也是当作一个ELF文件, 因此跟目标可执行程序一样, 我们需要load_elf_phdrs加载解释器的程序头表program header table
+
+```c{16}
+static int load_elf_binary(struct linux_binprm *bprm)
+{
+    // ...
+    /* Some simple consistency checks for the interpreter */
+    if (interpreter) {
+        retval = -ELIBBAD;
+        /* Not an ELF interpreter */
+        if (memcmp(interp_elf_ex->e_ident, ELFMAG, SELFMAG) != 0)
+        	goto out_free_dentry;
+        /* Verify the interpreter has a valid arch */
+        if (!elf_check_arch(interp_elf_ex) ||
+            elf_check_fdpic(interp_elf_ex))
+        	goto out_free_dentry;
+
+        /* Load the interpreter program headers */
+        interp_elf_phdata = load_elf_phdrs(interp_elf_ex, interpreter);
+    }
+}
+```
+
+至此我们已经把目标执行程序和其所需要的解释器都加载初始化, 并且完成检查工作, 也加载了程序头表program header table, 下面开始加载程序的段信息
+
+### 装入目标程序的段
+
+这段代码从目标映像的程序头中搜索类型为 `PT_LOAD` 的段.在二进制映像中,只有类型为 `PT_LOAD` 的段才是需要装入的.当然在装入之前,需要确定装入的地址,只要考虑的就是页面对齐,还有该段的p_vaddr域的值(上面省略这部分内容).确定了装入地址后,就通过elf_map()建立用户空间虚拟地址空间与目标映像文件中某个连续区间之间的映射, 其返回值为实际映射的起始地址
+
+```c
+static int load_elf_binary(struct linux_binprm *bprm)
+{
+    // ...
+    for(i = 0, elf_ppnt = elf_phdata; i < elf_ex->e_phnum; i++, elf_ppnt++) {
+        // ...
+		if (elf_ppnt->p_type != PT_LOAD)
+			continue;
+        // ...
+		error = elf_map(bprm->file, load_bias + vaddr, elf_ppnt,
+				elf_prot, elf_flags, total_size);
+	}
+}
+```
+
+### 设置入口点
+
+完成了目标程序和解释器的加载, 同时目标程序的各个段也已经加载到内存了, 我们的目标程序已经准备好了要执行了, 但是还缺少一样东西, 就是我们程序的入口地址, 没有入口地址, 操作系统就不知道从哪里开始执行内存中加载好的可执行映像
+
+这段程序的逻辑非常简单:
+- 如果需要装入解释器,就通过 load_elf_interp 装入其映像, 并把将来进入用户空间的入口地址设置成解释器映像的入口地址
+- 若不装入解释器,那么这个入口地址就是目标映像本身的入口地址.
+
+```c
+static int load_elf_binary(struct linux_binprm *bprm)
+{
+    // ...
+    if (interpreter) {
+		elf_entry = load_elf_interp(interp_elf_ex,
+					    interpreter,
+					    load_bias, interp_elf_phdata,
+					    &arch_state);
+        // ...
+	} else {
+		elf_entry = e_entry;
+        // ...
+	}
+}
+```
+
+### 参数与环境变量
+
+在完成装入,启动用户空间的映像运行之前,还需要为目标映像和解释器准备好一些有关的信息,这些信息包括常规的argc、envc等等,还有一些"辅助向量(Auxiliary Vector)".这些信息需要复制到用户空间,使它们在CPU进入解释器或目标映像的程序入口时出现在用户空间堆栈上.这里的 create_elf_tables() 就起着这个作用
+
+> 详见 [装载](./装载.md) 进程栈初始化
+
+```c
+static int
+create_elf_tables(struct linux_binprm *bprm, const struct elfhdr *exec,
+		unsigned long interp_load_addr,
+		unsigned long e_entry, unsigned long phdr_addr) 
+{
+    struct mm_struct *mm = current->mm;
+	unsigned long p = bprm->p;
+	int argc = bprm->argc;
+	int envc = bprm->envc;
+    // ...
+
+    if (put_user(argc, sp++))
+    	return -EFAULT;
+
+  	/* Populate list of argv pointers back to argv strings. */
+  	p = mm->arg_end = mm->arg_start;
+  	while (argc-- > 0) {
+  		size_t len;
+  		if (put_user((elf_addr_t)p, sp++))
+  			return -EFAULT;
+  		len = strnlen_user((void __user *)p, MAX_ARG_STRLEN);
+  		if (!len || len > MAX_ARG_STRLEN)
+  			return -EINVAL;
+  		p += len;
+  	}
+  	if (put_user(0, sp++))
+  		return -EFAULT;
+  	mm->arg_end = p;
+
+  	/* Populate list of envp pointers back to envp strings. */
+  	mm->env_end = mm->env_start = p;
+  	while (envc-- > 0) {
+  		size_t len;
+  		if (put_user((elf_addr_t)p, sp++))
+  			return -EFAULT;
+  		len = strnlen_user((void __user *)p, MAX_ARG_STRLEN);
+  		if (!len || len > MAX_ARG_STRLEN)
+  			return -EINVAL;
+  		p += len;
+  	}
+  	if (put_user(0, sp++))
+  		return -EFAULT;
+  	mm->env_end = p;
+
+  	/* Put the elf_info on the stack in the right place.  */
+  	if (copy_to_user(sp, mm->saved_auxv, ei_index * sizeof(elf_addr_t)))
+  		return -EFAULT;
+  	return 0;
+}
+```
+
+### 进入新的程序入口
+
+STEART_THREAD() 宏操作会将eip和esp改成新的地址,就使得CPU在返回用户空间时就进入新的程序入口. 这里新的地址入口就是前文计算的 elf_entry, 如果存在解释器映像,那么这就是解释器映像的程序入口,否则就是目标映像的程序入口
+
+```c
+static int load_elf_binary(struct linux_binprm *bprm)
+{  
+    // ...
+    START_THREAD(elf_ex, regs, elf_entry, bprm->p);
+}
+```
+
+该宏展开之后的功能就是重新设置寄存器的值, 将 IP 指向新的地址
+
+```c{6}
+static void
+start_thread_common(struct pt_regs *regs, unsigned long new_ip,
+		    unsigned long new_sp,
+		    unsigned int _cs, unsigned int _ss, unsigned int _ds)
+{
+	regs->ip		= new_ip;
+	regs->sp		= new_sp;
+	regs->cs		= _cs;
+	regs->ss		= _ss;
+	regs->flags		= X86_EFLAGS_IF;
+}
+```
+
+## 符号的动态解析
+
+前面我们提到了内核空间中ELF文件的加载工作
+
+内核的工作
+- 内核首先读取ELF文件头部,再读如各种数据结构,从这些数据结构中可知各段或节的地址及标识,然后调用mmap()把找到的可加载段的内容加载到内存中.同时读取段标记,以标识该段在内存中是否可读、可写、可执行.其中,文本段是程序代码,只读且可执行,而数据段是可读且可写.
+- 从PT_INTERP的段中找到所对应的动态链接器名称,并加载动态链接器.通常是/lib/ld-linux.so.2.
+- 内核把新进程的堆栈中设置一些标记对,以指示动态链接器的相关操作.
+- 内核把控制权传递给动态链接器.
+
+动态链接器的工作并不是在内核空间完成的, 而是在用户空间完成的, 比如C语言程序则交给C运行时库来完成, 这个并不是我们今天内核学习的重点, 而是由glic完成的,但是其一般过程如下
+
+动态链接器的工作
+- 动态链接器检查程序对共享库的依赖性,并在需要时对其进行加载.
+- 动态链接器对程序的外部引用进行重定位,并告诉程序其引用的外部变量/函数的地址,此地址位于共享库被加载在内存的区间内.动态链接还有一个**延迟定位**的特性,即只有在"真正"需要引用符号时才重定位,这对提高程序运行效率有极大帮助.
+- 动态链接器执行在ELF文件中标记为.init的节的代码,进行程序运行的初始化.
+- 程序开始执行
+
+> 动态链接相关详见 [动态链接](./动态链接.md)
 
 ## 参考
 
