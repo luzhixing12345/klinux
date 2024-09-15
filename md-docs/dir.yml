@@ -20,6 +20,7 @@ mm:
 - migration: 10
 - mm_struct: 11
 - mmio: 12
+- 页表: 13
 runtime:
 - ELF文件格式: 1
 - 符号表: 2
