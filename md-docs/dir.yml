@@ -10,17 +10,17 @@
 mm:
 - 物理内存探测: 1
 - 虚拟地址转换: 2
-- numa: 3
-- vma: 4
-- zone: 5
-- buddy: 6
-- slab: 7
-- compaction: 8
-- 分层内存: 9
-- migration: 10
-- mm_struct: 11
-- mmio: 12
-- 页表: 13
+- 页表: 3
+- numa: 4
+- vma: 5
+- zone: 6
+- buddy: 7
+- slab: 8
+- compaction: 9
+- 分层内存: 10
+- migration: 11
+- mm_struct: 12
+- mmio: 13
 runtime:
 - ELF文件格式: 1
 - 符号表: 2
