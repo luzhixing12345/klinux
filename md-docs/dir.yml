@@ -21,6 +21,8 @@ mm:
 - migration: 11
 - mm_struct: 12
 - mmio: 13
+- 进程内存布局: 2.5
+- MGLRU: 14
 runtime:
 - ELF文件格式: 1
 - 符号表: 2
@@ -29,7 +31,6 @@ runtime:
 - 动态链接: 5
 - 库与运行库: 6
 - execve: 7
-- 进程内存布局: 8
 - vsdo: 9
 kernel:
 - init: 1

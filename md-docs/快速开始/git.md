@@ -31,7 +31,13 @@ arch/x86/kernel/tsc_sync.c
 然后使用 `format-patch` 来进行打包, 比如打包最后一次提交的 commit
 
 ```bash
-git format-patch -1
+git format-patch -s --subject-prefix='PATCH' -1
+```
+
+如果是 v2 版本可以使用
+
+```bash
+git format-patch -s --subject-prefix='PATCH' -1 -v2
 ```
 
 打包某一个特定的 commit 可以使用
@@ -233,6 +239,51 @@ git send-email \
 其中 `/path/to/YOUR_REPLY` 就是你回复的文件内容, 如果要回复一个讨论的纯文本内容的邮件那么直接按照格式编写并发送即可
 
 如果要编写带代码部分的 patch 回复那么需要先使用 `git format-patch` 创建一个 patch 然后发送该 patch 即可, 创建的 patch 默认就是 mailbox 格式的, 默认的正文内容就是你的 commit message, 可以修改为你想要编辑的邮件内容
+
+## 查看 tag
+
+要查看某个特定的提交(commit)属于 Linux 内核的哪个版本
+
+- git describe 命令可以帮助你确定某个 commit 距离最近的标签(版本)有多远
+
+  ```bash
+  git describe --contains <commit-hash>
+  ```
+
+- git tag --contains 命令列出所有包含指定 commit 的标签.你可以使用以下命令来查看一个 commit 是在哪些标签(版本)中存在的
+
+  ```bash
+  git tag --contains <commit-hash>
+  ```
+
+## 查看 log
+
+要在 Git 的提交日志中查找包含特定信息的所有提交记录
+
+- 查找提交消息中包含特定关键词的所有提交
+
+  ```bash
+  git log --grep="fix bug"
+  ```
+
+- 查看 Git 仓库中某个人或某个邮箱的提交
+
+  ```bash
+  git log --author="作者的名字"
+  ```
+
+  查看提交中的变更可以添加 `-p`
+
+  查看更详细的内容可以结合 `--pretty` 选项
+
+- 如果需要按时间顺序, 即从过去到现在, 可以使用 --reverse, 不过搜索时间会比较长
+
+  例如查看 MGLRU 的修改
+
+  ```bash
+  git log --author="yuzhao@google.com" --grep="MGLRU" --reverse
+  ```
+
 
 ## bisect
 
