@@ -1,0 +1,94 @@
+pre[class*="language-yaml"] {
+    background: #161b22;
+}
+
+pre[class*="language-yaml"] .Token {
+    color: #C1CCCC;
+}
+
+pre[class*="language-yaml"] .Token.String {
+    color: #CE9178;
+}
+
+pre[class*="language-yaml"] .Token.BraceDepth-0 {
+    color: #FFD700;
+}
+
+pre[class*="language-yaml"] .Token.BraceDepth-1 {
+    color: #DA70D6;
+}
+
+pre[class*="language-yaml"] .Token.BraceDepth-2 {
+    color: #1A9DFF;
+}
+
+pre[class*="language-yaml"] .Token.HighlightLine,
+pre[class*="language-yaml"] .Token.HighlightToken {
+    background-color: #2d3c4d;
+    padding: 2px 0;
+}
+
+pre[class*="language-yaml"] .Token.NUMBER {
+    color: #A2CEA8;
+}
+
+pre[class*="language-yaml"] .Token.COMMENT {
+    color: #6A9955;
+}
+
+pre[class*="language-yaml"] .Token.ID {
+    color: #CE9178;
+}
+
+pre[class*="language-yaml"] .Token.Key {
+    color: #569cd6;
+}
+
+pre[class*="language-yaml"] .Token.PIPE {
+    color: #C586C0;
+}
+
+pre[class*="language-yaml"] .Token.DOLLAR {
+    color: #88D6FE;
+}
+
+pre[class*="language-yaml"] .Token.STR {
+    color: #CE9178;
+}
+
+pre[class*="language-yaml"] .Token.Url {
+    border-bottom: 1px solid #CE9178;
+}
+
+pre[class*="language-yaml"] .Token.TRUE,
+pre[class*="language-yaml"] .Token.FALSE,
+pre[class*="language-yaml"] .Token.STRING,
+pre[class*="language-yaml"] .Token.INT,
+pre[class*="language-yaml"] .Token.BOOL,
+pre[class*="language-yaml"] .Token.INHERIT,
+pre[class*="language-yaml"] .Token.NULL,
+pre[class*="language-yaml"] .Token.BANG {
+    color: #569cd6;
+}
+
+pre[class*="language-yaml"] .Token.STAR,
+pre[class*="language-yaml"] .Token.AMPERSAND,
+pre[class*="language-yaml"] .Token.MAP {
+    color: #C586C0;
+}
+
+pre[class*="language-yaml"] .Token.Anchor {
+    color: #4EC9B0;
+}
+
+pre[class*="language-yaml"] .Token.Alias {
+    color: #88D6FE;
+}
+
+pre[class*="language-yaml"] .Token.TIME {
+    color: #A2CEA8;
+}
+
+pre[class*="language-yaml"] .Token.Env-var {
+    color: #88D6FE;
+}

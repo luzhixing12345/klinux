@@ -172,3 +172,4 @@ sphinx_*/
 /rust-project.json
 
 workspace
+modules

@@ -391,6 +391,30 @@ git reset --hard a1b2c3d4
 
 这样,你就回到了最初的位置,丢弃了所有在此之后的提交和更改.请注意,使用 `--hard` 选项会丢失所有未提交的更改和提交,因此请确保在执行此操作之前备份任何重要的更改.
 
+## Git error "object file ... is empty"?
+
+[how can i fix the git error object file is empty/12371337#12371337](https://stackoverflow.com/questions/11706215/how-can-i-fix-the-git-error-object-file-is-empty/12371337#12371337)
+
+先试一下
+
+```bash
+git pull
+```
+
+```bash
+find . -type f -empty -delete -print
+git fsck --full
+tail -n 2 .git/logs/refs/heads/main
+git show hash
+```
+
+## 查看最后一次提交
+
+```bash
+git reset --soft HEAD^
+git restore --staged .
+```
+
 ## 参考
 
 - [如何从linux社区下载和合入内核patch?](https://blog.csdn.net/pengdonglin137/article/details/131148344)
