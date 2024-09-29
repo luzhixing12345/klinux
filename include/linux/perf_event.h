@@ -1906,10 +1906,4 @@ static inline void perf_lopwr_cb(bool mode)
 }
 #endif
 
-#ifdef CONFIG_HTMM
-extern int htmm_perf_event_init(struct perf_event *event, unsigned long nr_pages);
-extern int htmm_perf_event_open(struct perf_event_attr *attr_ptr, pid_t pid,
-	int cpu, int group_fd, unsigned long flags);
-#endif
-
 #endif /* _LINUX_PERF_EVENT_H */

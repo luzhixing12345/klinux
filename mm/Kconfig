@@ -1260,15 +1260,4 @@ config LOCK_MM_AND_FIND_VMA
 
 source "mm/damon/Kconfig"
 
-config HTMM
-	bool "Enable hugepage-aware tiered memory management"
-	depends on MIGRATION && TRANSPARENT_HUGEPAGE
-	help
-	  Enable memory access sampling and dynamic placement for
-	  tiered memory systems (DRAM + NVM). This optimizes the system
-	  performance in tiered memory systems by coordinating transparent
-	  hugepage support with tiered memory management.
-
-	  If in doubt, say N.
-
 endmenu

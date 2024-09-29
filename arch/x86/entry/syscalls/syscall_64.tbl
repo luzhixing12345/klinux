@@ -375,8 +375,6 @@
 451	common	cachestat		sys_cachestat
 452	common	fchmodat2		sys_fchmodat2
 453	64	map_shadow_stack	sys_map_shadow_stack
-454	common	htmm_start		sys_htmm_start
-455	common	htmm_end		sys_htmm_end
 
 #
 # Due to a historical design error, certain syscalls are numbered differently
