@@ -67,5 +67,6 @@ linux 内核技术文档: [klinux document](https://luzhixing12345.github.io/kli
   - [LoyenWang](https://www.cnblogs.com/LoyenWang/tag/linux/)
   - [terenceli's blog](https://terenceli.github.io/)
   - [聊聊linux内核](https://mp.weixin.qq.com/mp/appmsgalbum?__biz=Mzg2MzU3Mjc3Ng==&action=getalbum&album_id=2559805446807928833&scene=173&from_msgid=2247486879&from_itemidx=1&count=3&nolastread=1#wechat_redirect)
+  - [liujunming Kernel](https://liujunming.top/categories/Kernel/)
 - talk
   - [The Linux Storage, Filesystem, Memory Management & BPF Summit @ OSS NA 2023](https://www.youtube.com/playlist?list=PLbzoR-pLrL6rlmdpJ3-oMgU_zxc1wAhjS)

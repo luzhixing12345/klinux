@@ -415,6 +415,19 @@ git reset --soft HEAD^
 git restore --staged .
 ```
 
+## revert
+
+要撤回某个较早的提交,但保留其后的提交不变,可以使用 Git 的 revert 命令.revert 会生成一个新的提交,该提交会撤销指定的旧提交的更改,而不会修改提交历史
+
+```bash
+git log --oneline
+git revert <commit-hash>
+```
+
+这会生成一个新的提交,撤销该提交中的所有更改,但保留后续的提交记录
+
+如果该提交对多个文件进行了更改,git revert 会在所有这些文件上应用反向更改
+
 ## 参考
 
 - [如何从linux社区下载和合入内核patch?](https://blog.csdn.net/pengdonglin137/article/details/131148344)

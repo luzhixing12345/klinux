@@ -44,8 +44,8 @@ arch:
 - cpu: 1
 - cache: 2
 - multicore: 3
-- 缓存一致性: 4
-- 内存一致性: 5
+- cache-coherence: 4
+- memory-coherence: 5
 - io: 6
 - bus: 7
 - interrupt: 8

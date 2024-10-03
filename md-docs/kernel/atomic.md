@@ -123,7 +123,7 @@ static __always_inline void arch_atomic_add(int i, atomic_t *v)
 
 接下来B将运行刚才没有获准执行的这条"lock add"指令,由于此时它的cache line是invalid状态,根据硬件维护的cache一致性协议,B中cache line中变量的值将变为6,并回到shared状态,B的"lock add"也将基于新的值(6)来做加1运算,所以最终结果就是7,不会因为竞态而出现结果的不一致.
 
-> 缓存一致性协议部分见 [cache-co](../arch/缓存一致性.md)
+> 缓存一致性协议部分见 [cache-co](../arch/cache-coherence.md)
 
 ### ARM: LL/SC
 
