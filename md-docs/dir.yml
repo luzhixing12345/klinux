@@ -10,19 +10,20 @@
 mm:
 - 物理内存探测: 1
 - 虚拟地址转换: 2
-- 页表: 3
-- numa: 4
-- vma: 5
-- zone: 6
-- buddy: 7
-- slab: 8
-- compaction: 9
-- 分层内存: 10
-- migration: 11
-- mm_struct: 12
-- mmio: 13
-- 进程内存布局: 2.5
-- MGLRU: 14
+- 进程内存布局: 3
+- 页表: 4
+- numa: 5
+- vma: 6
+- zone: 7
+- buddy: 8
+- slab: 9
+- compaction: 10
+- tier-mm: 11
+- migration: 12
+- mm_struct: 13
+- mmio: 14
+- LRU: 15
+- MGLRU: 16
 runtime:
 - ELF文件格式: 1
 - 符号表: 2
@@ -31,7 +32,7 @@ runtime:
 - 动态链接: 5
 - 库与运行库: 6
 - execve: 7
-- vsdo: 9
+- vsdo: 8
 kernel:
 - init: 1
 - atomic: 2
@@ -85,6 +86,7 @@ device:
 others:
 - safety: 1
 - Q&A: 2
+- kernel-code: 3
 cve:
 - dirtycow: 1
 - dirtypipe: 2
