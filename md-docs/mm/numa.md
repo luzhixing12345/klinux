@@ -137,11 +137,9 @@ NUMA Affinity(亲和性)是和NUMA Hierarchy(层级结构)直接相关的.对系
 
   从 Device NUMA角度看,这个表格给出了系统boot时的外设都属于哪个Proximity Domain(NUMA Node).
 
-> 关于 ACPI 的一些介绍见本系列的 arch/ACPI
-
 ## node 初始化
 
-node的初始化,从几条启动日志开始说起
+下面我们结合 linux 代码来看一下上面提到的 numa node 初始化的过程, 从几条启动日志开始说起
 
 ![20230705155010](https://raw.githubusercontent.com/learner-lu/picbed/master/20230705155010.png)
 
@@ -193,7 +191,7 @@ struct numa_memblk {
 };
 ```
 
-代码和注释写的很清晰, 当没有 NUMA 架构或者 NUMA 架构被禁止的时候, Linux为了适配两者,将UMA"假装"(fake)成一种NUMA架构,也就只有一个node 0节点,该节点包括所有物理内存. numa_nodes_parsed 为 NUMA 节点的位图, 每一个bit代表一个node,node_set是将一个node设置为"在线".
+代码和注释写的很清晰, 当没有 NUMA 架构或者 NUMA 架构被禁止的时候, Linux为了适配两者,将 UMA "假装"成一种NUMA架构,也就只有一个node 0节点,该节点包括所有物理内存. numa_nodes_parsed 为 NUMA 节点的位图, 每一个bit代表一个node,node_set是将一个node设置为"在线".
 
 numa_add_memblk 就是将一个 node 加入到 numa_meminfo, 并设置内存地址的范围. numa_meminfo, numa_memblk 的结构体也比较清晰
 
@@ -229,9 +227,9 @@ static int __init numa_add_memblk_to(int nid, u64 start, u64 end,
 }
 ```
 
-整个系统的函数调用栈如下, numa_init 中也可以看出, 无论是否有 NUMA, 区别只是对所传递的函数指针的调用的差别而已
+整个系统的函数调用栈如下, numa_init 中也可以看出, 无论是否有 NUMA, 区别只是对所传递的函数指针的调用的差别而已. 当没有 numa 时进入 dummy_numa_init 完成初始化
 
-```c
+```c{18}
 // arch/x86/kernel/setup.c | setup_arch
 // arch/x86/mm/numa_64.c   | initmem_init
 // arch/x86/mm/numa.c      | x86_numa_init
@@ -252,6 +250,184 @@ void __init x86_numa_init(void)
 	numa_init(dummy_numa_init);
 }
 ```
+
+### NUMA 启动
+
+如果以前文 [调试内核](../快速开始/调试内核.md) 中的参数启动那么就是一个非常简单的系统, 如果以一个比较复杂的参数启动 qemu
+
+```bash
+taskset -c 0-15 $(QEMU) -name guest=vm0 \
+    -machine pc \
+    -m 64G \
+    -overcommit mem-lock=off \
+    -smp 16 \
+    -object memory-backend-ram,size=16G,host-nodes=0,policy=bind,prealloc=no,id=m0 \
+    -object memory-backend-ram,size=16G,host-nodes=1,policy=bind,prealloc=no,id=m1 \
+	-object memory-backend-ram,size=16G,host-nodes=2,policy=bind,prealloc=no,id=m2 \
+    -object memory-backend-ram,size=16G,host-nodes=3,policy=bind,prealloc=no,id=m3 \
+    -numa node,nodeid=0,memdev=m0,cpus=0-7 \
+    -numa node,nodeid=1,memdev=m1,cpus=8-15 \
+	-numa node,nodeid=2,memdev=m2 \
+    -numa node,nodeid=3,memdev=m3 \
+	-numa dist,src=0,dst=0,val=10 \
+    -numa dist,src=0,dst=1,val=21 \
+    -numa dist,src=0,dst=2,val=24 \
+    -numa dist,src=0,dst=3,val=24 \
+    -numa dist,src=1,dst=0,val=21 \
+    -numa dist,src=1,dst=1,val=10 \
+    -numa dist,src=1,dst=2,val=14 \
+    -numa dist,src=1,dst=3,val=14 \
+    -numa dist,src=2,dst=0,val=24 \
+    -numa dist,src=2,dst=1,val=14 \
+    -numa dist,src=2,dst=2,val=10 \
+    -numa dist,src=2,dst=3,val=16 \
+    -numa dist,src=3,dst=0,val=24 \
+    -numa dist,src=3,dst=1,val=14 \
+    -numa dist,src=3,dst=2,val=16 \
+    -numa dist,src=3,dst=3,val=10 \
+    -uuid 9bc02bdb-58b3-4bb0-b00e-313bdae0ac81 \
+    -device ich9-usb-ehci1,id=usb,bus=pci.0,addr=0x5.0x7 \
+    -device virtio-serial-pci,id=virtio-serial0,bus=pci.0,addr=0x6 \
+    -drive file=$(DISK),format=raw,id=drive-ide0-0-0,if=none \
+    -device ide-hd,bus=ide.0,unit=0,drive=drive-ide0-0-0,id=ide0-0-0,bootindex=1 \
+    -drive if=none,id=drive-ide0-0-1,readonly=on \
+    -device ide-cd,bus=ide.0,unit=1,drive=drive-ide0-0-1,id=ide0-0-1 \
+    -device virtio-balloon-pci,id=balloon0,bus=pci.0,addr=0x7 \
+    -netdev user,id=ndev.0,hostfwd=tcp::5555-:22 \
+    -device e1000,netdev=ndev.0 \
+    -nographic \
+	-kernel $(BZIMAGE) \
+    -append "root=/dev/sda2 console=ttyS0 quiet nokaslr"
+```
+
+> [!NOTE]
+> 上述参数表示创建了 4 个 numa node, 每个 node 16 GB 内存, 2 个 node 有 cpu.
+>
+> 分配了 16 个物理机的 CPU 核心, 分配个 qemu, 2 个有 cpu 的 node 每个分到 8 个核心
+>
+> 手动定义了节点之间的 numa distance
+
+我们可以得到如下所示的 numa 架构
+
+![20241013170335](https://raw.githubusercontent.com/learner-lu/picbed/master/20241013170335.png)
+
+当有 numa 架构时(CONFIG_ACPI_NUMA)则会进入 x86_acpi_numa_init 处理
+
+```c{5}
+void __init x86_numa_init(void)
+{
+	if (!numa_off) {
+#ifdef CONFIG_ACPI_NUMA
+		if (!numa_init(x86_acpi_numa_init))
+			return;
+#endif
+#ifdef CONFIG_AMD_NUMA
+		if (!numa_init(amd_numa_init))
+			return;
+#endif
+	}
+	numa_init(dummy_numa_init);
+}
+```
+
+numa_init 中首先为每一个 numa node 分配一个编号, 然后将一个记录全局 numa distance 信息的数组清空, 调用函数指针初始化
+
+```c{10,15}
+static int numa_distance_cnt;
+static u8 *numa_distance;
+
+static int __init numa_init(int (*init_func)(void))
+{
+	int i;
+	int ret;
+    // 为每一个 node 分配一个编号 0 1 ...
+	for (i = 0; i < MAX_LOCAL_APIC; i++)
+		set_apicid_to_node(i, NUMA_NO_NODE);
+    // ...
+    // 设置 numa_distance[] -> 0
+	numa_reset_distance();
+
+	ret = init_func();
+	if (ret < 0)
+		return ret;
+    // ...
+}
+```
+
+我们重点关注一下这些节点是如何识别 id 并且如何计算距离的, 其中确定距离的函数 numa_set_distance 调用如下
+
+> [!NOTE]
+> 上文我们介绍了 SRAT SLIT 的初始化, 这里就是 SLIT 对于 numa node 距离的初始化
+
+```c
+// x86_acpi_numa_init [arch/x86/mm/srat.c]
+// └─acpi_numa_init [drivers/acpi/numa/srat.c]
+//   └─acpi_table_parse [drivers/acpi/tables.c]
+//     └─acpi_parse_slit [drivers/acpi/numa/srat.c]
+//       └─acpi_numa_slit_init [drivers/acpi/numa/srat.c]
+void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+{
+	int i, j;
+
+	for (i = 0; i < slit->locality_count; i++) {
+		const int from_node = pxm_to_node(i);
+
+		if (from_node == NUMA_NO_NODE)
+			continue;
+
+		for (j = 0; j < slit->locality_count; j++) {
+			const int to_node = pxm_to_node(j);
+
+			if (to_node == NUMA_NO_NODE)
+				continue;
+
+			numa_set_distance(from_node, to_node,
+				slit->entry[slit->locality_count * i + j]);
+		}
+	}
+}
+```
+
+其中这里的 slit->entry 数组就是我们通过 qemu 传入的参数, 这个参数会在内核启动过程中获取到
+
+![20241013150009](https://raw.githubusercontent.com/learner-lu/picbed/master/20241013150009.png)
+
+如果没有提供 distance 参数就会调用 numa_alloc_distance 默认初始化
+
+```c
+void __init numa_set_distance(int from, int to, int distance)
+{
+	if (!numa_distance && numa_alloc_distance() < 0)
+		return;
+	numa_distance[from * numa_distance_cnt + to] = distance;
+}
+```
+
+numa_alloc_distance 中只是简单的初始化了这个数组(一维数组模拟二维数组), 将同节点之间的距离设置为 10, 不同节点距离为 20
+
+> 10/20 是 ACPI 标准规定
+
+```c
+#define LOCAL_DISTANCE  10
+#define REMOTE_DISTANCE 20
+
+static int __init numa_alloc_distance(void)
+{
+	numa_distance = __va(phys);
+	numa_distance_cnt = cnt;
+
+	/* fill with the default distances */
+	for (i = 0; i < cnt; i++)
+		for (j = 0; j < cnt; j++)
+			numa_distance[i * cnt + j] = i == j ?
+				LOCAL_DISTANCE : REMOTE_DISTANCE;
+	printk(KERN_DEBUG "NUMA: Initialized distance table, cnt=%d\n", cnt);
+
+	return 0;
+}
+```
+
+![20241013173554](https://raw.githubusercontent.com/learner-lu/picbed/master/20241013173554.png)
 
 ## 参考
 

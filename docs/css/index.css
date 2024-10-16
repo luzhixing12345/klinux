@@ -111,9 +111,10 @@ blockquote {
     margin: 0;
     margin-top: 10px;
     margin-bottom: 16px;
-    padding: 0 1em;
+    padding: 1px 1em;
     color: #6a737d;
     border-left: 0.25em solid #dfe2e5;
+    border-radius: 3px;
 }
 
 .markdown-body code,
@@ -150,7 +151,7 @@ blockquote {
 .markdown-body table,
 .markdown-body ul {
     margin-top: 0;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
     cursor: pointer;
 }
 
@@ -407,6 +408,26 @@ ul>li>ul>li {
 .markdown-body h2 {
     padding-bottom: 0.3em;
     border-bottom: 1px solid #eaecef;
+}
+
+.markdown-body .icon-note,
+.markdown-body .icon-tip,
+.markdown-body .icon-warning,
+.markdown-body .icon-important,
+.markdown-body .icon-caution,
+.markdown-body .icon-question {
+    margin-left: 0;
+    margin-right: 1%;
+    box-shadow: none;
+    /* use default display instead of block */
+    display: inline;
+}
+
+.markdown-body blockquote div {
+    align-items: center;
+    display: flex;
+    justify-content: left;
+    margin-bottom: 5px;
 }
 
 .changeMode {
