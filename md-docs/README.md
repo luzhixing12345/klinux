@@ -10,7 +10,7 @@ linux 内核技术文档: [klinux document](https://luzhixing12345.github.io/kli
 
 阅读内核代码的主要有三种人: reader writer和hacker, 对不同的人有不同的含义,学习方法、侧重点、投入的精力也大不相同
 
-- reader 就是了解某个功能在内核的大致实现 how does it work,**一般不关心某些极端情况下(内存不足、受到攻击)的处理方法**,对于看不懂的地方也可以跳过. 而且**读一个函数一般只看主干(happy path),不管 security/debugging/tracing,经常忽略错误处理分支**
+- reader 就是了解某个功能在内核的大致实现 how does it work,一般不关心某些极端情况下(内存不足、受到攻击)的处理方法,对于看不懂的地方也可以跳过. 而且读一个函数一般只看主干(happy path),不管 security/debugging/tracing,经常忽略错误处理分支
 - writer 是给内核加feature和改bug的人,需要更进一步的知识,写代码要考虑 how not to break it(哪些地方需要加锁,按照什么顺序加锁以避免死锁,如何正确释放分配的资源等等)
 - hacker 是通过分析代码找出安全漏洞并加以利用的人,研究 how to break it,读代码恐怕更注意找出error handling分支没有覆盖的case.
 
