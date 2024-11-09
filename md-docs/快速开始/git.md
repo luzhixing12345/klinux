@@ -110,6 +110,31 @@ git config --global apply.whitespace nowarn
 patch -p1 < ./xxx.mbx
 ```
 
+## 查看两个文件夹的差异
+
+一个常见的需求是一个项目基于某一个版本的内核修改, 但是并没有留下明确的 commit 可以拆分出来, 因此需要对于当前代码和源代码的差异, 需要对比两个文件夹的差别
+
+假设项目基于 linux-6.6 代码修改, 则需要先下载 linux-6.6 的源码并初始化一个 git 仓库, 假设为 linux-6.6/
+
+要对比的项目位于 code/project-linux
+
+```bash
+diff -Nur linux-6.6 code/project-linux > changes.patch
+```
+
+> [!NOTE]
+> **顺序不可以颠倒!**, `linux-6.6` 为对比基准文件夹; `code/project-linux` 为对比的目标文件夹
+> 
+> -r 表示递归对比子文件夹, -u 表示生成 unified diff 格式
+>
+> -N 表示处理新增文件或文件夹(在 `linux-6.6` 中不存在而在 `linux-6.6-host` 中新增的文件会被包含在补丁中)
+
+此时便可以提取出修改的部分了, 要将 `changes.patch` 应用到 `linux-6.6` 文件夹,可以使用以下命令:
+
+```bash
+patch -p1 -d linux-6.6 < changes.patch
+```
+
 ## 版本切换
 
 切换到某一个大版本

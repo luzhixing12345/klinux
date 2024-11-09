@@ -22,11 +22,11 @@ pre[class*="language-diff"] .Token.HighlightToken {
 }
 
 pre[class*="language-diff"] .Token.ADD_LINE {
-    background-color: #033a16;
-    color: #aff5b4;
+    background-color: #4c5a2e;
+    padding: 2px 0;
 }
 
 pre[class*="language-diff"] .Token.SUB_LINE {
-    background-color: #67060c;
-    color: #fad2d0;
+    background-color: #563434;
+    padding: 2px 0;
 }

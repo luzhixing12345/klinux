@@ -151,7 +151,7 @@ blockquote {
 .markdown-body table,
 .markdown-body ul {
     margin-top: 0;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
     cursor: pointer;
 }
 
@@ -173,7 +173,7 @@ blockquote {
 .markdown-body code {
     padding: 0.2em 0.4em;
     margin: 0;
-    font-size: 85%;
+    font-size: 95%;
     background-color: rgba(27, 31, 35, 0.05);
     border-radius: 3px;
 }
@@ -201,13 +201,6 @@ blockquote {
 }
 
 
-
-.markdown-body ul {
-    padding-left: 0;
-    margin-top: 0;
-    margin-bottom: 0;
-}
-
 /* .markdown-body ol ol,
 .markdown-body ul ol {
     list-style-type: lower-roman;
@@ -220,13 +213,10 @@ blockquote {
     list-style-type: lower-alpha;
 } */
 
-.markdown-body ul {
+.markdown-body ul,
+.markdown-body ol {
     margin-top: 0;
     margin-bottom: 8px;
-}
-
-.markdown-body ol,
-.markdown-body ul {
     padding-left: 2em;
 }
 
