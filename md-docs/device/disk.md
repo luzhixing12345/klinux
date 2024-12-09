@@ -77,6 +77,34 @@ NCQ(native command queuing) 磁盘控制器重排序, **数据库交易日志**(
 
 ## 性能调优
 
+查看磁盘剩余空间, 发现 / 已满
+
+```bash
+$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+tmpfs            76G  3.7M   76G   1% /run
+/dev/nvme1n1p2  1.5T  1.4T  2.6G 100% /
+tmpfs           378G     0  378G   0% /dev/shm
+tmpfs           5.0M     0  5.0M   0% /run/lock
+efivarfs        512K  212K  296K  42% /sys/firmware/efi/efivars
+tmpfs           378G     0  378G   0% /run/qemu
+/dev/nvme1n1p1  511M  6.1M  505M   2% /boot/efi
+tmpfs            76G  100K   76G   1% /run/user/100
+```
+
+查看一下 / 下最大的前 20 个文件/目录
+
+```bash
+sudo du -ah / | sort -rh | head -n 20
+```
+
+> [!TIP]
+> 如果执行报错 sort: write failed: /tmp/sortneOfJZ: No space left on device 说明 /tmp 目录都已经没有空间了, 执行
+>
+> ```bash
+> sudo rm -rf /tmp/*
+> ```
+
 ## 参考
 
 - [存储器系统](https://zhuanlan.zhihu.com/p/105388861)

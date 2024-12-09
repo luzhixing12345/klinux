@@ -110,3 +110,4 @@ TMA 指 Topdown Microarchitecture Analysis
 ## 参考
 
 - [Perf的安装与简单使用](https://blog.csdn.net/qq_48201696/article/details/126381924)
+- [ebpf 如何测量函数的执行时间](https://zhuanlan.zhihu.com/p/476264071) 重要

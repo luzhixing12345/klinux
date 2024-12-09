@@ -6,8 +6,6 @@ linux 内核技术文档: [klinux document](https://luzhixing12345.github.io/kli
 
 ## 写在前面
 
-开始之前, 希望大家可以读一下陈硕写的 [如何阅读 linux 内核代码](https://www.zhihu.com/question/20541014/answer/93312920)
-
 阅读内核代码的主要有三种人: reader writer和hacker, 对不同的人有不同的含义,学习方法、侧重点、投入的精力也大不相同
 
 - reader 就是了解某个功能在内核的大致实现 how does it work,一般不关心某些极端情况下(内存不足、受到攻击)的处理方法,对于看不懂的地方也可以跳过. 而且读一个函数一般只看主干(happy path),不管 security/debugging/tracing,经常忽略错误处理分支
@@ -18,7 +16,16 @@ linux 内核技术文档: [klinux document](https://luzhixing12345.github.io/kli
 
 如果你本身就要从事内核开发,那么以上这些都不是问题.对于这用户态写server的人,学内核的目的是什么,学到的知识能不能/要不要/如何用到日常开发中,这是值得思考的.
 
-逢人就推荐阅读 Linux 内核源码, 我并不赞成, 希望读者在阅读本项目其他文章之前了解自己需要什么
+我并不赞成逢人就推荐阅读 Linux 内核源码, 希望读者在阅读本项目其他文章之前了解自己需要什么
+
+> [如何阅读 linux 内核代码](https://www.zhihu.com/question/20541014/answer/93312920)
+
+## 关于代码
+
+本项目的代码基于 linux v6.6, 代码改动分为两种
+
+- 内核模块: 内核模块可以在内核外编写, 并动态装载到内核中, 非侵入式的方式不需要修改内核源码树, 本文的大部分实验性质的代码片段都保存在 modules/ 下, 在对应的章节介绍
+- Patch: 有的部分需要对内核做比较底层的修改, 没有办法通过编写内核模块完成, 因此需要直接修改内核源码树. 很多初学者在一开始对 Linux 源码带有敬畏的感觉, 不敢改动代码, 相信经过一段时间的学习读者可以逐渐理解, 熟悉, 并主动尝试修改内核代码完成自己想要的功能. 本文所有的 patch 均保存在 patches/ 下, 可以直接应用到本项目或 v6.6 源码中
 
 ## 关于笔记
 
@@ -44,9 +51,10 @@ linux 内核技术文档: [klinux document](https://luzhixing12345.github.io/kli
   - [Linux内核完全注释](http://oldlinux.org/download/CLK-5.0-WithCover.pdf)
   - 深入linux内核架构
 - 技术博客
+  - [Linux技术博客文档](https://www.cnblogs.com/pengdonglin137/p/15173512.html) 很全
   - [linux-insides](https://github.com/0xAX/linux-insides)
   - [linux-insides-zh](https://github.com/MintCN/linux-insides-zh)
-  - [术道经纬 专栏](https://www.zhihu.com/column/c_1108400140804726784)
+  - [术道经纬 专栏](https://www.zhihu.com/column/c_1108400140804726784) 绝佳
   - [Rust OS](https://os.phil-opp.com/zh-CN/)
   - [osdev wiki](https://wiki.osdev.org/)
   - [Linux技术 专栏](https://www.zhihu.com/column/c_1445694677312245760)

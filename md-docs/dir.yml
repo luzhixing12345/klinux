@@ -26,6 +26,8 @@ mm:
 - mmio: 14
 - LRU: 15
 - MGLRU: 16
+- page: 17
+- folio: 18
 runtime:
 - ELF文件格式: 1
 - 符号表: 2
@@ -43,6 +45,7 @@ kernel:
 - lock: 5
 - syscall: 6
 - poll: 7
+- module: 8
 arch:
 - cpu: 1
 - cache: 2
@@ -97,3 +100,5 @@ cve:
 - smashex: 5
 perf:
 - perf: 1
+api:
+- mm: 1

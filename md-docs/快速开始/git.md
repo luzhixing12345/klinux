@@ -418,6 +418,13 @@ git reset --hard a1b2c3d4
 
 ## Git error "object file ... is empty"?
 
+```bash
+~/workspace$ git status
+error: object file .git/objects/77/3ce9d2d96bcdb909c1b32e5549a5965f1d30ed is empty
+error: object file .git/objects/77/3ce9d2d96bcdb909c1b32e5549a5965f1d30ed is empty
+fatal: bad object HEAD
+```
+
 [how can i fix the git error object file is empty/12371337#12371337](https://stackoverflow.com/questions/11706215/how-can-i-fix-the-git-error-object-file-is-empty/12371337#12371337)
 
 先试一下
