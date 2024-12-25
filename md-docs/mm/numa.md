@@ -429,14 +429,196 @@ static int __init numa_alloc_distance(void)
 
 ![20241013173554](https://raw.githubusercontent.com/learner-lu/picbed/master/20241013173554.png)
 
+## pglist_data
+
+Node是内存管理最顶层的结构,在NUMA架构下,CPU平均划分为多个Node,每个Node有自己的内存控制器及内存插槽.CPU访问自己Node上的内存时速度快,而访问其他CPU所关联Node的内存的速度比较慢.而UMA则被当做只有一个Node的NUMA系统.
+
+内核中使用 `struct pglist_data` 来描述一个Node节点,我们看下主要的一些变量,
+
+```c
+/*
+ * On NUMA machines, each NUMA node would have a pg_data_t to describe
+ * it's memory layout. On UMA machines there is a single pglist_data which
+ * describes the whole memory.
+ */
+typedef struct pglist_data {
+    //当前节点中包含的zone数组,如ZONE_DMA,ZONE_DMA32,ZONE_NORMAL
+	struct zone node_zones[MAX_NR_ZONES];
+	struct zonelist node_zonelists[MAX_ZONELISTS];
+    //当前节点中不同内存域zone的数量
+	int nr_zones;
+	...
+	unsigned long node_start_pfn;           //当前节点的页帧的起始值
+	unsigned long node_present_pages;       //当前节点可使用的page数量
+	unsigned long node_spanned_pages;       //包含空洞内存的内存总长度
+	int node_id;                            //节点编号
+	wait_queue_head_t kswapd_wait;          //kswapd进程的等待队列
+	wait_queue_head_t pfmemalloc_wait;      //直接内存回收过程中的进程等待队列
+	struct task_struct *kswapd;	            //指向该结点的kswapd进程的task_struct
+	int kswapd_order;                       //kswap回收页面大小
+    enum zone_type kswapd_classzone_idx;    //kswap扫描的内存域范围
+	...
+	//每个节点的保留内存
+	unsigned long		totalreserve_pages;
+
+	//zone reclaim becomes active if more unmapped pages exist.
+	unsigned long		min_unmapped_pages;
+    //当前node中可回收slab页面阈值,超过该值才会回收该node内存
+	unsigned long		min_slab_pages;
+    ...
+	/* Fields commonly accessed by the page reclaim scanner */
+    //LRU链表管理结构
+	struct lruvec		lruvec;
+    ...
+} pg_data_t;
+```
+
+pglist_data 的结构体字段可以分为三个部分:
+
+1. 内存管理域,比如包括的zone类型,以及该Node管理的内存范围等.
+2. kswap内存回收相关
+3. LRU链表相关
+
+[kswap](./kswapd.md) 和 [LRU](./LRU.md) 我们在其他部分进行详细介绍, 这里不做展开
+
+## zone
+
+在 Linux 内核中,内存分为不同的 **ZONE**(内存区),用于管理和分配物理内存. 每个物理内存节点(NUMA 节点)都有一组 **ZONE**.
+
+| **ZONE 类型**    | **用途**                                                   | **范围**                   | **特点**                                                                 |
+|--|--|--|--|
+| **ZONE_DMA**| 提供适用于早期 DMA 设备的内存.| 0 - 16 MB            | 为低地址物理内存保留,现代系统较少使用,保留兼容性.                                |
+| **ZONE_DMA32**(如果存在)    | 为 32 位设备提供可直接访问的内存.                           | 0 - 4 GB             | 支持需要 32 位地址的设备,常见于 x86_64 等 64 位架构.                       |
+| **ZONE_NORMAL**   | 提供可直接映射到内核虚拟地址空间的内存.                     | 16MB~896MB        | 用于核心数据结构(如页表、内核栈),内核直接管理和访问.                             |
+| **ZONE_HIGHMEM**(仅 32 位架构)  | 管理超出内核直接映射范围的高端内存(仅 32 位架构).           | 4 GB 以上             | 需要页表映射访问,在 64 位架构中由 ZONE_NORMAL 管理,无需此 ZONE.            |
+| **ZONE_MOVABLE**  | 分配可移动内存(如用户空间内存、页面缓存).                  | 动态调整                   | 支持内存热插拔和页迁移,提高内存管理灵活性,适用于 NUMA 和大规模服务器.             |
+| **ZONE_DEVICE**(如果存在)   | 管理特殊设备内存(如 PMEM、GPU 内存).                      | 依硬件特定                 | 支持新型硬件(如 CXL 和 HMM),不可用于普通分配器,适合设备专用内存.                  | 
+
+因此在x86_64的机器上, 去掉 32 位相关的 ZONE 后主要有以下几种Zone类型:
+
+```bash
+$ cat /proc/zoneinfo | grep -w zone
+Node 0, zone      DMA
+Node 0, zone    DMA32
+Node 0, zone   Normal
+Node 0, zone  Movable
+Node 0, zone   Device
+```
+
+内存域Zone用 `struct zone` 描述
+
+```c
+struct zone {
+	/* Read-mostly fields */
+
+	//每个zone的min、low、high水位值
+	unsigned long watermark[NR_WMARK];
+
+	unsigned long nr_reserved_highatomic;
+
+    //每个zone的预留内存,有些进程只能使用某些低地址的zone空间,但是在极端情况下
+    //有些进程本来是可以使用高地址zone,但是可能此时系统内存刚好被占用,就会去
+    //使用这些低地址zone的内存,导致后续一些进程即使高地址zone还有空闲内存,但还是
+    //无法获得内存.因此需要为每个zone预留一部分内存,保证跨zone内存分配有上限
+    //预留的值可通过/proc/sys/vm/lowmem_reserve_ratio设置
+	long lowmem_reserve[MAX_NR_ZONES];
+
+	int node;
+	struct pglist_data	*zone_pgdat; //指向所属node节点
+	struct per_cpu_pageset __percpu *pageset; //每CPU保留一些页面,避免自旋锁冲突
+
+	unsigned long		zone_start_pfn; //该内存域起始页帧地址
+	unsigned long		managed_pages;  //该zone中被伙伴系统管理的页面数量
+	unsigned long		spanned_pages;  //该zone包含的总页数,包含空洞
+	unsigned long		present_pages;  //该zone包含的总页数,不包含空洞
+    //内存域名字,如"DMA", "NROMAL"
+	const char		*name;
+    ...
+    //页面使用状态的信息,用于伙伴系统的,每个元素对应不同阶page大小
+    //目前系统上有11种不同大小的页面,从2^0 - 2^10,即4k-4M大小的页面
+	struct free_area	free_area[MAX_ORDER];
+
+	/* zone flags, see below */
+	unsigned long		flags;
+    ...
+} ____cacheline_internodealigned_in_smp;
+```
+
+- 第一部分为zone的水位值watermark,包括MIN、LOW、HIGH三个水位, 用于内存回收压力的判断
+- 第二部分就是内存域的描述,比如管理的内存范围以及page数量
+- 第三部分就是free_area,用于管理伙伴系统上11个不同大小的page页面
+
+查看系统当前各个node的ZONE管理区
+
+```bash
+cat /proc/zoneinfo |grep -E "zone| free|managed"
+```
+
+### watermark(水位线)
+
+系统内存的每个node上都有不同的zone,每个zone的内存都有对应的水位线,当内存使用达到某个阈值时就会触发相应动作,比如直接回收内存,或者启动kswap进行回收内存.我们可以通过查看 `/proc/zoneinfo` 来确认每个zone的min、low、high水位值.
+
+```bash
+~$ cat /proc/zoneinfo | grep -E "Node|min|low|high "
+Node 1, zone   Normal
+        min      15328
+        low      147442
+        high     279556
+Node 3, zone   Normal
+        min      1916
+        low      18429
+        high     34942
+```
+
+水位线的值由 `/proc/sys/vm/min_free_kbytes` 参数控制
+
+```c
+int __meminit init_per_zone_wmark_min(void)
+{
+	unsigned long lowmem_kbytes;
+	int new_min_free_kbytes;
+    //获取系统空闲内存值,扣除每个zone的high水位值后的总和
+	lowmem_kbytes = nr_free_buffer_pages() * (PAGE_SIZE >> 10);
+    //根据上述公式计算new_min_free_kbytes值
+	new_min_free_kbytes = int_sqrt(lowmem_kbytes * 16);
+
+	if (new_min_free_kbytes > user_min_free_kbytes) {
+		min_free_kbytes = new_min_free_kbytes;
+        //最小128k
+		if (min_free_kbytes < 128)
+			min_free_kbytes = 128;
+        //最大65M,但是这只是系统初始化的值,可以通过proc接口设置范围外的值
+		if (min_free_kbytes > 65536)
+			min_free_kbytes = 65536;
+	} else {
+		pr_warn("min_free_kbytes is not updated to %d because user defined value %d is preferred\n",
+				new_min_free_kbytes, user_min_free_kbytes);
+	}
+    //设置每个zone的min low high水位值
+	setup_per_zone_wmarks();
+	refresh_zone_stat_thresholds();
+    //设置每个zone为其他zone的保留内存
+	setup_per_zone_lowmem_reserve();
+	setup_per_zone_inactive_ratio();
+	return 0;
+}
+
+```
+
+## libnuma
+
+- **default**:仅在本地节点分配,即程序运行节点
+- **bind**:仅在指定节点上分配
+- **interleavel**:在所有节点交叉分配
+- **preferred**:先在指定节点上分配,失败则可在其他节点上分配
+
 ## 参考
 
 - [深入理解Linux内存管理 专栏](https://www.zhihu.com/column/c_1444822980567805952)
 - [Linux内存管理 专栏](https://www.zhihu.com/column/c_1543333099974721536)
 - [zhou-yuxin's blog](https://zhou-yuxin.github.io/)
 - [内存管理相关数据结构之pg_data_t](https://www.cnblogs.com/linhaostudy/p/12679441.html)
-- [articles](https://zhou-yuxin.github.io/articles/2018/Linux%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E2%80%94%E2%80%94%E8%8E%B7%E5%8F%96%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80%E3%80%81%E5%88%92%E5%88%86%E5%86%85%E5%AD%98%E5%8C%BA%E4%B8%8E%E5%88%9B%E5%BB%BANUMA%E8%8A%82%E7%82%B9/index.html)
-- [Linux物理内存管理_获取物理内存布局,划分内存区与创建NUMA节点](https://zhou-yuxin.github.io/articles/2018/Linux物理内存管理_获取物理内存布局,划分内存区与创建NUMA节点/index.html)
+- [Linux物理内存管理_获取物理内存布局、划分内存区与创建NUMA节点](https://zhou-yuxin.github.io/articles/2018/Linux%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%E2%80%94%E2%80%94%E8%8E%B7%E5%8F%96%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80%E3%80%81%E5%88%92%E5%88%86%E5%86%85%E5%AD%98%E5%8C%BA%E4%B8%8E%E5%88%9B%E5%BB%BANUMA%E8%8A%82%E7%82%B9/index.html)
 - [Performance Analysis of UMA and NUMA Models](https://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=09667FE3B088F3927E29EF7518DDA56F?doi=10.1.1.414.3607&rep=rep1&type=pdf)
 - [理解 NUMA 架构](https://zhuanlan.zhihu.com/p/534989692)
 - [linuxhint understanding_numa_architecture](https://linuxhint.com/understanding_numa_architecture/)
@@ -448,3 +630,4 @@ static int __init numa_alloc_distance(void)
 - [cache-coherence-protocols-in-multiprocessor-system](https://www.geeksforgeeks.org/cache-coherence-protocols-in-multiprocessor-system/)
 - [NUMA与UEFI](https://zhuanlan.zhihu.com/p/26078552)
 - [NUMA 的平衡和调度](https://zhuanlan.zhihu.com/p/488116143)
+- [内存管理之内存节点Node、Zone、Page](https://blog.csdn.net/u010039418/article/details/109632502)

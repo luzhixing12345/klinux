@@ -179,3 +179,7 @@ pre[class*="language-c"] .Token.GotoLabel {
 pre[class*="language-c"] .Token.COMMENT {
     color: #6A9955;
 }
+
+pre[class*="language-c"] .Token.VARARGS {
+    color: #C1CCCC;
+}

@@ -56,6 +56,8 @@ linux 内核技术文档: [klinux document](https://luzhixing12345.github.io/kli
   - [linux-insides-zh](https://github.com/MintCN/linux-insides-zh)
   - [术道经纬 专栏](https://www.zhihu.com/column/c_1108400140804726784) 绝佳
   - [Rust OS](https://os.phil-opp.com/zh-CN/)
+  - [wowotech](http://www.wowotech.net/) 很好
+  - [banshanjushi](https://www.cnblogs.com/banshanjushi) 很好
   - [osdev wiki](https://wiki.osdev.org/)
   - [Linux技术 专栏](https://www.zhihu.com/column/c_1445694677312245760)
   - [BSP-路人甲](https://www.cnblogs.com/jianhua1992)

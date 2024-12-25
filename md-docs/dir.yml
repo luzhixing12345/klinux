@@ -28,6 +28,10 @@ mm:
 - MGLRU: 16
 - page: 17
 - folio: 18
+- 内存回收: 19
+- autonuma: 20
+- kswapd: 21
+- rmap: 22
 runtime:
 - ELF文件格式: 1
 - 符号表: 2

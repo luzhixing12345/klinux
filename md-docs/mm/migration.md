@@ -323,6 +323,33 @@ static int migrate_pages_batch(struct list_head *from,
     - remove_migration_ptes 迁移页表,通过反向映射机制RMAP来建立new page的映射关系
     - migrate_folio_done 清空 src folio
 
+## 页面降级(demotion)
+
+系统接口中的 demotion_enabled 变量可以控制是否降级页面, 可以将其设置为 true/false 来选择开启/关闭页面降级功能
+
+```bash
+$ ls /sys/kernel/mm/numa/
+demotion_enabled
+$ cat /sys/kernel/mm/numa/demotion_enabled
+false
+```
+
+其对应内核中的 numa_demotion_enabled 变量, 改变量的唯一影响在 mm/vmscan.c 的 `can_demotion` 函数
+
+```c
+static bool can_demote(int nid, struct scan_control *sc)
+{
+	if (!numa_demotion_enabled)
+		return false;
+	if (sc && sc->no_demotion)
+		return false;
+	if (next_demotion_node(nid) == NUMA_NO_NODE)
+		return false;
+
+	return true;
+}
+```
+
 ## tracing
 
 ```c
