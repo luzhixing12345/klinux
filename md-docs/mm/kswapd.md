@@ -318,6 +318,9 @@ typedef struct pglist_data {
 } pg_data_t;
 ```
 
+
+页面回收算法尽量不scan整个系统的全部进程地址空间,毕竟那是一个比较笨的办法.回收算法可以考虑收缩内存cache,也可以遍历inactive_list来试图完成本次reclaim数目的要求(该链表中有些page不和任何进程相关),如果通过这些方法释放了足够多的page frame,那么一切都搞定了,不需要scan进程地址空间.当然,情况并非总是那么美好,有时候,必须启动进程物理页面回收过程才能满足页面回收的要求.
+
 ## 参考
 
 - [kswapd进程工作原理(一)_初始化及触发](https://blog.csdn.net/u010039418/article/details/103443581)

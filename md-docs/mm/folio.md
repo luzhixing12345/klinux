@@ -163,13 +163,41 @@ static __always_inline int Page##uname(struct page *page)		\
 { return test_bit(PG_##lname, &policy(page, 0)->flags); }
 ```
 
-简而言之, `PAGEFLAG(Active, active, PF_HEAD)` 实际上就相当于定义了一大串的
+简而言之, `PAGEFLAG(Referenced, referenced, PF_HEAD)` 实际上就相当于定义了一大串的
 
-- folio_test_active
-- folio_set_active
-- folio_clear_active
+```c
+static __always_inline bool folio_test_referenced(struct folio *folio)
+{
+	return test_bit(PG_referenced, folio_flags(folio, FOLIO_PF_HEAD));
+}
+static __always_inline int PageReferenced(struct page *page)
+{
+	return test_bit(PG_referenced, &PF_HEAD(page, 0)->flags);
+}
+static __always_inline void folio_set_referenced(struct folio *folio)
+{
+	set_bit(PG_referenced, folio_flags(folio, FOLIO_PF_HEAD));
+}
+static __always_inline void SetPageReferenced(struct page *page)
+{
+	set_bit(PG_referenced, &PF_HEAD(page, 1)->flags);
+}
+static __always_inline void folio_clear_referenced(struct folio *folio)
+{
+	clear_bit(PG_referenced, folio_flags(folio, FOLIO_PF_HEAD));
+}
+static __always_inline void ClearPageReferenced(struct page *page)
+{
+	clear_bit(PG_referenced, &PF_HEAD(page, 1)->flags);
+}
+```
 
-> 这种写法从效率上讲确实很高, 但是第一次读的时候确实很难受了...
+> [!TIP]
+> 看不清的话可以把 include/linux/page-flags.h 这部分宏定义 copy 下来然后用预处理器展开一下
+>
+> ```bash
+> gcc -E a.c -i a.i
+> ```
 
 ## 参考
 

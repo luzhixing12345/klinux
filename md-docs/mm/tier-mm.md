@@ -11,6 +11,17 @@
 
 新兴分层内存系统面临的这些独特挑战激发了改进操作系统页面管理的研究.人们主要关注加快内存层之间的页面迁移. Nimble [51]通过利用透明大页面(THP)、页面的多线程迁移以及多个页面的并发迁移来改进页面迁移.透明页面放置(TPP)[41]扩展了Linux中现有的NUMA平衡方案,以支持快内存和慢内存之间的异步页面降级和同步页面升级. Memtis [34] 和 TMTS [22] 使用硬件性能计数器来减轻页面访问跟踪的开销,并使用后台线程定期和异步提升页面.
 
+修改 /etc/default/grub
+
+```bash
+GRUB_CMDLINE_LINUX_DEFAULT="efi=nosoftreserve"
+```
+
+```bash
+sudo update-grub2
+sudo reboot
+```
+
 ## 参考
 
 - [MATRYOSHKA: Non-Exclusive Memory Tiering via Transactional Page Migration](https://arxiv.org/pdf/2401.13154)
