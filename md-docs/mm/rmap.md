@@ -160,15 +160,21 @@ static int try_to_unmap_anon(struct page *page) {
 struct anon_vma_chain {
 	struct vm_area_struct *vma;
 	struct anon_vma *anon_vma;
-	struct list_head same_vma;   /* locked by mmap_sem & page_table_lock */
-	struct list_head same_anon_vma;	/* locked by anon_vma->lock */
+	struct list_head same_vma;   /* locked by mmap_lock & page_table_lock */
+	struct rb_node rb;			/* locked by anon_vma->rwsem */
 };
 ```
 
-每个anon_vma_chain(AVC)维护两个链表
+anon_vma_chain 是连接 VMA 和 anon_vma(AV)之间的桥梁, 每个anon_vma_chain(AVC)维护两个关键数据结构
 
-- same_vma:与给定vma相关联的所有anon_vma
-- same_anon_vma:与给定anon_vma相关联的所有vma
+- same_vma: 链表节点,通常把anon_vma_chain添加到vma->anon_vma_chain链表中
+- rb: 红黑树节点,通常把anon_vma_chain添加到anon_vma->rb_root的红黑树
+
+AV AVC VMA 三者结构体字段以及相关数据结构关系如下图所示
+
+![20250103102616](https://raw.githubusercontent.com/learner-lu/picbed/master/20250103102616.png)
+
+![20250103215950](https://raw.githubusercontent.com/learner-lu/picbed/master/20250103215950.png)
 
 ## 内核实现
 

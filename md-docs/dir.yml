@@ -94,7 +94,7 @@ device:
 - pcie: 5
 others:
 - safety: 1
-- Q&A: 2
+- os面试题: 2
 - kernel-code: 3
 cve:
 - dirtycow: 1
