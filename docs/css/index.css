@@ -199,33 +199,18 @@ blockquote {
     border: 0;
     cursor: pointer;
 }
-
-
-/* .markdown-body ol ol,
-.markdown-body ul ol {
-    list-style-type: lower-roman;
-}
-
-.markdown-body ol ol ol,
-.markdown-body ol ul ol,
-.markdown-body ul ol ol,
-.markdown-body ul ul ol {
-    list-style-type: lower-alpha;
-} */
+ 
+/* ul lo related css */
 
 .markdown-body ul,
 .markdown-body ol {
     margin-top: 0;
     margin-bottom: 8px;
-    padding-left: 2em;
+    padding-left: 1.75em;
 }
 
-.markdown-body ol ol,
-.markdown-body ol ul,
-.markdown-body ul ol,
-.markdown-body ul ul {
-    margin-top: 0;
-    margin-bottom: 0;
+.markdown-body ul {
+    padding-left: 1em;
 }
 
 .markdown-body li {
@@ -240,9 +225,20 @@ blockquote {
     margin-top: 0.25em;
 }
 
-ul>li>ul>li {
+ul>li>ul>li,
+ol>li>ol>li,
+ul>li>ol>li,
+ol>li>ul>li {
+    margin-top: 0;
     margin-top: 10px;
-    /* 通过调整10px来设置上边距大小 */
+}
+
+.markdown-body ol li blockquote {
+    margin-top: 10px;
+}
+
+.markdown-body ul li blockquote {
+    margin-top: 10px;
 }
 
 /* ul 后面的文字加一个间距 */
@@ -353,19 +349,6 @@ ul>li>ul>li {
     border-radius: 2px;
 }
 
-.markdown-body ol ul,
-.markdown-body ul ol {
-    padding-left: 1em;
-    margin-top: 10px;
-}
-
-.markdown-body ol li blockquote {
-    margin-top: 10px;
-}
-
-.markdown-body ul li blockquote {
-    margin-top: 10px;
-}
 
 .markdown-body kbd {
     display: inline-block;
@@ -629,8 +612,8 @@ ul>li>ul>li {
 
 .markdown-body ul:has(input[type="checkbox"]) {
     list-style-type: none;
-    padding-left: 0.5em;
-    /* margin-bottom: 8px; */
+    padding-left: 0em;
+    margin-bottom: 8px;
 }
 
 .markdown-body input[type="checkbox"] {
