@@ -319,19 +319,19 @@ Thread ID 2 - File 'a.c' closed with FD: 4
 
   ![20240511182428](https://raw.githubusercontent.com/learner-lu/picbed/master/20240511182428.png)
 
-  > 测试代码见 [open_open.c](https://github.com/luzhixing12345/libc/blob/main/examples/fs/open_open.c)
+  > 测试代码见 [open_open.c](https://github.com/luzhixing12345/klinux/blob/main/modules/fd/open_open.c)
 
 - **open+dup**: 打开一个文件然后dup得到一个新的文件描述符, 此时虽然有两个 fd 但是对应同一个 `file`, 共享包括 flag/pos 的信息. 此时 `file` 中的 `f_count` 引用计数为 2
 
   ![20240511183938](https://raw.githubusercontent.com/learner-lu/picbed/master/20240511183938.png)
 
-  > 测试代码见 [open_dup.c](https://github.com/luzhixing12345/libc/blob/main/examples/fs/open_dup.c)
+  > 测试代码见 [open_dup.c](https://github.com/luzhixing12345/klinux/blob/main/modules/fd/open_dup.c)
 
 - **open+fork**: 打开一个文件然后 fork, 此时会有两个 task_struct, 但是它们共享同一个 `file`, 共享相同的偏移量, 因此父子进程可以分别 write 而不会覆盖
 
   ![20240511190013](https://raw.githubusercontent.com/learner-lu/picbed/master/20240511190013.png)
 
-  > 测试代码见 [open_fork.c](https://github.com/luzhixing12345/libc/blob/main/examples/fs/open_fork.c)
+  > 测试代码见 [open_fork.c](https://github.com/luzhixing12345/klinux/blob/main/modules/fd/open_fork.c)
 
 ## 参考
 
