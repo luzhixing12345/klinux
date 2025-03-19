@@ -1,9 +1,20 @@
 
-# poll
+# sync_io
 
 在linux系统中,实际上所有的I/O设备都被抽象为了文件这个概念,一切皆文件,磁盘、网络数据、终端,甚至进程间通信工具管道pipe等都被当做文件对待.
 
 在 Unix 和类 Unix 操作系统中,文件描述符(File descriptor,FD)是用于访问文件或者其他 I/O 资源的抽象句柄,例如:管道或者网络套接字.而不同的 I/O 模型会使用不同的方式操作文件描述符.
+
+大多数文件系统的默认IO操作都是缓存IO.在Linux的缓存IO机制中,操作系统会将IO的数据缓存在文件系统的页缓存(page cache).也就是说,数据会**先被拷贝到操作系统内核的缓冲区**中,然后才会从操作系统**内核的缓存区拷贝到应用程序的地址空间**中.这种做法的缺点就是,需要在应用程序地址空间和内核进行多次拷贝,这些拷贝动作所带来的CPU以及内存开销是非常大的.
+
+那为什么不能直接让磁盘控制器把数据送到应用程序的地址空间中呢?最简单的一个原因就是应用程序不能直接操作底层硬件.
+
+总的来说,IO分两阶段:
+
+- 数据准备阶段, 此时从磁盘/网卡等外设通过 DMA 控制器将数据拷贝到内核空间
+- 内核空间拷贝回用户进程缓冲区阶段
+
+![20240807124300](https://raw.githubusercontent.com/learner-lu/picbed/master/20240807124300.png)
 
 ## 阻塞式I/O模型
 
@@ -17,7 +28,7 @@
 
 ## 非阻塞式I/O模型
 
-当进程把一个文件描述符设置成非阻塞时,执行 read 和 write 等 I/O 操作会立刻返回.在 C 语言中,我们可以使用如下的方式将 fd 设置成非阻塞的
+当进程把一个文件描述符设置成非阻塞时,执行 read 和 write 等 I/O 操作会立刻返回.在 C 语言中, 我们可以通过设置 fd 的 flag 为 O_NONBLOCK 将其设置成非阻塞的
 
 ```c
 int flags = fcntl(fd, F_GETFL, 0);
@@ -28,7 +39,7 @@ fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 
 ![20240807121230](https://raw.githubusercontent.com/learner-lu/picbed/master/20240807121230.png)
 
-当进程发起IO系统调用后,如果内核缓冲区没有数据,需要到IO设备中读取,进程返回 `EAGAIN` 错误而不会被阻塞;进程发起IO系统调用后,如果内核缓冲区有数据,内核才会把数据返回进程
+**当进程发起IO系统调用后,如果内核缓冲区没有数据,需要到IO设备中读取,进程返回 `EAGAIN` 错误而不会被阻塞;进程发起IO系统调用后,如果内核缓冲区有数据,内核才会把数据返回进程**
 
 应用程序会不断轮询调用 read 直到它的返回值大于 0,这时应用程序就可以对读取操作系统缓冲区中的数据并进行操作.
 
@@ -45,18 +56,12 @@ while (1) {
 
 但是很明显, 虽然进程使用非阻塞的 I/O 操作时,可以在等待过程中执行其他任务,提高 CPU 的利用率. 但是不断地轮询操作会消耗CPU的资源, 每次由 read 系统调用陷入内核态也会产生性能开销
 
+> [!TIP]
+> 例如在一个聊天软件当中, 通信双方建立了 socket 收发信息, 如果使用一个阻塞的 IO 持续监听对方有没有发送信息, 那么此时程序直接进入 sleep 
+> 
+> 所以可以采用非阻塞的 IO, 只需要每次轮询一下查看对方是否有发送消息, 其余时间依然可以做一些其他的工作(渲染,计算等等)
+
 ## IO复用模型
-
-大多数文件系统的默认IO操作都是缓存IO.在Linux的缓存IO机制中,操作系统会将IO的数据缓存在文件系统的页缓存(page cache).也就是说,数据会**先被拷贝到操作系统内核的缓冲区**中,然后才会从操作系统**内核的缓存区拷贝到应用程序的地址空间**中.这种做法的缺点就是,需要在应用程序地址空间和内核进行多次拷贝,这些拷贝动作所带来的CPU以及内存开销是非常大的.
-
-至于为什么不能直接让磁盘控制器把数据送到应用程序的地址空间中呢?最简单的一个原因就是应用程序不能直接操作底层硬件.
-
-总的来说,IO分两阶段:
-
-- 数据准备阶段, 此时从磁盘/网卡等外设将数据拷贝到内核空间
-- 内核空间复制回用户进程缓冲区阶段
-
-![20240807124300](https://raw.githubusercontent.com/learner-lu/picbed/master/20240807124300.png)
 
 目前支持I/O多路复用的系统调用有 `select,pselect,poll,epoll`.与多进程和多线程技术相比,I/O多路复用技术的最大优势是系统开销小,**系统不必创建进程/线程**,也不必维护这些进程/线程,从而大大减小了系统的开销.
 
@@ -143,7 +148,7 @@ int poll(struct pollfd *fds, nfds_t nfds, int timeout);
 
 `poll` 返回准备好的文件描述符的数量,或者在发生错误时返回 -1. 可以通过检查 `revents` 字段来确定哪些文件描述符就绪以及发生了哪些事件. 例如我们可以写一个简单的例子来监听来自 TCP socket 和 STDIN 两个 fd 的输入情况
 
-> 示例代码见 libc 仓库的 [poll.c](https://github.com/luzhixing12345/libc/blob/main/examples/socket/poll.c) [client.c](https://github.com/luzhixing12345/libc/blob/main/examples/socket/client.c)
+> 示例代码见 [poll.c](https://github.com/luzhixing12345/klinux/blob/main/modules/socket/poll.c) [client.c](https://github.com/luzhixing12345/klinux/blob/main/modules/socket/client.c)
 
 ![wmklerjkl](https://raw.githubusercontent.com/learner-lu/picbed/master/wmklerjkl.gif)
 
@@ -185,7 +190,7 @@ int poll(struct pollfd *fds, nfds_t nfds, int timeout);
    - `maxevents`: `events` 数组的大小.
    - `timeout`: 等待的超时时间(毫秒),-1 表示无限期等待.
 
-示例代码见 [epoll.c](https://github.com/luzhixing12345/libc/blob/main/examples/socket/epoll.c)
+示例代码见 [epoll.c](https://github.com/luzhixing12345/klinux/blob/main/modules/socket/epoll.c)
 
 主要步骤包括
 

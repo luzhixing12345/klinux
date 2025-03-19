@@ -47,8 +47,9 @@ kernel:
 - workqueue: 4
 - lock: 5
 - syscall: 6
-- poll: 7
-- module: 8
+- sync_io: 7
+- async_io: 8
+- module: 9
 arch:
 - cpu: 1
 - cache: 2
@@ -58,6 +59,8 @@ arch:
 - io: 6
 - bus: 7
 - interrupt: 8
+- dram: 9
+- nvm: 10
 proc:
 - schedule: 1
 - nice: 2
@@ -74,6 +77,8 @@ net:
 - udp: 4
 - tcp: 5
 - tools: 6
+- quic: 7
+- rdma: 8
 fs:
 - storage: 1
 - filesystem: 2
@@ -90,8 +95,7 @@ device:
 - disk: 1
 - ssd: 2
 - driver: 3
-- io_uring: 4
-- pcie: 5
+- pcie: 4
 others:
 - safety: 1
 - 面试经验: 2
