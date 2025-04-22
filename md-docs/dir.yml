@@ -50,6 +50,7 @@ kernel:
 - sync_io: 7
 - async_io: 8
 - module: 9
+- lock_stat: 10
 arch:
 - cpu: 1
 - cache: 2
