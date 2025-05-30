@@ -128,9 +128,9 @@ position:
   # 二级条目左间距
   dir_second_item_margin_left: 5px
 
-  navigator_margin: 10px
+  navigator_margin: 0px
 
-  navigator_item_margin_left: -10px
+  navigator_item_margin_left: -20px
 
   # 图片被放大后的宽度
   image_preview_width: 60%

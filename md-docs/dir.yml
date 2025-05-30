@@ -1,6 +1,6 @@
 .:
 - README: 1
-快速开始:
+tutorial:
 - 编译内核: 1
 - 调试内核: 2
 - 开发环境搭建: 3
@@ -8,6 +8,7 @@
 - 制作linux发行版: 5
 - 邮件订阅: 6
 - git: 7
+- 打包发布库: 8
 mm:
 - 物理内存探测: 1
 - 虚拟地址转换: 2
@@ -42,15 +43,23 @@ runtime:
 - vsdo: 8
 kernel:
 - init: 1
-- atomic: 2
-- rcu: 3
-- workqueue: 4
-- lock: 5
-- syscall: 6
-- sync_io: 7
-- async_io: 8
-- module: 9
-- lock_stat: 10
+- schedule: 2
+- atomic: 3
+- nice: 4
+- rcu: 5
+- manage: 6
+- workqueue: 7
+- signal: 8
+- lock: 9
+- cgroup: 10
+- syscall: 11
+- task_struct: 12
+- sync_io: 13
+- rb-tree: 14
+- async_io: 15
+- fork: 16
+- module: 17
+- lock_stat: 18
 arch:
 - cpu: 1
 - cache: 2
@@ -62,15 +71,6 @@ arch:
 - interrupt: 8
 - dram: 9
 - nvm: 10
-proc:
-- schedule: 1
-- nice: 2
-- manage: 3
-- signal: 4
-- cgroup: 5
-- task_struct: 6
-- rb-tree: 7
-- fork: 8
 net:
 - net-arch: 1
 - ip: 2
@@ -80,6 +80,8 @@ net:
 - tools: 6
 - quic: 7
 - rdma: 8
+- socket: 9
+- epoll: 10
 fs:
 - storage: 1
 - filesystem: 2
@@ -97,17 +99,11 @@ device:
 - ssd: 2
 - driver: 3
 - pcie: 4
-others:
-- safety: 1
-- 面试经验: 2
-- kernel-code: 3
 cve:
 - dirtycow: 1
 - dirtypipe: 2
 - sudo: 3
 - meltdown: 4
 - smashex: 5
-perf:
+tools:
 - perf: 1
-api:
-- mm: 1

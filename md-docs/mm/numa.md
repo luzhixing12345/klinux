@@ -253,7 +253,7 @@ void __init x86_numa_init(void)
 
 ### NUMA 启动
 
-如果以前文 [调试内核](../快速开始/调试内核.md) 中的参数启动那么就是一个非常简单的系统, 如果以一个比较复杂的参数启动 qemu
+如果以前文 [调试内核](../tutorial/调试内核.md) 中的参数启动那么就是一个非常简单的系统, 如果以一个比较复杂的参数启动 qemu
 
 ```bash
 taskset -c 0-15 $(QEMU) -name guest=vm0 \

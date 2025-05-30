@@ -1,4 +1,3 @@
-
 const divElement = document.getElementsByClassName("header-navigator")[0]; // 获取目标div元素
 
 // 监听窗口尺寸变化
@@ -29,37 +28,58 @@ function handleResize() {
             var docViewBottom = docViewTop + window.innerHeight;
             var elemTop = elem.offsetTop;
             var elemBottom = elemTop + elem.offsetHeight;
-            return ((elemTop <= docViewBottom) && (elemBottom >= docViewTop));
+
+            // 修改判定逻辑：
+            // 1. 元素顶部在视图中
+            // 2. 元素底部在视图中
+            // 3. 元素完全包含视图
+            return (
+                (elemTop >= docViewTop && elemTop <= docViewBottom) ||
+                (elemBottom >= docViewTop && elemBottom <= docViewBottom) ||
+                (elemTop <= docViewTop && elemBottom >= docViewBottom)
+            );
         }
 
         var headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
         var previousHeading;
+        var currentHeading;
 
         window.addEventListener('scroll', function () {
             var found = false;
+            // 记录最接近视口顶部的可见标题
+            var closestHeading = null;
+            var closestDistance = Infinity;
+
             for (var heading of headings) {
-                if (!found && isScrolledIntoView(heading)) {
-                    var heading_id = heading.id;
-                    var link = document.querySelector(`a[href="#${heading_id}"]`);
-                    if (link) {
-                        link.style.fontWeight = 'bold';
-                        previousHeading = heading;
+                if (isScrolledIntoView(heading)) {
+                    var distance = Math.abs(heading.getBoundingClientRect().top);
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestHeading = heading;
                         found = true;
-                    }
-                } else {
-                    var heading_id = heading.id;
-                    var link = document.querySelector(`a[href="#${heading_id}"]`);
-                    if (link) {
-                        link.style.fontWeight = 'normal';
                     }
                 }
             }
 
-            // If no heading is found, set the previous heading to bold
-            if (!found && previousHeading) {
-                var previousLink = document.querySelector(`a[href="#${previousHeading.id}"]`);
-                if (previousLink) {
-                    previousLink.style.fontWeight = 'bold';
+            // 重置所有链接的样式
+            var allLinks = document.querySelectorAll('.header-navigator a');
+            allLinks.forEach(link => link.style.fontWeight = 'normal');
+
+            // 设置最近的标题链接为粗体
+            if (found && closestHeading) {
+                var link = document.querySelector(`a[href="#${closestHeading.id}"]`);
+                if (link) {
+                    // set color to black
+                    link.style.color = 'black';
+                    link.style.fontWeight = '900';  // 使用更重的字重
+                    currentHeading = closestHeading;
+                }
+            } else if (!found && currentHeading) {
+                // 如果没有找到可见的标题，保持当前标题的高亮状态
+                var link = document.querySelector(`a[href="#${currentHeading.id}"]`);
+                if (link) {
+                    link.style.color = 'black';
+                    link.style.fontWeight = '900';  // 使用更重的字重
                 }
             }
         });

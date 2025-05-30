@@ -5,9 +5,9 @@
 // - [ ] xxx
 // - [x] aaa
 var inputs = document.getElementsByTagName('input')
-for(var i=0;i<inputs.length;i++) {
+for (var i = 0; i < inputs.length; i++) {
     inputs[i].removeAttribute('disabled')
-    inputs[i].onclick = function() {
+    inputs[i].onclick = function () {
         return false;
     }
 }
@@ -31,19 +31,26 @@ if (savedTheme !== null) {
         markdown_part.className = 'markdown-body markdown-dark'
     }
 }
-links.forEach(function(link) {
-  if (link.href === currentUrl) {
-    link.scrollIntoView({block: 'center', inline:'nearest', container: dirTree });
-    if (savedTheme) {
-        if (savedTheme == 'dark') {
-            link.classList.add("link-active-dark");
-        } else {
-            link.classList.add("link-active");
+links.forEach(function (link) {
+    if (link.href === currentUrl) {
+        // 检查这个链接是否是一级目录链接（即父元素li下面有ul子元素）
+        const parentLi = link.parentElement;
+        const hasSubUl = parentLi.querySelector('ul');
+
+        // 只对非一级目录的链接（即文件链接）应用active样式
+        if (!hasSubUl) {
+            link.scrollIntoView({ block: 'center', inline: 'nearest', container: dirTree });
+            if (savedTheme) {
+                if (savedTheme == 'dark') {
+                    link.classList.add("link-active-dark");
+                } else {
+                    link.classList.add("link-active");
+                }
+            } else {
+                link.classList.add("link-active");
+            }
         }
-    } else {
-        link.classList.add("link-active");
     }
-  }
 });
 
 // 代码段可编辑, 可选中
@@ -59,15 +66,15 @@ document.onkeydown = function (e) {
         // 找到第一个 change-article 类的 button
         var button = document.querySelector(".change-article");
         if (button.getAttribute('url') !== '.') {
-            window.location= button.getAttribute('url')
+            window.location = button.getAttribute('url')
         }
     } else if (e.key === "ArrowRight") {
         // console.log("右箭头键被按下");
         // 找到最后一个 change-article 类的 button
         var button = document.querySelector(".change-article:last-child");
         if (button.getAttribute('url') !== '.') {
-            window.location= button.getAttribute('url')
+            window.location = button.getAttribute('url')
         }
-        
+
     }
 }

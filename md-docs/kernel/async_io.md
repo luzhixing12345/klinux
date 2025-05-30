@@ -7,7 +7,7 @@ io_uring 是 Linux 内核提供的一种高性能异步 I/O 框架,旨在解决�
 
 ## sync & async
 
-前文 [epoll](./epoll.md) 一文中我们介绍了同步 IO 
+前文 [sync_io](./sync_io.md) 一文中我们介绍了同步 IO 
 
 ### **阻塞 I/O 和 非阻塞 I/O 的同步特性**
 1. **阻塞 I/O(Blocking I/O)**
