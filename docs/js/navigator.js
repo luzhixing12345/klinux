@@ -69,8 +69,9 @@ function handleResize() {
             if (found && closestHeading) {
                 var link = document.querySelector(`a[href="#${closestHeading.id}"]`);
                 if (link) {
-                    // set color to black
-                    link.style.color = 'black';
+                    // 根据当前主题设置颜色
+                    var isDarkMode = document.querySelector('.markdown-body').classList.contains('markdown-dark');
+                    link.style.color = isDarkMode ? 'white' : 'black';
                     link.style.fontWeight = '900';  // 使用更重的字重
                     currentHeading = closestHeading;
                 }
@@ -78,7 +79,9 @@ function handleResize() {
                 // 如果没有找到可见的标题，保持当前标题的高亮状态
                 var link = document.querySelector(`a[href="#${currentHeading.id}"]`);
                 if (link) {
-                    link.style.color = 'black';
+                    // 根据当前主题设置颜色
+                    var isDarkMode = document.querySelector('.markdown-body').classList.contains('markdown-dark');
+                    link.style.color = isDarkMode ? 'white' : 'black';
                     link.style.fontWeight = '900';  // 使用更重的字重
                 }
             }

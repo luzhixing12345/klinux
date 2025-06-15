@@ -60,6 +60,7 @@ kernel:
 - fork: 16
 - module: 17
 - lock_stat: 18
+- kallsyms: 19
 arch:
 - cpu: 1
 - cache: 2
@@ -107,3 +108,4 @@ cve:
 - smashex: 5
 tools:
 - perf: 1
+- fault-injection: 2

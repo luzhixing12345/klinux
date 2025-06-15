@@ -1,4 +1,3 @@
-
 var global_sun_src;
 var global_moon_src;
 
@@ -20,6 +19,11 @@ function changeToLight(body, markdown_part, box, change_article_boxes) {
     var allLinks = navigator.querySelectorAll('a');
     for (var i = 0; i < allLinks.length; i++) {
         allLinks[i].style.color = 'black';
+    }
+    // 重新应用激活状态的样式
+    var activeLink = navigator.querySelector('a[style*="font-weight: 900"], a[style*="fontWeight: 900"]');
+    if (activeLink) {
+        activeLink.style.color = 'black';
     }
 
     var activate_links = dirTree.querySelectorAll('.link-active-dark');
@@ -52,6 +56,11 @@ function changeToDark(body, markdown_part, box, change_article_boxes) {
     var allLinks = navigator.querySelectorAll('a');
     for (var i = 0; i < allLinks.length; i++) {
         allLinks[i].style.color = 'white';
+    }
+    // 重新应用激活状态的样式
+    var activeLink = navigator.querySelector('a[style*="font-weight: 900"], a[style*="fontWeight: 900"]');
+    if (activeLink) {
+        activeLink.style.color = 'white';
     }
 
     var activate_links = dirTree.querySelectorAll('.link-active');
