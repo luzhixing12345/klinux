@@ -61,6 +61,8 @@ kernel:
 - module: 17
 - lock_stat: 18
 - kallsyms: 19
+- list: 20
+- epoll: 21
 arch:
 - cpu: 1
 - cache: 2
