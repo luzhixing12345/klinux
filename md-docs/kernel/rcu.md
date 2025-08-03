@@ -25,3 +25,5 @@ RCU的设计思想是明确的,通过新老指针替换的方式来实现免锁�
 - [深入理解Linux内核 RCU 机制](https://xie.infoq.cn/article/b8445304d95499bae688a9f28)
 - [Linux并发与同步(四)RCU](https://carlyleliu.github.io/2021/Linux%E5%B9%B6%E5%8F%91%E4%B8%8E%E5%90%8C%E6%AD%A5%EF%BC%88%E5%9B%9B%EF%BC%89RCU/)
 - [RCU publications](https://docs.google.com/document/d/1X0lThx8OK0ZgLMqVoXiR4ZrGURHrXK6NyLRbeXe3Xac/edit#heading=h.gidbhbrm8o5x) 很好
+- [【原创】Linux RCU原理剖析（一）-初窥门径](https://www.cnblogs.com/LoyenWang/p/12681494.html)
+- [【原创】Linux RCU原理剖析（二）-渐入佳境](https://www.cnblogs.com/LoyenWang/p/12770878.html)

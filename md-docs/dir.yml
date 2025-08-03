@@ -63,6 +63,7 @@ kernel:
 - kallsyms: 19
 - list: 20
 - epoll: 21
+- per-cpu: 22
 arch:
 - cpu: 1
 - cache: 2
@@ -74,6 +75,7 @@ arch:
 - interrupt: 8
 - dram: 9
 - nvm: 10
+- iommu: 11
 net:
 - net-arch: 1
 - ip: 2
