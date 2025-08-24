@@ -32,6 +32,7 @@ mm:
 - kswapd: 20
 - rmap: 21
 - ksm: 22
+- shared-memory: 23
 runtime:
 - ELF文件格式: 1
 - 符号表: 2
@@ -41,6 +42,7 @@ runtime:
 - 库与运行库: 6
 - execve: 7
 - vsdo: 8
+- ipc: 9
 kernel:
 - init: 1
 - schedule: 2
@@ -62,8 +64,8 @@ kernel:
 - lock_stat: 18
 - kallsyms: 19
 - list: 20
-- epoll: 21
 - per-cpu: 22
+- pipe: 23
 arch:
 - cpu: 1
 - cache: 2
