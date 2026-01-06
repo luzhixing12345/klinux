@@ -33,13 +33,13 @@ if (savedTheme !== null) {
 }
 links.forEach(function (link) {
     if (link.href === currentUrl) {
-        // 检查这个链接是否是一级目录链接（即父元素li下面有ul子元素）
+        // 检查这个链接是否是一级目录链接(即父元素li下面有ul子元素)
         const parentLi = link.parentElement;
         const hasSubUl = parentLi.querySelector('ul');
 
-        // 只对非一级目录的链接（即文件链接）应用active样式
+        // 只对非一级目录的链接(即文件链接)应用active样式
         if (!hasSubUl) {
-            link.scrollIntoView({ block: 'center', inline: 'nearest', container: dirTree });
+            link.scrollIntoView({ block: 'center', inline: 'nearest'});
             if (savedTheme) {
                 if (savedTheme == 'dark') {
                     link.classList.add("link-active-dark");

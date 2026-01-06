@@ -352,6 +352,16 @@ ol>li>ul>li {
     border-radius: 5px;
 }
 
+.markdown-body .pic-small {
+    max-width: 40%;
+    max-height: 300px;
+}
+
+.markdown-body .pic-middle {
+    max-width: 60%;
+    max-height: 400px;
+}
+
 .markdown-body pre {
     position: relative;
 }
@@ -428,11 +438,13 @@ ol>li>ul>li {
     display: flex;
     justify-content: left;
     margin-bottom: 5px;
+    margin-top: 5px;
 }
 
 .markdown-body blockquote p {
     margin-bottom: 5px;
     margin-top: 5px;
+    margin-left: 5px;
 }
 
 .changeMode {
@@ -672,7 +684,7 @@ ol>li>ul>li {
     border-left: 2px solid #e0e0e0;
     /* 添加左侧灰色竖线 */
     padding-left: -5px;
-    /* 增加左侧内边距，与竖线保持适当距离 */
+    /* 增加左侧内边距,与竖线保持适当距离 */
 }
 
 .header-navigator::-webkit-scrollbar {
@@ -1058,48 +1070,49 @@ body.lb-disable-scrolling {
 
 .reference-list li {
     margin-bottom: 8px;
-    padding: 12px 16px;
-    background-color: #f6f8fa;
-    border: 1px solid #e1e4e8;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-}
-
-.markdown-dark .reference-list li {
-    background-color: #21262d;
-    border-color: #30363d;
-}
-
-.reference-list li:hover {
-    background-color: #ffffff;
-    border-color: #0969da;
-    transform: translateX(4px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.markdown-dark .reference-list li:hover {
-    background-color: #30363d;
-    border-color: #58a6ff;
 }
 
 .reference-list a {
     text-decoration: none;
     color: #0969da;
     font-weight: 500;
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    gap: 10px;
     font-size: 14px;
+    width: 100%;
+    padding: 12px 4px;
+    background-color: #f3f4f6;
+    border-radius: 6px;
+    transition: all 0.2s ease;
 }
 
 .markdown-dark .reference-list a {
     color: #58a6ff;
+    background-color: #252b33;
 }
 
 .reference-list a:hover {
+    background-color: #e5e7eb;
+    transform: none;
+    box-shadow: none;
     text-decoration: none;
     color: #0969da;
 }
 
 .markdown-dark .reference-list a:hover {
     color: #58a6ff;
+    background-color: #2d333b;
+}
+
+.reference-icon {
+    width: 18px;
+    height: 18px;
+    display: inline-block;
+    flex-shrink: 0;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    /* 简单的蓝色文档图标 */
+    background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M6.75 3.5C6.75 3.086 7.086 2.75 7.5 2.75H14.5L18.75 7V20.5C18.75 20.914 18.414 21.25 18 21.25H7.5C7.086 21.25 6.75 20.914 6.75 20.5V3.5Z' stroke='%231E64F0' stroke-width='1.5' fill='%23E7F0FF'/%3E%3Cpath d='M14.5 2.75V6.25C14.5 6.66421 14.8358 7 15.25 7H18.75' stroke='%231E64F0' stroke-width='1.5'/%3E%3Cpath d='M9.5 11.25H15' stroke='%231E64F0' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M9.5 14.25H15' stroke='%231E64F0' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M9.5 17.25H13' stroke='%231E64F0' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
 }

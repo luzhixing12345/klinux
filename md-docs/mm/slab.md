@@ -3,28 +3,28 @@
 
 ## 产生背景
 
-在Linux中,伙伴分配器(buddy allocator)是以页为单位管理和分配内存.但在内核中的需求却以字节为单位(在内核中面临频繁的结构体内存分配问题, 例如 struct inodem struct task_struct).假如我们需要动态申请一个内核结构体(占 20 字节),若仍然分配一页内存,这将严重浪费内存
+在Linux中,伙伴分配器(buddy allocator)是以页为单位管理和分配内存。但在内核中的需求却以字节为单位(在内核中面临频繁的结构体内存分配问题, 例如 struct inodem struct task_struct).假如我们需要动态申请一个内核结构体(占 20 字节),若仍然分配一页内存,这将严重浪费内存
 
 既然 buddy system 采用的 4KB 太大, 那我们能不能考虑以更小的尺寸(比如64/128/256B)去组织,形成一个二级分配系统呢? 假设一个object的大小是96字节,如果使用这样的二级分配器,申请时将从128字节的free list开始查找,没有则继续寻找更高order的free list. 这个思路有两个比较明显的缺点
 
-1. 这将在每个被使用到的128字节内存块中留下32字节难以使用的"**碎片**",造成内存资源的浪费.
+1. 这将在每个被使用到的128字节内存块中留下32字节难以使用的"**碎片**",造成内存资源的浪费。
 2. 一个object在释放后将归还到128字节的free list上,根据buddy的规则,**可能被合并为更高order的内存块,如果这个object马上又要使用,则需要再次从free list上分配**
 
-除此之外, 对于频繁的分配/回收的内存段, 我们期望可以缓存和复用相同的objects,加快分配和释放的速度.
+除此之外, 对于频繁的分配/回收的内存段, 我们期望可以缓存和复用相同的objects,加快分配和释放的速度。
 
 ## 历史与简介
 
-slab 分配器**专为小内存分配而生**, 基于伙伴分配器的大内存进一步细分成小内存分配.换句话说,slab 分配器仍然从 Buddy 分配器中申请内存,之后自己对申请来的内存细分管理.
+slab 分配器**专为小内存分配而生**, 基于伙伴分配器的大内存进一步细分成小内存分配。换句话说,slab 分配器仍然从 Buddy 分配器中申请内存,之后自己对申请来的内存细分管理。
 
-> slab 由Sun公司的一个雇员Jeff Bonwick在Solaris 2.4中设计并实现, 由于他公开了其方法,因而后来被Linux所借鉴,用于实现内核中更小粒度的内存分配. 
+> slab 由Sun公司的一个雇员Jeff Bonwick在Solaris 2.4中设计并实现, 由于他公开了其方法,因而后来被Linux所借鉴,用于实现内核中更小粒度的内存分配。
 
-除了提供小内存外,slab 分配器的第二个任务是**维护常用对象的缓存**.对于内核中使用的许多结构,初始化对象所需的时间可等于或超过为其分配空间的成本.当创建一个新的slab 时,许多对象将被打包到其中并使用构造函数(如果有)进行初始化.释放对象后,它会保持其初始化状态,这样可以快速分配对象
+除了提供小内存外,slab 分配器的第二个任务是**维护常用对象的缓存**.对于内核中使用的许多结构,初始化对象所需的时间可等于或超过为其分配空间的成本。当创建一个新的slab 时,许多对象将被打包到其中并使用构造函数(如果有)进行初始化。释放对象后,它会保持其初始化状态,这样可以快速分配对象
 
-slab 分配器的最后一项任务是**提高CPU硬件缓存的利用率**. 如果将对象包装到 slab 中后仍有剩余空间,则将剩余空间用于为 slab 着色. slab 着色是一种尝试使不同 slab 中的对象使用CPU硬件缓存中不同行的方案. 通过将对象放置在 slab 中的不同起始偏移处,对象可能会在CPU缓存中使用不同的行,从而有助于确保来自同一 slab 缓存的对象不太可能相互刷新. 通过这种方案,原本被浪费掉的空间可以实现一项新功能
+slab 分配器的最后一项任务是**提高CPU硬件缓存的利用率**. 如果将对象包装到 slab 中后仍有剩余空间,则将剩余空间用于为 slab 着色。slab 着色是一种尝试使不同 slab 中的对象使用CPU硬件缓存中不同行的方案。通过将对象放置在 slab 中的不同起始偏移处,对象可能会在CPU缓存中使用不同的行,从而有助于确保来自同一 slab 缓存的对象不太可能相互刷新。通过这种方案,原本被浪费掉的空间可以实现一项新功能
 
 slab 有很多相关的概念和内容比较容易搞混, 这里做一下区分
 
-1. 本文讨论是 slab allocator, 这是一个用于紧密管理小内存分配器的概念. slab allocator 有三个主流的实现 SLOB SLAB SLUB
+1. 本文讨论是 slab allocator, 这是一个用于紧密管理小内存分配器的概念。slab allocator 有三个主流的实现 SLOB SLAB SLUB
    - SLOB 是最早出现的, 非常紧凑但不够高效/性能不好, 现在只能在嵌入式系统中看到;
    - SLAB 是 Solaris 的实现, 高缓存效率但是比较浪费内存, 并且它不断地在做一些检查和计算以确保缓存的有效性, 对于拥有大量核心的超级计算机上会浪费大量的 CPU 周期去跟踪计算内存;
    - SLUB 是当前 Linux 默认采用的分配器实现
@@ -46,7 +46,7 @@ slab 有很多相关的概念和内容比较容易搞混, 这里做一下区分
 
 在slab分配器中,每一类objects拥有一个"cache"(比如inode_cache, dentry_cache, 具有相同的 sizeof).之所以叫做"cache",是因为每分配一个object,都从包含若干空闲的同类objects的区域获取,释放时也直接回到这个区域,这样可以缓存和复用相同的objects,加快分配和释放的速度
 
-object从"cache"获取内存,"cache"的内存从buddy分配器来. 也就是说slab allocator层直接面向程序的分配需求,相当于是前端,而buddy系统则成为slab allocator的后端, 如下图所示
+object从"cache"获取内存,"cache"的内存从buddy分配器来。也就是说slab allocator层直接面向程序的分配需求,相当于是前端,而buddy系统则成为slab allocator的后端, 如下图所示
 
 ![20230823172155](https://raw.githubusercontent.com/learner-lu/picbed/master/20230823172155.png)
 
@@ -100,9 +100,9 @@ struct kmem_cache_node {
 
 SLAB 和 SLUB 的差别就在于 CONFIG_SLAB 与 CONFIG_SLUB 的选择, 对应结构体 kmem_cache_node 中 SLAB 具有 slabs_free(全空), slabs_partial(部分空), slabs_full(全满), 但是 SLUB 只有 partial(部分空).
 
-> SLUB内存分配器是在SLAB的基础上进行了改进和简化.SLUB设计的目标是进一步减少内存分配和回收的开销,因此它仅使用了一个链表_即partial链表,而去除了SLAB中的slab_full链表.
+> SLUB内存分配器是在SLAB的基础上进行了改进和简化。SLUB设计的目标是进一步减少内存分配和回收的开销,因此它仅使用了一个链表_即partial链表,而去除了SLAB中的slab_full链表。
 
-下图是 kmem_cache 结构体展开的设计架构图, 下面具体介绍一下每一部分的内容.
+下图是 kmem_cache 结构体展开的设计架构图, 下面具体介绍一下每一部分的内容。
 
 ![20230823173224](https://raw.githubusercontent.com/learner-lu/picbed/master/20230823173224.png)
 
@@ -144,7 +144,7 @@ SLAB 和 SLUB 的差别就在于 CONFIG_SLAB 与 CONFIG_SLUB 的选择, 对应�
 
 ```c
 /*分配一块给某个数据结构使用的缓存描述符
-  name:对象的名字   size:对象的实际大小  align:对齐要求,通常填0,创建是自动选择.   flags:可选标志位    ctor: 构造函数 */
+  name:对象的名字   size:对象的实际大小  align:对齐要求,通常填0,创建是自动选择。  flags:可选标志位    ctor: 构造函数 */
 struct kmem_cache *kmem_cache_create(const char *name, size_t size, size_t align, unsigned long flags, void (*ctor)(void*));
 
 /*销毁kmem_cache_create分配的kmem_cache*/

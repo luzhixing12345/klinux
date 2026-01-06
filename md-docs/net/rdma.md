@@ -5,7 +5,7 @@
 
 DMA(直接内存访问)是一种能力,允许在计算机主板上的设备直接把数据发送到内存中去,数据搬运不需要CPU的参与
 
-传统内存访问需要通过CPU进行数据copy来移动数据,通过CPU将内存中的Buffer1移动到Buffer2中.DMA模式:可以同DMA Engine之间通过硬件将数据从Buffer1移动到Buffer2,而不需要操作系统CPU的参与,大大降低了CPU Copy的开销
+传统内存访问需要通过CPU进行数据copy来移动数据,通过CPU将内存中的Buffer1移动到Buffer2中。DMA模式:可以同DMA Engine之间通过硬件将数据从Buffer1移动到Buffer2,而不需要操作系统CPU的参与,大大降低了CPU Copy的开销
 
 ![20221202163405](https://raw.githubusercontent.com/learner-lu/picbed/master/20221202163405.png)
 
@@ -17,9 +17,9 @@ RDMA是一种概念,在两个或者多个计算机进行通讯的时候使用DMA
 
 数据发生多次拷贝,中间的处理过程都需要CPU参与,如果不绕过操作系统内核对于CPU来说就是持续的开销
 
-RDMA是一种host-offload, host-bypass技术,允许应用程序(包括存储)在它们的内存空间之间直接做数据传输.具有RDMA引擎的以太网卡(RNIC)--而不是host--负责管理源和目标之间的可靠连接.使用RNIC的应用程序之间使用专注的QP和CQ进行通讯
+RDMA是一种host-offload, host-bypass技术,允许应用程序(包括存储)在它们的内存空间之间直接做数据传输。具有RDMA引擎的以太网卡(RNIC)--而不是host--负责管理源和目标之间的可靠连接。使用RNIC的应用程序之间使用专注的QP和CQ进行通讯
 
-RDMA 直接绕过内核,让数据在应用层传递到网络接口.可以将数据从应用层直接
+RDMA 直接绕过内核,让数据在应用层传递到网络接口。可以将数据从应用层直接
 
 INFINIBAND TRADE ASSOCIATION (IBTA) 制定IB标准, openfabrics 开发IB 软件
 
@@ -37,9 +37,9 @@ SDN网络,不需要广播,网络扩展性非常好
 
 infiniband 最大特点是它是一个SDN(software define networking 软件定义网络)
 
-子网管理器构成了软件定义网络的控制面,控制面发送子网的所有配置到各个交换机到各个端口.
+子网管理器构成了软件定义网络的控制面,控制面发送子网的所有配置到各个交换机到各个端口。
 
-在设备上电之后,子网管理器会给所有的给所有的端口分配二层地址,之后的通信都是由二层地址在子网端口之间进行通信. 因为子网管理器在SDN中具有全局的视角,所以它可以轻易的进行一个子网的路由计算,计算两点之间的路由,并且把对应的路由表下发到对应的交换机
+在设备上电之后,子网管理器会给所有的给所有的端口分配二层地址,之后的通信都是由二层地址在子网端口之间进行通信。因为子网管理器在SDN中具有全局的视角,所以它可以轻易的进行一个子网的路由计算,计算两点之间的路由,并且把对应的路由表下发到对应的交换机
 
 所有的路由寻址都是由SDN来控制的,这样使得网络的路由拓扑收敛性特别好,任何一个交换机,任何一个路由或者交换机离线或者上线,就会进行一次路由表的更新,可扩展性和易维护性很好
 
@@ -107,8 +107,8 @@ datagram不面向连接都需要指定具体是发送给哪一个QP,建立一对
 
 ![20221202193241](https://raw.githubusercontent.com/learner-lu/picbed/master/20221202193241.png)
 
-|![1213](https://raw.githubusercontent.com/learner-lu/picbed/master/1213.gif)|![4123](https://raw.githubusercontent.com/learner-lu/picbed/master/4123.gif)|
-|:--:|:--:|
+| ![1213](https://raw.githubusercontent.com/learner-lu/picbed/master/1213.gif) | ![4123](https://raw.githubusercontent.com/learner-lu/picbed/master/4123.gif) |
+| :--------------------------------------------------------------------------: | :--------------------------------------------------------------------------: |
 
 ## MPI
 
@@ -122,9 +122,9 @@ datagram不面向连接都需要指定具体是发送给哪一个QP,建立一对
 
 这种服务需要分两块buffer管理
 
-软件上需要实现,如果我已经在请求接收远端的某些buffer,那么我需要注册一个tag,如果还没有算到并且数据已经到了那么就临时的放在一个buffer中.目前这种匹配机制可以完全由infinband网卡进行卸载
+软件上需要实现,如果我已经在请求接收远端的某些buffer,那么我需要注册一个tag,如果还没有算到并且数据已经到了那么就临时的放在一个buffer中。目前这种匹配机制可以完全由infinband网卡进行卸载
 
-也就是说网卡接收到一个数据之后,他回去检查该数据是否存在匹配的receive,如果存在则网卡直接将数据送给应用.反之,如果没有发现对应的tag,他会直接放到软件的buffer中去
+也就是说网卡接收到一个数据之后,他回去检查该数据是否存在匹配的receive,如果存在则网卡直接将数据送给应用。反之,如果没有发现对应的tag,他会直接放到软件的buffer中去
 
 ![20221204105822](https://raw.githubusercontent.com/learner-lu/picbed/master/20221204105822.png)
 
@@ -140,5 +140,6 @@ tag matching ,GPU RDMA都可以在UCX中配置
 
 ## 参考
 
+- [RDMA杂谈专栏索引](https://zhuanlan.zhihu.com/p/164908617) 必看 21 极佳
 - [RDMA技术详解(一):RDMA概述](https://zhuanlan.zhihu.com/p/55142557)
 - [ASC22培训day2--  Infiniband & RDMA入门介绍&NGC容器快速进行DL训练](https://www.bilibili.com/video/BV1Aq4y1C7Fh)

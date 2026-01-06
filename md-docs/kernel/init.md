@@ -7,7 +7,7 @@
 
 init/main.c 文件中的 `start_kernel` 是一切的起点,在这个函数被调用之前都是系统的初始化工作(汇编语言),所以对内核的启动分析一般都从这个函数开始
 
-这个函数在执行的过程中初始化、定义了内核中一些十分重要的内容,其执行过程几乎涉及到了内核的所有模块的初始化, 我们这里主要关注**进程初始化**的部分.
+这个函数在执行的过程中初始化、定义了内核中一些十分重要的内容,其执行过程几乎涉及到了内核的所有模块的初始化, 我们这里主要关注**进程初始化**的部分。
 
 ```c
 void __init start_kernel(void)
@@ -162,7 +162,7 @@ kernel_thread(kernel_init, NULL, CLONE_FS);
 
 init进程应该是一个用户空间的进程, 但是这里却是**通过kernel_thread的方式创建**的, 哪岂不是一个永远运行在**内核态的内核线程**么, 它是怎么演变为真正意义上**用户空间的init进程**的?
 
-1号kernel_init进程完成linux的各项配置后(kernel_init_freeable),就会尝试执行 init 程序. 默认执行的 `ramdisk_execute_command` 初值为 ["/init"](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/init/main.c#L159), 也可以在内核启动时(通过qemu)传递参数 [rdinit=](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/init/main.c#L589-L599) 来指定位置; 如果没有找到或者执行出错则尝试执行 [init=](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/init/main.c#L572-L587) 的参数, 否则去几个可能的位置 `/sbin/init` `/etc/init` `/bin/init` `/bin/sh` 尝试执行. 流程简化如下
+1号kernel_init进程完成linux的各项配置后(kernel_init_freeable),就会尝试执行 init 程序。默认执行的 `ramdisk_execute_command` 初值为 ["/init"](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/init/main.c#L159), 也可以在内核启动时(通过qemu)传递参数 [rdinit=](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/init/main.c#L589-L599) 来指定位置; 如果没有找到或者执行出错则尝试执行 [init=](https://github.com/luzhixing12345/klinux/blob/c58f2066740837b4fc7e1d12aedb5f1a045fef43/init/main.c#L572-L587) 的参数, 否则去几个可能的位置 `/sbin/init` `/etc/init` `/bin/init` `/bin/sh` 尝试执行。流程简化如下
 
 ```c
 static int kernel_init(void *unused)

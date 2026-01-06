@@ -1,0 +1,74 @@
+pre[class*="language-tree"] {
+    background: #1f1f1f;
+}
+
+pre[class*="language-tree"] .Token {
+    color: #C1CCCC;
+}
+
+pre[class*="language-tree"] .Token.BraceDepth-0 {
+    color: #FFD700;
+}
+
+pre[class*="language-tree"] .Token.BraceDepth-1 {
+    color: #DA70D6;
+}
+
+pre[class*="language-tree"] .Token.BraceDepth-2 {
+    color: #1A9DFF;
+}
+
+pre[class*="language-tree"] .Token.HighlightLine,
+pre[class*="language-tree"] .Token.HighlightToken {
+    background-color: #2d3c4d;
+    padding: 2px 0;
+}
+
+pre[class*="language-tree"] .Token.Program,
+pre[class*="language-tree"] .Token.Function,
+pre[class*="language-tree"] .Token.BACK_SLASH {
+    color: #DCDCAA;
+}
+
+
+pre[class*="language-tree"] .Token.STRING {
+    color: #CE9178;
+}
+
+pre[class*="language-tree"] .Token.NUMBER {
+    color: #A2CEA8;
+}
+
+pre[class*="language-tree"] .Token.COMMENT {
+    color: #6A9955;
+}
+
+pre[class*="language-tree"] .Token.Dir {
+    color: #3b78ff;
+}
+
+pre[class*="language-tree"] .Token.File {
+    color: #cccccc;
+}
+
+/* class FileCSS(Enum):
+    PIC = "Pic" #b4009e
+    TAR = "Tar" #e74856
+    SH = "Sh"   #16c60c
+    LINK = "Link" #61d6d6 */
+
+pre[class*="language-tree"] .Token.Pic {
+    color: #b4009e;
+}
+
+pre[class*="language-tree"] .Token.Tar {
+    color: #e74856;
+}
+
+pre[class*="language-tree"] .Token.Sh {
+    color: #16c60c;
+}
+
+pre[class*="language-tree"] .Token.Link {
+    color: #61d6d6;
+}

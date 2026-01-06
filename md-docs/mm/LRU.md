@@ -1,22 +1,22 @@
 
 # LRU
 
-当内存变得紧张时, 内核必须找到一种方法来释放一些内存页.在某种程度上,内核可以通过清理自己的内部数据结构来释放内存,例如,通过减少 inode 和 dentry 缓存的大小. 但是在大多数系统中,**用户态内存页占用了所消耗的内存量的大头**,毕竟,系统存在的第一要旨就是为应用服务.因此,为了满足当前应用对用户态内存页的分配需求,内核必须找到并释放一些已分配的内存页.
+当内存变得紧张时, 内核必须找到一种方法来释放一些内存页。在某种程度上,内核可以通过清理自己的内部数据结构来释放内存,例如,通过减少 inode 和 dentry 缓存的大小。但是在大多数系统中,**用户态内存页占用了所消耗的内存量的大头**,毕竟,系统存在的第一要旨就是为应用服务。因此,为了满足当前应用对用户态内存页的分配需求,内核必须找到并释放一些已分配的内存页。
 
-同时系统必须维持文件页和匿名页之间数量上的适当平衡,否则系统将无法正常运行.无论是通过牺牲哪一种内存页为代价而让另一种内存页在数量上占优势,都会导致一种称之为 "thrashing" 的现象.
+同时系统必须维持文件页和匿名页之间数量上的适当平衡,否则系统将无法正常运行。无论是通过牺牲哪一种内存页为代价而让另一种内存页在数量上占优势,都会导致一种称之为 "thrashing" 的现象。
 
 > [!NOTE]
-> 指当系统内存不足时,页框回收算法(Page Frame Reclaiming Algrithom,简称 PFRA),会全力把页框上的内容写入磁盘以便回收这些本属于进程的页框;而同时由于这些进程要继续执行,也会努力申请页框存放(譬如缓存)其内容.因此内核把 PFRA 刚释放的页框又分配给这些进程,并从磁盘读回其内容.其结果就是**数据被无休止地写入磁盘并且再从磁盘读回.大部分的时间耗费在访问磁盘上,而进程则无法实质性地运行下去**.
+> 指当系统内存不足时,页框回收算法(Page Frame Reclaiming Algrithom,简称 PFRA),会全力把页框上的内容写入磁盘以便回收这些本属于进程的页框;而同时由于这些进程要继续执行,也会努力申请页框存放(譬如缓存)其内容。因此内核把 PFRA 刚释放的页框又分配给这些进程,并从磁盘读回其内容。其结果就是**数据被无休止地写入磁盘并且再从磁盘读回。大部分的时间耗费在访问磁盘上,而进程则无法实质性地运行下去**.
 
-那如何合理地挑选要回收的 page frames 呢?通常,应该选择那些最近不使用(不活跃)的页面,依据是最近不使用的页面在较短的时间内也不会被频繁使用,这就是 LRU(Least Recently Used) 算法的基本思想.
+那如何合理地挑选要回收的 page frames 呢?通常,应该选择那些最近不使用(不活跃)的页面,依据是最近不使用的页面在较短的时间内也不会被频繁使用,这就是 LRU(Least Recently Used) 算法的基本思想。
 
 ## 基本思路
 
-为了找到那些最近不活跃的 page ,我们需要有 timestamp 来标识一个 page 最近被访问的时间,然而像 x86 这样的架构并没有从硬件上提供这种机制.
+为了找到那些最近不活跃的 page ,我们需要有 timestamp 来标识一个 page 最近被访问的时间,然而像 x86 这样的架构并没有从硬件上提供这种机制。
 
-在 x86 中,当一个 page 被访问后,硬件会将 page 对应的 PTE 中的 Access 位置 1,如果完全按照 LRU的思想来设计,那么此时软件需要为这个 page 关联一个定时器,然后将 PTE 中的 Access 位清 0.在定时器 timeout 之前,如果该 page 没有再被访问到,那么就将这个 page 回收.然而,page frames 数量庞大,维护那么多的内核定时器显然是不切实际的.
+在 x86 中,当一个 page 被访问后,硬件会将 page 对应的 PTE 中的 Access 位置 1,如果完全按照 LRU的思想来设计,那么此时软件需要为这个 page 关联一个定时器,然后将 PTE 中的 Access 位清 0.在定时器 timeout 之前,如果该 page 没有再被访问到,那么就将这个 page 回收。然而,page frames 数量庞大,维护那么多的内核定时器显然是不切实际的。
 
-那如何实现才能保证相对公平又高效呢? Linux 采用的方法是维护 2 个双向链表,一个是包含了最近使用页面的 active list,另一个是包含了最近不使用页面的 inactive list(struct page 中的 lru 域含有指向所在链表中前后页面的指针),并且在 struct page 的 page flags 中使用了 `PG_referenced` 和 `PG_active` 两个标志位来标识页面的活跃程度.
+那如何实现才能保证相对公平又高效呢? Linux 采用的方法是维护 2 个双向链表,一个是包含了最近使用页面的 active list,另一个是包含了最近不使用页面的 inactive list(struct page 中的 lru 域含有指向所在链表中前后页面的指针),并且在 struct page 的 page flags 中使用了 `PG_referenced` 和 `PG_active` 两个标志位来标识页面的活跃程度。
 
 ```c{#19,#47}
 enum pageflags {
@@ -38,10 +38,10 @@ enum pageflags {
 };
 ```
 
-- `PG_referenced` 标志位表明 page 最近是否被使用过.
+- `PG_referenced` 标志位表明 page 最近是否被使用过。
 - `PG_active` 标志位决定 page 在哪个链表,也就是说 active list 中的 pages 的 PG_active 都为 1,而 inactive list 中的 pages 的 `PG_active` 都为 0.
 
-因此每个 page 都会有四个状态 [active/inactive + referenced/unreferenced]. 不管是 active list 还是 inactive list,都是采用 FIFO(First In First Out) 的形式,新的元素从链表头部加入,中间的元素逐渐向尾端移动.在需要进行内存回收时,内核总是选择 inactive list 尾端的页面进行回收.
+因此每个 page 都会有四个状态 [active/inactive + referenced/unreferenced]. 不管是 active list 还是 inactive list,都是采用 FIFO(First In First Out) 的形式,新的元素从链表头部加入,中间的元素逐渐向尾端移动。在需要进行内存回收时,内核总是选择 inactive list 尾端的页面进行回收。
 
 对于一个新加入的页其初始状态为 inactive+unreferenced, 每次访问后该页面状态的变化如下图所示
 
@@ -115,7 +115,7 @@ struct lruvec {
 
 ### 加入 lru
 
-自然我们很关注的一个问题是 page 是什么时候加入到lru链表中的呢? lru链表是页面回收用的,所以只有分配了的页面才有可能存在于lru链中.那很有可能在分配页面的时候把它加进去.事实的确如此
+自然我们很关注的一个问题是 page 是什么时候加入到lru链表中的呢? lru链表是页面回收用的,所以只有分配了的页面才有可能存在于lru链中。那很有可能在分配页面的时候把它加进去。事实的确如此
 
 ```c
 static vm_fault_t do_anonymous_page(struct vm_fault *vmf)
@@ -130,11 +130,11 @@ static vm_fault_t do_anonymous_page(struct vm_fault *vmf)
 >
 > 有关 folio 的介绍详见 [folio](./folio.md)
 
-前文我们提到每个 node 保存一个 lruvec, 意味着该lru链是该节点全局的,加入lru链需要持有相关的锁,可想而知当分配或回收密集的时候**锁的争用非常严重**. 此外 inactive list 中尾端的页面不断被回收,相当于一个消费者,active list 则不断地将尾端 PG_referenced 为 0 的页面放入 inactive list,相当于一个生产者.不难想象,**这 2 个链表的锁(lru_lock)应该是高度竞争的**,如果从active list 向 inactive list 的页面转移是一个一个进行的,那对锁的争抢将会十分严重.
+前文我们提到每个 node 保存一个 lruvec, 意味着该lru链是该节点全局的,加入lru链需要持有相关的锁,可想而知当分配或回收密集的时候**锁的争用非常严重**. 此外 inactive list 中尾端的页面不断被回收,相当于一个消费者,active list 则不断地将尾端 PG_referenced 为 0 的页面放入 inactive list,相当于一个生产者。不难想象,**这 2 个链表的锁(lru_lock)应该是高度竞争的**,如果从active list 向 inactive list 的页面转移是一个一个进行的,那对锁的争抢将会十分严重。
 
-于是内核使用 per-cpu 的 lru cache (struct pagevec)去做优化. 对于要加入lru链的页,可以先加入该 CPU 的 lru cache,直到 lru cache 中已经积累了 PAGEVEC_SIZE(15)个页面,再获取lru_lock,将这些页面批量放入 inactive list 中,这样可以大大减少对lru链的引用.
+于是内核使用 per-cpu 的 lru cache (struct pagevec)去做优化。对于要加入lru链的页,可以先加入该 CPU 的 lru cache,直到 lru cache 中已经积累了 PAGEVEC_SIZE(15)个页面,再获取lru_lock,将这些页面批量放入 inactive list 中,这样可以大大减少对lru链的引用。
 
-我们来看一下对应的函数实现. 如下所示, 该函数会获取per cpu lru cache结构并且将该 folio 加入到 fbatch 当中
+我们来看一下对应的函数实现。如下所示, 该函数会获取per cpu lru cache结构并且将该 folio 加入到 fbatch 当中
 
 ```c{14-16}
 void folio_add_lru(struct folio *folio)
@@ -182,7 +182,7 @@ struct folio_batch {
 };
 ```
 
-可以看到页会先加入fbatch如果没问题就直接返回,否则就要把整个fbatch都加入lru链.
+可以看到页会先加入fbatch如果没问题就直接返回,否则就要把整个fbatch都加入lru链。
 
 ```c
 static void folio_batch_add_and_move(struct folio_batch *fbatch,
@@ -341,7 +341,7 @@ static __always_inline enum lru_list folio_lru_list(struct folio *folio)
 > [!NOTE]
 > lru += LRU_ACTIVE 这个操作和前文 enum lru_list 的定义相关, 算是一种枚举值的巧用, 不然判断估计要写好几个 if else
 
-如果没有显示的设置active那就会将page放到inactive链表中, 这也是默认情况. 一般新创建的内存页都会先加入 inactive list 中.
+如果没有显示的设置active那就会将page放到inactive链表中, 这也是默认情况。一般新创建的内存页都会先加入 inactive list 中。
 
 ---
 
@@ -361,7 +361,7 @@ do_anonymous_page-----------------------------分配匿名页面
 ```
 
 > [!IMPORTANT]
-> 需要注意的是, 为 folio 添加 PG_lru 标志位发生在 folio_batch_move_lru 中, 表示确认将其加入到 lru list 中了.
+> 需要注意的是, 为 folio 添加 PG_lru 标志位发生在 folio_batch_move_lru 中, 表示确认将其加入到 lru list 中了。
 >
 > folio_batch_add 并不会对 folio 设置此标记位, 因此尚在 per-cpu lru cache 的 folio 并不算在 lru list 中
 
@@ -370,7 +370,7 @@ do_anonymous_page-----------------------------分配匿名页面
 
 在分配匿名页的时候会将分配的页放在该folio所在node的lruvec的对应链表里,从代码中看到第一次加入lru链表是在inactive链表中
 
-如果页面一直呆在inactive链表中是很"危险"的, 因为随着后续页面的不断加入, 该页面会不断地从 list 的头部被推向尾部, 到达 inactive list 尾部时就会被回收.如果不想被回收那该怎么做呢?这就是页面在lru链表上如何移动的问题.与此相关的页的flag有PG_referenced和PG_active.
+如果页面一直呆在inactive链表中是很"危险"的, 因为随着后续页面的不断加入, 该页面会不断地从 list 的头部被推向尾部, 到达 inactive list 尾部时就会被回收。如果不想被回收那该怎么做呢?这就是页面在lru链表上如何移动的问题。与此相关的页的flag有PG_referenced和PG_active.
 
 假设初始状态两个标志都是0,他们的状态变化如下
 
@@ -380,7 +380,7 @@ do_anonymous_page-----------------------------分配匿名页面
 
 ![20241223232112](https://raw.githubusercontent.com/learner-lu/picbed/master/20241223232112.png)
 
-对于 mmap 的页面,需要在回收扫描时,通过 rmap 检查 PTE 的 Access 位来判断,而对于通过页面在文件的 offset 来作为索引的(比如 read/write),则可以在 page 被访问后标记该信息. 例如 filemap_read 函数中, 实现此方向状态转移的函数是 folio_mark_accessed
+对于 mmap 的页面,需要在回收扫描时,通过 rmap 检查 PTE 的 Access 位来判断,而对于通过页面在文件的 offset 来作为索引的(比如 read/write),则可以在 page 被访问后标记该信息。例如 filemap_read 函数中, 实现此方向状态转移的函数是 folio_mark_accessed
 
 ```c
 ssize_t filemap_read(struct kiocb *iocb, struct iov_iter *iter,
@@ -499,7 +499,7 @@ static void __lru_cache_activate_folio(struct folio *folio)
 
 TODO list 长度?
 
-内核提供了一个名为 swappiness 的控制项(`/proc/sys/vm/swappiness`, 默认60),可以调节这种平衡.如果系统管理员设置的 swappiness 值较高,则意味着内核允许在内存中保留较多的 cache page.将 swappiness 调低则是告诉内核回收更多的 cache page,保留较多的 anonymous page.
+内核提供了一个名为 swappiness 的控制项(`/proc/sys/vm/swappiness`, 默认60),可以调节这种平衡。如果系统管理员设置的 swappiness 值较高,则意味着内核允许在内存中保留较多的 cache page.将 swappiness 调低则是告诉内核回收更多的 cache page,保留较多的 anonymous page.
 
 
 ## 参考
