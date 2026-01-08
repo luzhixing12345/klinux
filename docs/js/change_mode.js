@@ -88,17 +88,22 @@ function changeThemeMode() {
 
 }
 
+var change_mode_button;
+
 // 添加切换颜色
 function addChangeModeButton(sun_src, moon_src) {
     global_sun_src = sun_src;
     global_moon_src = moon_src;
-    var change_mode_button = document.createElement('img')
+    change_mode_button = document.createElement('img')
     change_mode_button.src = sun_src;
     change_mode_button.className = 'changeMode'
     change_mode_button.id = 'changeThemeMode'
     change_mode_button.onclick = changeThemeMode
     change_mode_button.state = false; // light: false | dark: true
     document.body.appendChild(change_mode_button)
+}
+
+document.addEventListener("DirTreeReady", () => {
     // 主题保持
     const savedTheme = localStorage.getItem('theme');
     // 如果保存的主题存在,则设置当前主题为保存的主题
@@ -113,5 +118,4 @@ function addChangeModeButton(sun_src, moon_src) {
             changeToLight(body, markdown_part, change_mode_button, change_article_boxes)
         }
     }
-}
-
+});

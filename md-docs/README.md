@@ -96,3 +96,8 @@ zood -o
 - talk
   - [The Linux Storage, Filesystem, Memory Management & BPF Summit @ OSS NA 2023](https://www.youtube.com/playlist?list=PLbzoR-pLrL6rlmdpJ3-oMgU_zxc1wAhjS)
   - [Yi Ian](https://blog.csdn.net/sanylove?type=blog)
+- 微信公众号
+  - 老白码农在奋斗 [panzhongxian log](https://panzhongxian.cn/cn/log/) 云容器相关内容不错
+  - [bin的技术小屋](https://mp.weixin.qq.com/mp/appmsgalbum?__biz=Mzg2MzU3Mjc3Ng==&action=getalbum&album_id=2559805446807928833&scene=173&from_msgid=2247486879&from_itemidx=1&count=3&nolastread=1#wechat_redirect) Linux 内核
+  - Linux内核那些事
+  - eBPF

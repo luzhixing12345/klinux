@@ -18,10 +18,6 @@ var giscus = document.createElement('div');
 giscus.setAttribute('class', 'giscus');
 markdown_part.appendChild(giscus);
 
-var currentUrl = window.location.href.slice(0, -1);
-var dirTree = document.querySelector(".dir-tree");
-var links = dirTree.querySelectorAll("a");
-
 // 如果保存的主题存在,则设置当前主题为保存的主题
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme !== null) {
@@ -31,27 +27,7 @@ if (savedTheme !== null) {
         markdown_part.className = 'markdown-body markdown-dark'
     }
 }
-links.forEach(function (link) {
-    if (link.href === currentUrl) {
-        // 检查这个链接是否是一级目录链接(即父元素li下面有ul子元素)
-        const parentLi = link.parentElement;
-        const hasSubUl = parentLi.querySelector('ul');
 
-        // 只对非一级目录的链接(即文件链接)应用active样式
-        if (!hasSubUl) {
-            link.scrollIntoView({ block: 'center', inline: 'nearest'});
-            if (savedTheme) {
-                if (savedTheme == 'dark') {
-                    link.classList.add("link-active-dark");
-                } else {
-                    link.classList.add("link-active");
-                }
-            } else {
-                link.classList.add("link-active");
-            }
-        }
-    }
-});
 
 // 代码段可编辑, 可选中
 var code_blocks = document.getElementsByTagName('pre');

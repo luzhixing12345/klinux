@@ -28,8 +28,8 @@ function toggleDirectory(event, linkElement) {
     }
 }
 
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', function () {
+
+function initDirTreeToggle() {
     // 找到所有有子目录的一级目录链接
     const dirTree = document.querySelector('.dir-tree');
     if (dirTree) {
@@ -38,10 +38,10 @@ document.addEventListener('DOMContentLoaded', function () {
         topLevelUls.forEach(function (ul) {
             const li = ul.querySelector('li');
             if (li) {
-                // 检查这个li是否包含子ul（即有子目录）
+                // 检查这个li是否包含子ul(即有子目录)
                 const subUls = li.querySelectorAll('ul');
                 if (subUls.length > 0) {
-                    // 找到这个li中的第一个链接（一级目录标题）
+                    // 找到这个li中的第一个链接(一级目录标题)
                     const firstLink = li.querySelector(':scope > a');
                     if (firstLink) {
                         // 为这个链接添加点击事件
@@ -56,6 +56,31 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
+        var links = dirTree.querySelectorAll("a");
+        var currentUrl = window.location.href.slice(0, -1);
+        links.forEach(function (link) {
+            if (link.href === currentUrl) {
+                // 检查这个链接是否是一级目录链接(即父元素li下面有ul子元素)
+                const parentLi = link.parentElement;
+                const hasSubUl = parentLi.querySelector('ul');
+
+                // 只对非一级目录的链接(即文件链接)应用active样式
+                if (!hasSubUl) {
+                    link.scrollIntoView({ block: 'center', inline: 'nearest' });
+                    if (savedTheme) {
+                        if (savedTheme == 'dark') {
+                            link.classList.add("link-active-dark");
+                        } else {
+                            link.classList.add("link-active");
+                        }
+                    } else {
+                        link.classList.add("link-active");
+                    }
+                }
+            }
+        });
+    } else {
+        console.error("no dir tree");
     }
 
     // 默认所有一级目录都是展开状态
@@ -64,4 +89,32 @@ document.addEventListener('DOMContentLoaded', function () {
         subUl.classList.remove('collapsed');
         subUl.style.height = 'auto';
     });
-}); 
+    document.dispatchEvent(new Event("DirTreeReady"));
+}
+
+var current_path = window.location.pathname;
+// console.log(current_path);
+var dir_tree_path = current_path + "../../../dir-tree.html";
+var is_index = false;
+
+if (current_path.includes("index.html")) {
+    // 首页
+    dir_tree_path = current_path.replace("index.html", "dir-tree.html");
+    is_index = true;
+}
+
+// console.log(dir_tree_path);
+// read embed html body and move to body
+fetch(dir_tree_path)
+    .then(res => res.text())
+    .then(html => {
+        const placeholder =
+            document.getElementById("dir-tree-placeholder");
+        if (is_index) {
+            // replace html template ../.. to ./articles
+            html = html.replace(/\.\.\/\.\./g, "./articles");
+        }
+        placeholder.outerHTML = html;
+        initDirTreeToggle();
+    });
+
