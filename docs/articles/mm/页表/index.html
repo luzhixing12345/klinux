@@ -166,7 +166,7 @@
 </span><span class="Token SPACE">        </span><span class="Token TEXT">└</span><span class="Token TEXT">─</span><span class="Token ID">dup_mm</span><span class="Token LF">
 </span><span class="Token SPACE">          </span><span class="Token PIPE">|</span><span class="Token TEXT">─</span><span class="Token ID">mm_init</span><span class="Token LF">
 </span><span class="Token SPACE">          </span><span class="Token TEXT">└</span><span class="Token TEXT">─</span><span class="Token ID">dup_mmap</span><span class="Token LF">
-</span><span class="Token SPACE">            </span><span class="Token TEXT">└</span><span class="Token TEXT">─</span><span class="Token ID">copy_page_range</span></code></pre><h2 id="h2-2">gdb 调试页面遍历</h2><p>以下述代码为例, 关于如何调试可执行文件见 <a href="../../快速开始/调试内核" target="_self">调试内核</a> [调试可执行文件]</p><pre class="language-c"><code><span class="Token HASH">#</span><span class="Token Keyword Preprocess ControlLine INCLUDE">include</span><span class="Token Keyword Preprocess ControlLine SPACE"> </span><span class="Token HeaderName ControlLine BraceDepth-0 LANGLE_BRACE">&lt;</span><span class="Token String HeaderName STRING">string.h</span><span class="Token HeaderName ControlLine BraceDepth-0 RANGLE_BRACE">&gt;</span><span class="Token LF">
+</span><span class="Token SPACE">            </span><span class="Token TEXT">└</span><span class="Token TEXT">─</span><span class="Token ID">copy_page_range</span></code></pre><h2 id="h2-2">gdb 调试页面遍历</h2><p>4555555555555 , 关于如何调试可执行文件见 <a href="../../快速开始/调试内核" target="_self">调试内核</a> [调试可执行文件]</p><pre class="language-c"><code><span class="Token HASH">#</span><span class="Token Keyword Preprocess ControlLine INCLUDE">include</span><span class="Token Keyword Preprocess ControlLine SPACE"> </span><span class="Token HeaderName ControlLine BraceDepth-0 LANGLE_BRACE">&lt;</span><span class="Token String HeaderName STRING">string.h</span><span class="Token HeaderName ControlLine BraceDepth-0 RANGLE_BRACE">&gt;</span><span class="Token LF">
 </span><span class="Token HASH">#</span><span class="Token Keyword Preprocess ControlLine INCLUDE">include</span><span class="Token Keyword Preprocess ControlLine SPACE"> </span><span class="Token HeaderName ControlLine BraceDepth-0 LANGLE_BRACE">&lt;</span><span class="Token String HeaderName STRING">stdlib.h</span><span class="Token HeaderName ControlLine BraceDepth-0 RANGLE_BRACE">&gt;</span><span class="Token LF">
 </span><span class="Token HASH">#</span><span class="Token Keyword Preprocess ControlLine INCLUDE">include</span><span class="Token Keyword Preprocess ControlLine SPACE"> </span><span class="Token HeaderName ControlLine BraceDepth-0 LANGLE_BRACE">&lt;</span><span class="Token String HeaderName STRING">sys/types.h</span><span class="Token HeaderName ControlLine BraceDepth-0 RANGLE_BRACE">&gt;</span><span class="Token LF">
 </span><span class="Token HASH">#</span><span class="Token Keyword Preprocess ControlLine INCLUDE">include</span><span class="Token Keyword Preprocess ControlLine SPACE"> </span><span class="Token HeaderName ControlLine BraceDepth-0 LANGLE_BRACE">&lt;</span><span class="Token String HeaderName STRING">sys/wait.h</span><span class="Token HeaderName ControlLine BraceDepth-0 RANGLE_BRACE">&gt;</span><span class="Token LF">
@@ -324,12 +324,13 @@
             data-theme="preferred_color_scheme" data-lang="zh-CN" crossorigin="anonymous" async>
             </script>
             <script type="text/javascript" src="../../../js/global_js_configuration.js"></script>
-</body>
 <script>
     const ws = new WebSocket("ws://127.0.0.1:8765");
     ws.onmessage = (event) => {
         if (event.data === "reload") location.reload();
     };
 </script>
+    
+</body>
 
 </html>

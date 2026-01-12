@@ -97,9 +97,13 @@ var current_path = window.location.pathname;
 var dir_tree_path = current_path + "../../../dir-tree.html";
 var is_index = false;
 
-if (current_path.includes("index.html")) {
-    // 首页
-    dir_tree_path = current_path.replace("index.html", "dir-tree.html");
+// check if current_path is root path
+// root path is like "/klinux/"
+// not root path is like "'/klinux/articles/%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B/%E7%BC%96%E8%AF%91%E5%86%85%E6%A0%B8/'"
+
+// if '/' exist more than 2, it is not root path
+if (current_path.match(/\//g).length === 2) {
+    dir_tree_path = current_path + "/../dir-tree.html";
     is_index = true;
 }
 

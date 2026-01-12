@@ -97,12 +97,13 @@
             data-theme="preferred_color_scheme" data-lang="zh-CN" crossorigin="anonymous" async>
             </script>
             <script type="text/javascript" src="../../../js/global_js_configuration.js"></script>
-</body>
 <script>
     const ws = new WebSocket("ws://127.0.0.1:8765");
     ws.onmessage = (event) => {
         if (event.data === "reload") location.reload();
     };
 </script>
+    
+</body>
 
 </html>
