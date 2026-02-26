@@ -67,15 +67,7 @@ function initDirTreeToggle() {
                 // 只对非一级目录的链接(即文件链接)应用active样式
                 if (!hasSubUl) {
                     link.scrollIntoView({ block: 'center', inline: 'nearest' });
-                    if (savedTheme) {
-                        if (savedTheme == 'dark') {
-                            link.classList.add("link-active-dark");
-                        } else {
-                            link.classList.add("link-active");
-                        }
-                    } else {
-                        link.classList.add("link-active");
-                    }
+                    link.classList.add("link-active");
                 }
             }
         });

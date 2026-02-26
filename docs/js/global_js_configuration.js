@@ -18,17 +18,6 @@ var giscus = document.createElement('div');
 giscus.setAttribute('class', 'giscus');
 markdown_part.appendChild(giscus);
 
-// 如果保存的主题存在,则设置当前主题为保存的主题
-const savedTheme = localStorage.getItem('theme');
-if (savedTheme !== null) {
-    if (savedTheme === 'light') {
-        markdown_part.className = 'markdown-body markdown-light'
-    } else {
-        markdown_part.className = 'markdown-body markdown-dark'
-    }
-}
-
-
 // 代码段可编辑, 可选中
 var code_blocks = document.getElementsByTagName('pre');
 for (var i = 0; i < code_blocks.length; i++) {

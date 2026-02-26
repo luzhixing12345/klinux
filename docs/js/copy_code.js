@@ -1,22 +1,37 @@
+// https://www.shadcn.io/icon/lucide-copy
+const copyIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#9198a1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:1;"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+// https://www.shadcn.io/icon/lucide-check
+const copiedIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#3fb950" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:1;"><path fill="none"     d="M20 6L9 17l-5-5"/></svg>';
+const copyRightOffset = 8;
 
-var global_before_copy_url;
-var global_after_copy_url;
+function updateCopyButtonPosition(block) {
+    var clip_board = block.querySelector('#code_copy');
+    if (!clip_board) {
+        return;
+    }
+    clip_board.style.right = `${copyRightOffset - block.scrollLeft}px`;
+}
 
 function add(block) {
-
-    var clip_board = document.createElement('img');
+    var clip_board = document.createElement('div');
     clip_board.id = 'code_copy';
-    clip_board.src = global_before_copy_url;
+    clip_board.innerHTML = copyIcon;
     clip_board.onclick = function () {
-        clip_board.src = global_after_copy_url;
+        clip_board.innerHTML = copiedIcon;
         var range = document.createRange();
         range.selectNodeContents(block.firstChild);
         var selection = window.getSelection();
         selection.removeAllRanges();
         selection.addRange(range);
         navigator.clipboard.writeText(block.firstChild.innerText);
+        setTimeout(function () {
+            if (document.body.contains(clip_board)) {
+                clip_board.innerHTML = copyIcon;
+            }
+        }, 1200);
     }
     block.appendChild(clip_board)
+    updateCopyButtonPosition(block);
 }
 
 
@@ -24,7 +39,10 @@ function add(block) {
 function horizon_wheel(event, block, maxScroll) {
     event.preventDefault();
     const scrollAmount = event.deltaY * 0.5;
-    const imageElement = document.getElementById('code_copy');
+    const imageElement = block.querySelector('#code_copy');
+    if (!imageElement) {
+        return;
+    }
     const computedStyle = window.getComputedStyle(imageElement);
     const currentRight = parseInt(computedStyle.getPropertyValue('right'));
     
@@ -42,25 +60,20 @@ function horizon_wheel(event, block, maxScroll) {
 }
 
 function remove(block) {
-    var clip_board = document.getElementById('code_copy')
-    block.removeChild(clip_board)
+    var clip_board = block.querySelector('#code_copy');
+    if (clip_board) {
+        block.removeChild(clip_board);
+    }
 }
 
 
-function addCodeCopy(before_copy_url, after_copy_url) {
-    global_before_copy_url = before_copy_url;
-    global_after_copy_url = after_copy_url;
-    // 为所有代码段添加可以复制的标记
+function addCodeCopy() {
     var code_blocks = document.getElementsByTagName('pre')
     for (var i = 0; i < code_blocks.length; i++) {
         const code_block = code_blocks[i];
         code_block.addEventListener("mouseenter", () => add(code_block));
         code_block.addEventListener("mouseleave", () => remove(code_block));
-        // if (code_block.scrollWidth > code_block.clientWidth) {
-        //     // 如果有横向滚动,阻止页面默认的竖直滚动,并将滚动事件重定向到 <pre> 元素上
-        //     const blockWidth = code_block.offsetWidth;
-        //     const maxScroll = code_block.scrollWidth - blockWidth;
-        //     code_block.addEventListener('wheel', (event) => horizon_wheel(event, code_block, maxScroll));
-        // }
+        code_block.addEventListener("scroll", () => updateCopyButtonPosition(code_block));
     }
 }
+addCodeCopy()

@@ -74,6 +74,7 @@ kernel:
 - 进程和线程: 25
 - btf: 26
 - ebpf: 27
+- tracing: 28
 schedule:
 - 调度器历史演进: 1
 - 调度域和调度组: 2
