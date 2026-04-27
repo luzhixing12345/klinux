@@ -26,7 +26,8 @@
             </script>
             <script type="text/javascript" src="../../../js/global_js_configuration.js"></script>
 <script>
-    const ws = new WebSocket("ws://127.0.0.1:8765");
+    const wsProtocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const ws = new WebSocket(`${wsProtocol}://${window.location.hostname}:8765`);
     ws.onmessage = (event) => {
         if (event.data === "reload") location.reload();
     };

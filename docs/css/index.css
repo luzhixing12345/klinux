@@ -472,15 +472,21 @@ ol>li>ul>li {
 }
 
 .dir-tree {
+    --dir-accent: #3451b2;
+    --dir-accent-soft: rgba(52, 81, 178, 0.08);
+    --dir-text: #3c4858;
+    --dir-muted: #6b7280;
     font-family: Consolas, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
     position: fixed;
     left: 6%;
     top: 10%;
     width: 10%;
-    max-width: 200px;
-    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
-    background-color: #f6f8fa;
-    border-radius: 10px;
+    max-width: 260px;
+    padding: 18px 14px 20px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
     max-height: 80%;
     overflow: auto;
     scrollbar-width: none;
@@ -489,37 +495,71 @@ ol>li>ul>li {
     /* IE 10+ */
     text-overflow: ellipsis;
     /*  过长文字省略号 */
-    white-space: nowrap;
-    /*禁止文字折行*/
 }
 
 .dir-tree ul {
     font-family: Consolas, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
     font-size: 18px;
     letter-spacing: 0.02em;
-    margin-top: 25px;
-    margin-bottom: 25px;
-    margin-left: -10px;
+    margin: 0;
+    padding: 0;
     list-style: none;
     position: relative;
-    /* box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px; */
+}
+
+.dir-tree>ul:has(>li>ul)+ul:has(>li>ul) {
+    position: relative;
+    margin-top: 18px;
+    padding-top: 14px;
+}
+
+.dir-tree>ul:has(>li>ul)+ul:has(>li>ul)::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 10px;
+    right: 10px;
+    height: 1px;
+    background: #d8dee9;
+}
+
+.dir-tree>ul:not(:has(>li>ul)) {
+    margin-bottom: 5px;
+}
+
+.dir-tree>ul>li {
+    display: block;
 }
 
 .dir-tree ul li a {
-    display: inline-block;
-    max-width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    padding: 7px 10px;
+    border-radius: 10px;
+    color: var(--dir-text);
+    line-height: 1.45;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
 .dir-tree ul ul {
     overflow: hidden;
     transform-origin: top;
+    margin-left: 0;
+    margin-top: 6px;
+    padding-left: 0;
+    border-left: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease, margin 0.2s ease;
 }
 
 .dir-tree ul ul.collapsed {
-    transform: scaleY(0);
+    transform: scaleY(0.98);
     opacity: 0;
     height: 0;
     padding-top: 0;
@@ -532,38 +572,65 @@ ol>li>ul>li {
     font-family: Consolas, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
     letter-spacing: 0.02em;
     font-size: 16px;
-    margin-left: -10px;
-    margin-top: -10px;
-    /* margin-bottom: 10px; */
-    padding-left: 5px;
-    padding-top: 10px;
-    padding-bottom: 0px;
+    margin: 2px 0 0;
+    padding: 0;
     border-radius: 10px;
-    /* padding-right: -10px; */
 }
-
-/* .dir-tree ul ul li:hover {
-  background-color: #eee;
-} */
 
 .dir-tree ul ul li a {
     color: #000;
+    font-size: 0.95em;
+    font-weight: 500;
 }
 
 .dir-tree ul ul li a:hover {
     color: #000;
 }
 
+.dir-tree>ul>li:has(>ul)>a {
+    padding: 4px 10px;
+    color: var(--dir-text);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    border-radius: 8px;
+}
+
+.dir-tree>ul>li:has(>ul)>a::after {
+    content: "";
+    width: 6px;
+    height: 6px;
+    margin-left: auto;
+    border-right: 1.5px solid #94a3b8;
+    border-bottom: 1.5px solid #94a3b8;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+}
+
+.dir-tree>ul>li:has(>ul.collapsed)>a::after {
+    transform: rotate(-45deg);
+}
+
+.dir-tree>ul>li:not(:has(>ul))>a {
+    font-size: 16px;
+    font-weight: 600;
+}
+
 .link-active {
-    font-weight: bold !important;
-    border-bottom: 2px solid #555;
-    padding-bottom: 2px;
+    font-weight: 600 !important;
+    color: var(--dir-accent) !important;
+    background: var(--dir-accent-soft);
+    border-bottom: 0;
+    padding-bottom: 7px;
 }
 
 .link-active-dark {
-    font-weight: bold !important;
-    border-bottom: 2px solid #f3f3f3;
-    padding-bottom: 2px;
+    font-weight: 600 !important;
+    color: var(--dir-accent) !important;
+    background: var(--dir-accent-soft);
+    border-bottom: 0;
+    padding-bottom: 7px;
 }
 
 /* 图片下的文字的样式 */
@@ -938,17 +1005,20 @@ body.lb-disable-scrolling {
 .dir-tree a {
     text-decoration: none;
     color: #000;
-    /* https://www.bilibili.com/video/BV1Dc41147sW */
-    /* background: linear-gradient(to right, #000, #000) no-repeat right bottom;
-    background-size: 0 2px;
-    transition: background-size 1000ms; */
 }
 
 .dir-tree a:hover {
-    font-weight: bold;
+    font-weight: inherit;
     color: #000;
-    /* background-position-x: left;
-    background-size: 100% 2px; */
+    background-color: #f6f8ff;
+}
+
+.dir-tree>ul>li:has(>ul)>a:hover {
+    font-weight: 700;
+}
+
+.dir-tree>ul>li:not(:has(>ul))>a:hover {
+    font-weight: 600;
 }
 
 /* 引用部分样式 */
@@ -964,12 +1034,15 @@ body.lb-disable-scrolling {
 /* 选项卡导航 */
 .references-tabs-nav {
     display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 8px;
     background-color: #f6f8fa;
     border-bottom: 1px solid #e1e4e8;
 }
 
 .references-tab-btn {
-    flex: 1;
+    flex: 0 0 auto;
     padding: 12px 16px;
     border: none;
     background: none;
@@ -1019,7 +1092,7 @@ body.lb-disable-scrolling {
 
 .reference-list a {
     text-decoration: none;
-    color: #0969da;
+    color: #24292f;
     font-weight: 500;
     display: inline-flex;
     align-items: center;
@@ -1037,7 +1110,7 @@ body.lb-disable-scrolling {
     transform: none;
     box-shadow: none;
     text-decoration: none;
-    color: #0969da;
+    color: #24292f;
 }
 
 .reference-icon {
